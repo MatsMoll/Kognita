@@ -1,0 +1,147 @@
+{
+    "menu.overview" : "Oversikt over fag",
+    "menu.history" : "Øvingshistorikk",
+    "menu.create" : "Lag innhold",
+    "menu.login" : "Logg inn",
+    "menu.register" : "Register",
+    "menu.logout" : "Logg ut",
+
+
+    "error.message" : "En Feil Oppstod - ",
+
+
+    "footer.copyright" : "2019 © Kognita - Mats Eikeland Mollestad",
+    "footer.about.us" : "Om oss",
+    "footer.help" : "Hjelp",
+    "footer.contact" : "Kontakt oss",
+
+
+    "starter.page.title" : "Kognita",
+    "starter.page.description" : "Gjør øvingen mer effektiv og motiverende",
+    "starter.page.more.button" : "Registrer nå",
+
+
+    "login.tab.title" : "Innlogging | Kognita",
+    "login.title" : "Logg inn",
+    "login.subtitle" : "Skriv inn innloggingsinformasjon for å øve mer effektivt",
+
+    "login.mail.title" : "Mail",
+    "login.mail.placeholder" : "Skriv inn mailadressen din",
+
+    "login.password.title" : "Passord",
+    "login.password.placeholder" : "Skriv inn passordet ditt",
+
+    "login.forgotpw.link" : "Glemt passordet ditt?",
+    "login.button" : "Logg inn",
+
+    "login.no.user.title" : "Har du ikke en bruker?",
+    "login.no.user.link" : "Registrer deg nå!",
+
+    "login.error.title" : "En feil oppstod",
+    "login.error.description" : "Feil brukernavn eller passord",
+
+
+    "register.tab.title" : "Registrering | Kognita",
+    "register.title" : "Registrer deg gratis",
+    "register.subtitle" : "Opprettelse av bruker tar mindre enn et minutt",
+
+    "register.name.title" : "Fullt navn",
+    "register.name.placeholder" : "Skriv inn navnet ditt",
+
+    "register.mail.title" : "Mail",
+    "register.mail.placeholder" : "Skriv inn mailadressen din",
+
+    "register.password.title" : "Passord",
+    "register.password.placeholder" : "Skriv inn passordet ditt",
+
+    "register.password.confirmation.title" : "Bekreft passord",
+    "register.password.confirmation.placeholder" : "Gjenta passordet ditt",
+
+    "register.tos.description" : "Jeg godtar",
+    "register.tos.link" : "vilkår og betingelser",
+
+    "register.button" : "Fullfør registrering",
+    "register.already.user.description" : "Har du allerede en bruker?",
+    "register.already.user.link" : "Logg inn",
+
+
+    "subjects.title" : "Fag oversikt",
+
+    "subjects.repeat.title" : "Repetering",
+    "subjects.repeat.description" : "Sett av ti minutter for å repetere noen oppgaver.\n\nDisse oppgavene vil automatisk settes opp til repetisjon avhengig av hvor bra du kan fagstoffet. Her er noen oppgaver vi anbefaler å øve på innen <b>%{revisitDate}</b>. Hvorfor ikke gjennomføre repetisjonen med en gang?",
+    "subjects.repeat.button" : "Start øvingen",
+
+    "subjects.list.title" : "Innhold",
+    "subjects.subject.card.button" : "Utforsk",
+    "subjects.no.content" : "Det er ingen fag enda",
+
+
+    "subject.session.start" : "Start øvingen",
+    "subject.session.work.goal" : "Arbeidsmål",
+    "subject.session.work.goal.unit" : "Oppgaver",
+    "subject.session.topics.title" : "Velg de temaene du vil øve på",
+    "subject.session.topics.description" : "Arbeidsmål",
+    "subject.session.topics.select" : "Velg...",
+ 
+    "subject.topics.title" : "Temaer",
+    "subject.topics.none" : "Det finnes ingen temaer enda",
+    "subject.topic.card.button" : "Utforsk tema",
+    "subject.topic.card.progress.title" : "Fullførte oppgaver",
+
+
+    "exercise.main.title" : "Oppgave",
+    "exercise.exam" : "Eksamen",
+
+    "exercise.multiple.choice.answer.title" : "Velg et alternativ",
+    "exercise.answer.button" : "Sjekk svar",
+    "exercise.solution.button" : "Løsning",
+    "exercise.next.button" : "Neste",
+    "exercise.stop.button" : "Avslutt øving",
+
+    "exercise.progress.title" : "Mål",
+    "exercise.progress.goal" : " oppgaver",
+
+    "exercise.solution.title" : "Løsningsforslag",
+    "exercise.solution.proposed.title" : "Anbefalt løsning",
+
+
+    "result.repeat.days" : {
+        "zero" : "I dag",
+        "one" : "I morgen",
+        "other" : "%{daysUntilRevisit} dager"
+    },
+
+    "result.path.history" : "Øvingshistorikk",
+    "result.path.current" : "Resultat",
+
+    "result.histogram.title" : "Nylig øvingsaktivitet",
+
+    "result.summary.task.amount" : "Antall oppgaver",
+    "result.summary.goal" : "Mål",
+    "result.summary.duration" : "Øvingstid",
+    "result.summary.accuracy" : "Nøyaktighet",
+
+    "result.summary.review.topic" : "Tema",
+    "result.summary.review.question" : "Spørsmål",
+    "result.summary.review.result" : "Resultat",
+    "result.summary.review.repeat" : "Repitisjon om",
+
+    "result.summary.contents.topic" : "<variabel?>",
+    "result.summary.contents.question" : "<variabel?>",
+    "result.summary.contents.results" : "<variabel?> poeng",
+    "result.summary.contents.repeat" : "<variabel?>",
+
+
+    "history.title" : "Øvingshistorikk",
+    "history.path.title" : "Øvingshistorikk",
+    "history.histogram.title" : "Nylig øvingshistorikk",
+    "history.summary.date" : "Dato",
+    "history.summary.goal" : "Øvingsmål",
+    "history.summary.duration" : "Varighet (min)",
+    "history.summary.none" : "Du har ikke utført noen oppgaver enda",
+
+
+    "creator.dashboard.title" : "Dashbord",
+
+    "creator.path.title" : "Dashbord"
+}
