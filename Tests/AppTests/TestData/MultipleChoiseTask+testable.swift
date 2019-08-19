@@ -7,7 +7,7 @@
 
 import Vapor
 import FluentPostgreSQL
-@testable import KognitaCore
+import KognitaCore
 @testable import App
 import XCTest
 
