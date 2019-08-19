@@ -26,18 +26,18 @@ function editSubject() {
     };
 
     var name = $("#edit-subject-name").val();
-    var code = $("#edit-subject-code").val();
     var description = null;
     if (!$('#edit-subject-description').summernote("isEmpty")) {
         description = $("#edit-subject-description").summernote("code");
     }
-    var imageURL = $("#edit-subject-image").val();
+    var category = $("#create-subject-category").val();
+    var colorClass = $("#create-subject-color-class").val();
 
     var data = JSON.stringify({
         "name": name,
-        "code": code,
+        "colorClass": colorClass,
         "description": description,
-        "imageURL": imageURL,
+        "category": category,
     });
     xhr.send(data);
 }

@@ -59,7 +59,7 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
         }
         databaseConfig = psqlConfig
     } else {                                        // Localy testing
-        var databaseName = Environment.get("DATABASE_DB") ?? "postgres"
+        var databaseName = Environment.get("DATABASE_DB") ?? "local"
         if enviroment == .testing {
             databaseName = "postgres"
         }

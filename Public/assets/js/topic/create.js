@@ -38,7 +38,6 @@ function createTopic() {
         description = $("#create-topic-description").summernote("code");
     }
     var chapter = parseInt($("#create-topic-chapter").val());
-    var importance = parseFloat($("#create-topic-importance").val());
 
     if (chapter && importance && subjectId) {
         var data = JSON.stringify({
@@ -47,7 +46,6 @@ function createTopic() {
             "name"          : name,
             "description"   : description,
             "chapter"       : chapter,
-            "importance"    : importance,
         });
         xhr.send(data);
     }
