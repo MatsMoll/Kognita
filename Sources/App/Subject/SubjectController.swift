@@ -14,6 +14,8 @@ class SubjectController: CRUDControllable, RouteCollection {
 
     func boot(router: Router) {
         router.register(controller: self, at: "subjects")
+        router.get("subjects", Subject.parameter, "export", use: export)
+        router.get("subjects/export", use: exportAll)
     }
 
     func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[Subject]> {
@@ -80,6 +82,25 @@ class SubjectController: CRUDControllable, RouteCollection {
 //                try SubjectTest.create(for: user, on: subject, with: req)
 //            }
 //    }
+
+    func export(on req: Request) throws -> Future<SubjectExportContent> {
+        _ = try req.requireAuthenticated(User.self)
+        return try req.parameters.next(Subject.self).flatMap { subject in
+            try TopicRepository.shared
+                .exportTopics(in: subject, on: req)
+        }
+    }
+
+    func exportAll(on req: Request) throws -> Future<[SubjectExportContent]> {
+        _ = try req.requireAuthenticated(User.self)
+        return SubjectRepository.shared.getAll(on: req)
+            .flatMap { subjects in
+                try subjects.map { try TopicRepository.shared
+                    .exportTopics(in: $0, on: req)
+                }
+                .flatten(on: req)
+        }
+    }
 }
 
 struct CreateSubjectTest: Content {
