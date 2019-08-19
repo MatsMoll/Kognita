@@ -19,8 +19,8 @@ class MultipleChoiseTaskTests: VaporTestCase {
     func testGetAllTasks() throws {
         let user        = try User.create(on: conn)
         let topic       = try Topic.create(creator: user, on: conn)
-        let taskOne     = try MultipleChoiseTask.create(topic: topic, on: conn)
-        let taksTwo     = try MultipleChoiseTask.create(topic: topic, on: conn)
+        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
 
         let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
         let tasks       = try response.content.syncDecode([MultipleChoiseTaskContent].self)
