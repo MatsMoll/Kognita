@@ -15,6 +15,7 @@ class TopicController: CRUDControllable, RouteCollection {
 
     func boot(router: Router) {
         router.register(controller: self, at: "topics")
+        router.get("subjects", Subject.parameter, "topics", use: getInstanceCollection)
     }
 
     func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[Topic]> {

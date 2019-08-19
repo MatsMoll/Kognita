@@ -13,12 +13,12 @@ import Crypto
 
 
 extension User {
-    static func create(name: String = "Mats", email: String? = nil, isCreator: Bool = true, on conn: PostgreSQLConnection) throws -> User {
+    static func create(name: String = "Mats", email: String? = nil, isCreator: Bool = true, password: String = "password", on conn: PostgreSQLConnection) throws -> User {
         
-        let createEmail = email ?? UUID().uuidString + "@live.com"
+        let createEmail = email ?? UUID().uuidString + "@test.com"
         
-        let password = try BCrypt.hash("password")
-        let user = User(name: name, email: createEmail, passwordHash: password, isCreator: isCreator)
+        let passwordHash = try BCrypt.hash(password)
+        let user = User(name: name, email: createEmail, passwordHash: passwordHash, isCreator: isCreator)
         return try user.save(on: conn).wait()
     }
 }
