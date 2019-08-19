@@ -38,7 +38,7 @@ class VaporTestCase: XCTestCase {
         super.tearDown()
         app.shutdownGracefully { (error) in
             guard let error = error else { return }
-            print("Error shuyyinhdown: \(error)")
+            print("Error shuttingdown: \(error)")
         }
         conn.close()
     }

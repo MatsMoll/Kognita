@@ -16,23 +16,18 @@ class MultipleChoiseTaskTests: VaporTestCase {
     
     // GET /subjects/:id/topics/:id/multiple-choises
     
-//    func testGetAllTasks() {
-//        do {
-//            let user        = try User.create(on: conn)
-//            let topic       = try Topic.create(creator: user, on: conn)
-//            _               = try MultipleChoiseTask.create(topic: topic, on: conn)
-//            _               = try MultipleChoiseTask.create(topic: topic, on: conn)
-//
-//            let uri         = createURI(for: topic)
-//            let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
-//            let tasks       = try response.content.syncDecode([JoinedMultipleChoiseTask].self)
-//
-//            XCTAssert(response.http.status  == .ok,     "Expexted a ok response, but got \(response.http.status)")
-//            XCTAssert(tasks.count           == 2,       "expexted two tasks, but returned \(tasks.count)")
-//        } catch let error {
-//            XCTFail(error.localizedDescription)
-//        }
-//    }
+    func testGetAllTasks() throws {
+        let user        = try User.create(on: conn)
+        let topic       = try Topic.create(creator: user, on: conn)
+        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+
+        let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
+        let tasks       = try response.content.syncDecode([MultipleChoiseTaskContent].self)
+
+        XCTAssert(response.http.status  == .ok,     "Expexted a ok response, but got \(response.http.status)")
+        XCTAssert(tasks.count           == 2,       "expexted two tasks, but returned \(tasks.count)")
+    }
     
     
     func testGetAllTasksNotLoggedInnError() throws {
@@ -135,28 +130,28 @@ class MultipleChoiseTaskTests: VaporTestCase {
         let databaseTask        = try Task.find(task.requireID(), on: conn).wait()
         let databaseMultiple    = try MultipleChoiseTask.find(task.requireID(), on: conn).wait()
 
-        XCTAssert(databaseTask          == nil,     "The Task instance was not deleted")
-        XCTAssert(databaseMultiple      == nil,     "The MultipleChoiseTask instance was not deleted")
+        XCTAssert(databaseTask?.isOutdated == true, "The Task instance was not marked as outdated")
+        XCTAssert(databaseMultiple != nil, "The MultipleChoiseTask instance was deleted")
     }
     
-    func testDeleteTaskInstanceNotCreatorError() throws {
-
-        let user                = try User.create(on: conn)
-        let topic               = try Topic.create(on: conn)
-        _                       = try Task.create(on: conn)
-        let task                = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _                       = try MultipleChoiseTask.create(topic: topic, on: conn)
-
-        let uri                 = try self.uri + "/\(task.requireID())"
-        let response            = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders, loggedInUser: user)
-        XCTAssert(response.http.status  == .forbidden,  "Expexted a forbidden response, but got \(response.http.status)")
-
-        let databaseTask        = try Task.find(task.requireID(), on: conn).wait()
-        let databaseMultiple    = try MultipleChoiseTask.find(task.requireID(), on: conn).wait()
-
-        XCTAssert(databaseTask          != nil,         "The Task instance was deleted")
-        XCTAssert(databaseMultiple      != nil,         "The MultipleChoiseTask instance was deleted")
-    }
+//    func testDeleteTaskInstanceNotCreatorError() throws {
+//
+//        let user                = try User.create(on: conn)
+//        let topic               = try Topic.create(on: conn)
+//        _                       = try Task.create(on: conn)
+//        let task                = try MultipleChoiseTask.create(topic: topic, on: conn)
+//        _                       = try MultipleChoiseTask.create(topic: topic, on: conn)
+//
+//        let uri                 = try self.uri + "/\(task.requireID())"
+//        let response            = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders, loggedInUser: user)
+//        XCTAssert(response.http.status  == .forbidden,  "Expexted a forbidden response, but got \(response.http.status)")
+//
+//        let databaseTask        = try Task.find(task.requireID(), on: conn).wait()
+//        let databaseMultiple    = try MultipleChoiseTask.find(task.requireID(), on: conn).wait()
+//
+//        XCTAssert(databaseTask          != nil,         "The Task instance was deleted")
+//        XCTAssert(databaseMultiple      != nil,         "The MultipleChoiseTask instance was deleted")
+//    }
     
     func testDeleteTaskInstanceNotLoggedInError() throws {
         let topic               = try Topic.create(on: conn)
