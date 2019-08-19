@@ -34,7 +34,7 @@ extension MultipleChoiseTask {
         
         return try MultipleChoiseTask(isMultipleSelect: isMultipleSelect, taskID: taskId, creatorID: creatorId)
             .create(on: conn).flatMap { task in
-                MultipleChoiseTaskChoise(choise: "Test", isCorrect: true, taskId: task.id ?? 0)
+                MultipleChoiseTaskChoise(choise: "Test", isCorrect: true, taskId: task.id!)
                     .create(on: conn)
                     .transform(to: task)
         }.wait()
