@@ -7,7 +7,7 @@
 
 import Vapor
 import FluentPostgreSQL
-@testable import KognitaCore
+import KognitaCore
 @testable import App
 import XCTest
 
@@ -33,6 +33,10 @@ extension MultipleChoiseTask {
                        on conn:             PostgreSQLConnection) throws -> MultipleChoiseTask {
         
         return try MultipleChoiseTask(isMultipleSelect: isMultipleSelect, taskID: taskId, creatorID: creatorId)
-            .create(on: conn).wait()
+            .create(on: conn).flatMap { task in
+                MultipleChoiseTaskChoise(choise: "Test", isCorrect: true, taskId: task.id!)
+                    .create(on: conn)
+                    .transform(to: task)
+        }.wait()
     }
 }

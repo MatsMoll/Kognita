@@ -59,7 +59,7 @@ private func setupApi(for router: Router) throws {
         User.tokenAuthMiddleware(), User.authSessionsMiddleware(), User.guardAuthMiddleware()
     )
 
-    try authMiddleware.register(collection: UserController())
+    try router.register(collection: UserController())
     try authMiddleware.register(collection: SubjectController.shared)
     try authMiddleware.register(collection: TopicController.shared)
     try authMiddleware.register(collection: MultipleChoiseTaskController.shared)
