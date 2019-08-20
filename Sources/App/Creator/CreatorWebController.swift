@@ -39,7 +39,7 @@ final class CreatorWebController: RouteCollection {
                 .flatMap { topics in
 
                     try TaskRepository.shared
-                        .getTasks(where: \Task.creatorId == user.requireID(), conn: conn)
+                        .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
                         .map { tasks in
 
                             try req.renderer()
@@ -93,4 +93,22 @@ final class CreatorWebController: RouteCollection {
     }
 }
 
-extension TaskContent: CreatorTaskContent {}
+extension TaskContent: CreatorTaskContent {
+    public var deletedAt: Date? { return task.deletedAt }
+
+    public var creatorName: String? { return creator?.name }
+
+    public var subjectName: String { return subject.name }
+
+    public var subjectID: Int { return subject.id ?? 0 }
+
+    public var topicName: String { return topic.name }
+
+    public var topicID: Int { return topic.id ?? 0 }
+
+    public var taskID: Int { return task.id ?? 0 }
+
+    public var question: String { return task.question }
+
+    public var status: String { return "" }
+}

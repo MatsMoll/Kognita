@@ -27,6 +27,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     if env != .production {
         middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     }
+    services.register(NIOServerConfig.default(maxBodySize: 20_000_000))
     services.register(middlewares)
 
     setupDatabase(for: env, in: &services)
@@ -59,7 +60,7 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
         }
         databaseConfig = psqlConfig
     } else {                                        // Localy testing
-        var databaseName = Environment.get("DATABASE_DB") ?? "postgres"
+        var databaseName = Environment.get("DATABASE_DB") ?? "local"
         if enviroment == .testing {
             databaseName = "postgres"
         }
@@ -83,39 +84,6 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
     services.register(databases)
 }
 
-//class KognitaMigrations {
-//    static func migrationConfig() -> MigrationConfig {
-//        var migrations = MigrationConfig()
-//
-//        // This needs to run before Task migration
-//        migrations.add(migration: Task.ExamSemester.self, database: .psql)
-//
-//        migrations.add(model: User.self, database: .psql)
-//        migrations.add(model: UserToken.self, database: .psql)
-//        migrations.add(model: Subject.self, database: .psql)
-//        migrations.add(model: Topic.self, database: .psql)
-//        migrations.add(model: Task.self, database: .psql)
-//        migrations.add(model: MultipleChoiseTask.self, database: .psql)
-//        migrations.add(model: MultipleChoiseTaskChoise.self, database: .psql)
-//        migrations.add(model: PracticeSession.self, database: .psql)
-//        migrations.add(model: PracticeSessionTaskPivot.self, database: .psql)
-//        migrations.add(model: PracticeSessionTopicPivot.self, database: .psql)
-//        migrations.add(model: UserTopicLevel.self, database: .psql)
-//        migrations.add(model: NumberInputTask.self, database: .psql)
-//        migrations.add(model: FlashCardTask.self, database: .psql)
-//        migrations.add(model: TaskResult.self, database: .psql)
-//
-//        return migrations
-//    }
-//
-//    static func addVersionBumbMigration(_ migrations: inout MigrationConfig) {
-//        // Add migrations here
-////        migrations.add(migration: TaskExamPaperAtomicMigration.self, database: .psql)
-////        migrations.add(migration: TaskCreatedAtUpdatedAtMigration.self, database: .psql)
-////        migrations.add(migration: PSTaskPivotUnforgivingScoreMigration.self, database: .psql)
-//    }
-//}
-
 private func registerRouter(in services: inout Services) throws {
     let router = EngineRouter.default()
     try routes(router)
@@ -138,6 +106,7 @@ private func setupTemplates() throws -> HTMLRenderer {
     // Main User pages
     try renderer.add(template: SubjectListTemplate())
     try renderer.add(template: SubjectDetailTemplate())
+    try renderer.add(template: SelectSubjectTemplate())
 
     // Task Overview
     try renderer.add(template: TaskOverviewListTemplate())

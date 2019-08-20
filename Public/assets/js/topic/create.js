@@ -31,23 +31,19 @@ function createTopic() {
         path.indexOf(subjectURI) + subjectURI.length, 
         path.lastIndexOf("/topics")
     ));
-    var preTopicId = parseInt($("#create-topic-preTopicId").val());
     var name = $("#create-topic-name").val();
     var description = null;
     if (!$('#create-topic-description').summernote("isEmpty")) {
         description = $("#create-topic-description").summernote("code");
     }
     var chapter = parseInt($("#create-topic-chapter").val());
-    var importance = parseFloat($("#create-topic-importance").val());
 
-    if (chapter && importance && subjectId) {
+    if (chapter && subjectId) {
         var data = JSON.stringify({
             "subjectId"     : subjectId,
-            "preTopicId"    : preTopicId,
             "name"          : name,
             "description"   : description,
-            "chapter"       : chapter,
-            "importance"    : importance,
+            "chapter"       : chapter
         });
         xhr.send(data);
     }

@@ -9,6 +9,7 @@ import Vapor
 import FluentSQL
 import KognitaCore
 import KognitaViews
+import HTMLKit
 
 final class TopicWebController: RouteCollection {
 
@@ -18,6 +19,8 @@ final class TopicWebController: RouteCollection {
         router.get("subjects", Subject.parameter, use: listAll)
         router.get("creator/subjects", Subject.parameter, "topics/create", use: createTopic)
         router.get("creator/subjects", Subject.parameter, "topics", Topic.parameter, "edit", use: editTopic)
+        router.get("creator/create-topic-select-subject", use: selectSubject)
+        router.get("creator/create-task-select-subject", use: selectSubject)
         router.get("topics/", Topic.parameter, use: taskOverview)
     }
 
@@ -71,22 +74,16 @@ final class TopicWebController: RouteCollection {
 
         return try req.parameters
             .next(Subject.self)
-            .flatMap { subject in
+            .map { subject in
 
-                try TopicRepository.shared
-                    .getTopics(in: subject, conn: req)
-                    .map { topics in
-                        
-                        try req.renderer()
-                            .render(
-                                CreateTopicPage.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    topics: topics
-                                )
+                try req.renderer()
+                    .render(
+                        CreateTopicPage.self,
+                        with: .init(
+                            user: user,
+                            subject: subject
                         )
-                }
+                )
         }
     }
 
@@ -104,23 +101,17 @@ final class TopicWebController: RouteCollection {
 
                 try req.parameters
                     .next(Topic.self)
-                    .flatMap { topic in
+                    .map { topic in
 
-                        try TopicRepository.shared
-                            .getTopics(in: subject, conn: req)
-                            .map { topics in
-
-                                try req.renderer()
-                                    .render(
-                                        CreateTopicPage.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: subject,
-                                            topics: topics,
-                                            topicInfo: topic
-                                        )
+                        try req.renderer()
+                            .render(
+                                CreateTopicPage.self,
+                                with: .init(
+                                    user: user,
+                                    subject: subject,
+                                    topicInfo: topic
                                 )
-                        }
+                        )
                 }
         }
     }
@@ -146,7 +137,6 @@ final class TopicWebController: RouteCollection {
 
                                     try Task.query(on: conn)
                                         .filter(\Task.topicId == topic.requireID())
-                                        .filter(\Task.isOutdated == false)
                                         .all()
                                         .map { tasks in
 
@@ -171,6 +161,44 @@ final class TopicWebController: RouteCollection {
                             }
                         }
                 }
+        }
+    }
+
+    func selectSubject(on req: Request) throws -> Future<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        guard user.isCreator else {
+            throw Abort(.unauthorized)
+        }
+
+        let taskType = try req.query.decode(SubjectSelectTaskPath.self)
+
+        return Subject.query(on: req)
+            .all()
+            .map { subjects in
+                try req.renderer()
+                    .render(
+                        SelectSubjectTemplate.self,
+                        with: .init(
+                            user: user,
+                            subjects: subjects,
+                            redirectPathStart: "subjects/",
+                            redirectPathEnd: taskType.endPath
+                        )
+                )
+        }
+    }
+}
+
+struct SubjectSelectTaskPath: Decodable {
+    let taskType: String?
+
+    var endPath: String {
+        if let taskType = taskType {
+            return "/task/\(taskType)/create"
+        } else {
+            return "/topics/create"
         }
     }
 }

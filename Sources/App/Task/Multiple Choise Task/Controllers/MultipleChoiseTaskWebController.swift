@@ -40,7 +40,6 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .flatMap { (topic) in
                 try Task.query(on: req)
                     .filter(\.topicId == topic.requireID())
-                    .filter(\.isOutdated == false)
                     .join(\MultipleChoiseTask.id, to: \Task.id)
                     .decode(MultipleChoiseTask.self)
                     .first()
