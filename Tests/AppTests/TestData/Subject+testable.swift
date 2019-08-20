@@ -21,7 +21,7 @@ extension Subject {
     static func create(name: String = "Math", code: String? = nil, imageURL: String = "https://www.hey.no/image.png", description: String = "Some description", creatorId: User.ID, on conn: PostgreSQLConnection) throws -> Subject {
         
         let createCode = code ?? "REA\(Int.random(in: 1000...999999))"
-        
+
         return try Subject(code: createCode,
                            name: name,
                            imageURL: imageURL,
