@@ -133,7 +133,6 @@ class TopicTests: VaporTestCase {
 
         try XCTAssert(responseTopic.requireID() == topic.requireID(),   "The ids do not match, returned topic with id: \(try! responseTopic.requireID())")
         XCTAssert(responseTopic.name            == topic.name,          "The names do not match, returned topic with id: \(responseTopic.name)")
-        XCTAssert(responseTopic.preTopicId      == topic.preTopicId,    "The preTopicIds do not match, returned topic with id: \(responseTopic.preTopicId ?? 0)")
         XCTAssert(responseTopic.subjectId       == topic.subjectId,     "The subjectIds do not match, returned topic with id: \(responseTopic.subjectId)")
     }
     

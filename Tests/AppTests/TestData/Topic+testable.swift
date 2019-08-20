@@ -12,16 +12,17 @@ import FluentPostgreSQL
 
 
 extension Topic {
-    static func create(name: String = "Topic", chapter: Int = 1, preTopic: Topic? = nil, creator: User? = nil, subject: Subject? = nil, on conn: PostgreSQLConnection) throws -> Topic {
-        
+    static func create(name: String = "Topic", chapter: Int = 1, creator: User? = nil, subject: Subject? = nil, on conn: PostgreSQLConnection) throws -> Topic {
+
         let createSubject = try subject ?? Subject.create(creator: creator, on: conn)
-        
-        return try Topic.create(name: name, chapter: chapter, preTopic: preTopic, creatorId: createSubject.creatorId, subjectId: createSubject.requireID(), on: conn)
+
+        return try Topic.create(name: name, chapter: chapter, creatorId: createSubject.creatorId, subjectId: createSubject.requireID(), on: conn)
     }
-    
-    static func create(name: String = "Topic", chapter: Int = 1, preTopic: Topic? = nil, creatorId: User.ID, subjectId: Subject.ID, on conn: PostgreSQLConnection) throws -> Topic {
-        
-        return try Topic(name: name, description: "", importance: 1, chapter: chapter, subjectId: subjectId, preTopicId: preTopic?.requireID(), creatorId: creatorId)
-            .save(on: conn).wait()
+
+    static func create(name: String = "Topic", chapter: Int = 1, creatorId: User.ID, subjectId: Subject.ID, on conn: PostgreSQLConnection) throws -> Topic {
+
+        return try Topic(name: name, description: "", chapter: chapter, subjectId: subjectId, creatorId: creatorId)
+            .save(on: conn)
+            .wait()
     }
 }

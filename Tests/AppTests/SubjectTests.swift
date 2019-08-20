@@ -44,9 +44,9 @@ class SubjectTests: VaporTestCase {
 
         let requestBody = CreateSubjectRequest(
             name: "OS",
-            code: "IMT2023",
+            colorClass: .primary,
             description: "Operativstystemer",
-            imageURL: "https://github.com/r.png"
+            category: "Tech"
         )
 
         let response = try app.sendRequest(to: subjectPath, method: .POST, headers: standardHeaders, body: requestBody, loggedInUser: user)
@@ -54,7 +54,7 @@ class SubjectTests: VaporTestCase {
 
         XCTAssert(response.http.status == .ok, "There was an error when posting a new subject: \(response.http.status)")
         XCTAssert(subject.name == requestBody.name, "The saved subject has a different .name")
-        XCTAssert(subject.code == requestBody.code, "The saved subject has a different .code")
+        XCTAssert(subject.colorClass == requestBody.colorClass, "The saved subject has a different .code")
         XCTAssert(subject.creatorId == user.id, "The creatorId is incorrect: \(subject.creatorId)")
 
         let currentSubjects = try Subject.query(on: conn).filter(\.name == requestBody.name).all().wait()
@@ -66,9 +66,9 @@ class SubjectTests: VaporTestCase {
     func testCreateSubjectWhenNotLoggedInError() throws {
         let requestBody = CreateSubjectRequest(
             name: "OS",
-            code: "IMT2023",
+            colorClass: .primary,
             description: "Operativstystemer",
-            imageURL: "https://github.com/r.png"
+            category: "Something"
         )
 
         XCTAssert(try Subject.query(on: conn)
@@ -99,7 +99,7 @@ class SubjectTests: VaporTestCase {
         let responseSubject = try response.content.syncDecode(Subject.self)
         XCTAssert(responseSubject.name == subject.name, "The response subject name du not match the one retreving, returned \(responseSubject.name)")
         try XCTAssert(responseSubject.requireID() == subject.requireID(), "The response subject id du not match the one retreving, returned \(try! responseSubject.requireID())")
-        XCTAssert(responseSubject.code == subject.code, "The response subject code du not match the one retreving, returned \(responseSubject.code)")
+        XCTAssert(responseSubject.category == subject.category, "The response subject category du not match the one retreving, returned \(responseSubject.category)")
     }
     
     

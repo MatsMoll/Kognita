@@ -36,11 +36,9 @@ class UserTests: VaporTestCase {
     
     func testCreateUserSuccess() throws {
 
-        let recruterUser = try User.create(on: conn)
-        recruterUser.activationToken = "some token"
-        _ = try recruterUser.save(on: conn).wait()
+        _ = try User.create(on: conn)
 
-        let newUser = CreateUserRequest(name: "Mats", email: "test@3.com", password: "password", verifyPassword: "password", acceptedTermsInput: "on", activationKey: recruterUser.activationToken!)
+        let newUser = CreateUserRequest(name: "Mats", email: "test@3.com", password: "password", verifyPassword: "password", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .ok, "This should not return an error code: \(response.http.status)")
 
@@ -51,22 +49,14 @@ class UserTests: VaporTestCase {
     
     func testCreateUserExistingEmail() throws {
 
-        let recruterUser = try User.create(on: conn)
-        recruterUser.activationToken = "some token"
-        _ = try recruterUser.save(on: conn).wait()
-
         let user = try User.create(on: conn)
-        let newUser = CreateUserRequest(name: "Mats", email: user.email, password: "password", verifyPassword: "password", acceptedTermsInput: "on", activationKey: recruterUser.activationToken!)
+        let newUser = CreateUserRequest(name: "Mats", email: user.email, password: "password", verifyPassword: "password", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .internalServerError, "This should return an error code, returned: \(response.http.status)")
     }
     
     func testCreateUserPasswordMismatch() throws {
-        let recruterUser = try User.create(on: conn)
-        recruterUser.activationToken = "some token"
-        _ = try recruterUser.save(on: conn).wait()
-
-        let newUser = CreateUserRequest(name: "Mats", email: "test@3.com", password: "password1", verifyPassword: "not matching", acceptedTermsInput: "on", activationKey: recruterUser.activationToken!)
+        let newUser = CreateUserRequest(name: "Mats", email: "test@3.com", password: "password1", verifyPassword: "not matching", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
 
         response.has(statusCode: .internalServerError)

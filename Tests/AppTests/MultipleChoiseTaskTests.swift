@@ -130,7 +130,7 @@ class MultipleChoiseTaskTests: VaporTestCase {
         let databaseTask        = try Task.find(task.requireID(), on: conn).wait()
         let databaseMultiple    = try MultipleChoiseTask.find(task.requireID(), on: conn).wait()
 
-        XCTAssert(databaseTask?.isOutdated == true, "The Task instance was not marked as outdated")
+        XCTAssert(databaseTask == nil, "The Task instance was not marked as outdated")
         XCTAssert(databaseMultiple != nil, "The MultipleChoiseTask instance was deleted")
     }
     
