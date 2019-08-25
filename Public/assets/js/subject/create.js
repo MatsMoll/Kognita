@@ -12,18 +12,7 @@ $("#create-subject-description").summernote({
 
 
 function createSubject() {
-    
-    var xhr = new XMLHttpRequest();
     var url = "/api/subjects";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-    
-        if (this.status == 200) {
-            window.location.href = "/subjects";
-        }
-    };
 
     var name = $("#create-subject-name").val();
     var description = null;
@@ -31,7 +20,7 @@ function createSubject() {
         description = $("#create-subject-description").summernote("code");
     }
     var category = $("#create-subject-category").val();
-    var colorClass = $("#create-subject-color-class").val();
+    var colorClass = $('input[name=color-class]:checked').attr('id');
 
     var data = JSON.stringify({
         "name": name,
@@ -39,6 +28,35 @@ function createSubject() {
         "description": description,
         "category": category,
     });
-    console.log(data);
-    xhr.send(data);
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        },
+        body: data
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.json();
+        } else if (response.status == 400) {
+            throw new Error("Sjekk at all nødvendig info er fylt ut");
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (json) {
+        window.location.href = "/subjects";
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        if ($("#error-div").css("display") == "block") {
+            $("#error-div").shake();
+        } else {
+            $("#error-div").fadeIn();
+            $("#error-div").removeClass("d-none");
+        }
+    });
 }

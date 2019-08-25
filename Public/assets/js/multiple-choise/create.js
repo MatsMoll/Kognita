@@ -33,67 +33,35 @@ $("#create-multiple-choise").summernote({
 })
 
 function createMultipleChoise() {
-    
-    var topicId = parseInt($("#create-multiple-topic-id").val());
-
-    var xhr = new XMLHttpRequest();
 
     let url = "/api/tasks/multiple-choise";
-    xhr.open("POST", url, true);
 
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-    
-        if (this.status == 200) {
-            var data = JSON.parse(this.responseText);
-            window.location.href = "/tasks/multiple-choise/" + data["taskId"];
-        }
-    };
-
-    var description = null;
-    if (!$('#create-multiple-description').summernote("isEmpty")) {
-        description = $("#create-multiple-description").summernote("code");
-    }
-    var examPaperSemester = $("#create-multiple-exam-semester").val();
-    var examPaperYear = parseInt($("#create-multiple-exam-year").val());
-    var question = $("#create-multiple-question").val();
-    var isMultipleSelect = $("#create-multiple-select").prop("checked");
-    var isExaminable = $("#create-multiple-examinable").prop("checked");
-    var solution = null;
-    if (!$('#create-multiple-solution').summernote("isEmpty")) {
-        solution = $("#create-multiple-solution").summernote("code");
-    }
-
-    var choises = [];
-
-    $("#create-multiple-choises").children().each(function() {
-        choises.push({
-            "choise" : $(this).children(":nth-child(1)").html(),
-            "isCorrect" : $(this).find("input[type=checkbox]").prop("checked"),
+    try {
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type" : "application/json"
+            },
+            body: jsonData()
+        })
+        .then(function (response) {
+            if (response.ok) {
+                return response.json();
+            } else if (response.status == 400) {
+                throw new Error("Sjekk at all nødvendig info er fylt ut");
+            } else {
+                throw new Error(response.statusText);
+            }
+        })
+        .then(function (json) {
+            window.location.href = "/tasks/multiple-choise/" + json.task.id;
+        })
+        .catch(function (error) {
+            presentErrorMessage(error.message);
         });
-    })
-
-    if (question && choises.length > 1 && topicId) {
-        
-        var data = JSON.stringify({
-            "isExaminable" : isExaminable,
-            "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
-            "examPaperYear" : examPaperYear,
-            "topicId" : topicId,
-            "difficulty" : 20,
-            "estimatedTime" : 20,
-            "description" : description,
-            "question" : question,
-            "isMultipleSelect" : isMultipleSelect,
-            "choises" : choises,
-            "solution" : solution
-        });
-        xhr.send(data);
-    } else {
-        console.log("Not sending");
-        console.log(question + ", " + difficulty + ", " + estimatedTime + ", " + choises.length + ", " + topicId);
-        // FIXME: Present error (Reload with query argument?)
+    } catch(error) {
+        presentErrorMessage(error.message);
     }
 }
 
@@ -105,7 +73,7 @@ function addChoise() {
     var table = $("#create-multiple-choises");
     table.append('<tr id="choise-' + numberOfChoises + '"><td>' + choise + '</td><td><input type="checkbox" id="switch' + numberOfChoises + '" data-switch="bool"/><label for="switch' + numberOfChoises + '" data-on-label="Ja" data-off-label="Nei"></label></td><td><button  type="button" class="btn btn-danger btn-rounded" onclick="deleteChoise(' + numberOfChoises + ');"><i class="mdi mdi-delete"></i></button></td></tr>');
     numberOfChoises += 1;
-    $("#create-multiple-choise").summernote("reset");
+    $("#create-multiple-choise").val(null);
 }
 
 function deleteChoise(choiseID) {

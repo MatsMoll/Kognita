@@ -24,8 +24,7 @@ function editTopic(id) {
             window.location.reload();
         }
     };
-    
-    var preTopicId = parseInt($("#create-topic-preTopicId").val());
+
     var name = $("#create-topic-name").val();
     var description = null;
     if (!$('#create-topic-description').summernote("isEmpty")) {
@@ -33,9 +32,8 @@ function editTopic(id) {
     }
     var chapter = parseInt($("#create-topic-chapter").val());
 
-    if (chapter && importance) {
+    if (chapter) {
         var data = JSON.stringify({
-            "preTopicId"    : preTopicId,
             "name"          : name,
             "description"   : description,
             "chapter"       : chapter,
