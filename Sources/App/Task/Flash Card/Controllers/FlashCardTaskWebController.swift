@@ -42,7 +42,7 @@ class FlashCardTaskWebController: RouteCollection {
             .flatMap { subject in
 
                 try TopicRepository.shared
-                    .getTopics(in: subject, conn: req)
+                    .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer().render(
@@ -75,7 +75,7 @@ class FlashCardTaskWebController: RouteCollection {
                     .flatMap { content in
 
                         try TopicRepository.shared
-                            .getTopics(in: content.subject, conn: req)
+                            .getTopicResponses(in: content.subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()

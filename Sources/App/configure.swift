@@ -119,6 +119,7 @@ private func setupTemplates() throws -> HTMLRenderer {
     // Create Content
     try renderer.add(template: CreateSubjectPage())
     try renderer.add(template: CreateTopicPage())
+    try renderer.add(template: Subtopic.Create.Template())
 
     // Create Task Templates
     try renderer.add(template: CreateMultipleChoiseTaskPage())

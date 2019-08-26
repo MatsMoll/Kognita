@@ -1,5 +1,5 @@
 function jsonData() {
-    var topicId = parseInt($("#create-multiple-topic-id").val());
+    var subtopicId = parseInt($("#create-multiple-topic-id").val());
 
     var choises = [];
 
@@ -24,7 +24,7 @@ function jsonData() {
         solution = $("#create-multiple-solution").summernote("code");
     }
 
-    if (isNaN(topicId)) {
+    if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
     }
     if (question.length <= 1) {
@@ -41,7 +41,7 @@ function jsonData() {
         "isExaminable" : isExaminable,
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
-        "topicId" : topicId,
+        "subtopicId" : subtopicId,
         "description" : description,
         "question" : question,
         "isMultipleSelect" : isMultipleSelect,

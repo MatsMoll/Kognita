@@ -25,7 +25,7 @@ class TopicController: CRUDControllable, RouteCollection {
             .flatMap { (subject) in
 
                 try TopicRepository.shared
-                    .getAll(in: subject, conn: req)
+                    .getTopics(in: subject, conn: req)
         }
     }
 

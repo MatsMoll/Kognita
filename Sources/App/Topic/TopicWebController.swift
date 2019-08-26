@@ -21,6 +21,7 @@ final class TopicWebController: RouteCollection {
         router.get("creator/subjects", Subject.parameter, "topics", Topic.parameter, "edit", use: editTopic)
         router.get("creator/create-topic-select-subject", use: selectSubject)
         router.get("creator/create-task-select-subject", use: selectSubject)
+        router.get("creator/create-task-select-subject", use: selectSubject)
         router.get("topics/", Topic.parameter, use: taskOverview)
     }
 
@@ -135,9 +136,8 @@ final class TopicWebController: RouteCollection {
                                 .getAllResults(for: user.requireID(), filter: \Topic.id == topic.requireID(), with: conn, maxRevisitDays: nil)
                                 .flatMap { results in
 
-                                    try Task.query(on: conn)
-                                        .filter(\Task.topicId == topic.requireID())
-                                        .all()
+                                    try TaskRepository.shared
+                                        .getTasks(in: topic, with: conn)
                                         .map { tasks in
 
                                             let resultOverview = tasks.map { task in

@@ -33,7 +33,7 @@ class SubjectController: CRUDControllable, RouteCollection {
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(CreateSubjectRequest.self)
+            .decode(Subject.Request.Create.self)
             .flatMap { content in
 
                 try SubjectRepository.shared
@@ -64,7 +64,7 @@ class SubjectController: CRUDControllable, RouteCollection {
             .flatMap { subject in
 
                 try req.content
-                    .decode(CreateSubjectRequest.self)
+                    .decode(Subject.Request.Create.self)
                     .flatMap { content in
 
                         try SubjectRepository.shared
