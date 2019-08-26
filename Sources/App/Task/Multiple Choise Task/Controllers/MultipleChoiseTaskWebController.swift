@@ -26,28 +26,29 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         router.get(
             "creator/tasks/multiple-choise", MultipleChoiseTask.parameter, "edit",
             use: editTask)
-        router.get(
-            "topics", Topic.parameter, "tasks/multiple-choise",
-            use: getInstanceInTopic)
+//        router.get(
+//            "topics", Topic.parameter, "tasks/multiple-choise",
+//            use: getInstanceInTopic)
         router.get(
             "tasks/multiple-choise", MultipleChoiseTask.parameter,
             use: getInstance)
     }
 
-    func getInstanceInTopic(on req: Request) throws -> Future<Response> {
-
-        return try req.parameters.next(Topic.self)
-            .flatMap { (topic) in
-                try Task.query(on: req)
-                    .filter(\.topicId == topic.requireID())
-                    .join(\MultipleChoiseTask.id, to: \Task.id)
-                    .decode(MultipleChoiseTask.self)
-                    .first()
-                    .unwrap(or: Abort(.badRequest))
-            } .map { task in
-                try req.redirect(to: "/tasks/multiple-choise/\(task.requireID())")
-        }
-    }
+//    func getInstanceInTopic(on req: Request) throws -> Future<Response> {
+//
+//        return try req.parameters.next(Topic.self)
+//            .flatMap { (topic) in
+//                MultipleChoiseTaskRepository.shared.
+//                try Task.query(on: req)
+//                    .filter(\.topicId == topic.requireID())
+//                    .join(\MultipleChoiseTask.id, to: \Task.id)
+//                    .decode(MultipleChoiseTask.self)
+//                    .first()
+//                    .unwrap(or: Abort(.badRequest))
+//            } .map { task in
+//                try req.redirect(to: "/tasks/multiple-choise/\(task.requireID())")
+//        }
+//    }
 
     func getInstance(on req: Request) throws -> Future<HTTPResponse> {
 
@@ -92,7 +93,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .flatMap { subject in
 
                 try TopicRepository.shared
-                    .getTopics(in: subject, conn: req)
+                    .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer()
@@ -126,7 +127,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                     .flatMap { preview, content in
 
                         try TopicRepository.shared
-                            .getAll(in: preview.subject, conn: req)
+                            .getTopicResponses(in: preview.subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()

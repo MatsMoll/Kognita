@@ -31,6 +31,7 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: NumberInputTaskWebController())
     try redirectMiddle.register(collection: CreatorWebController())
     try redirectMiddle.register(collection: FlashCardTaskWebController())
+    try redirectMiddle.register(collection: SubtopicWebController())
 
     redirectMiddle.get(
         "practice-sessions/", PracticeSession.parameter, "tasks/multiple-choise/current",
@@ -67,4 +68,5 @@ private func setupApi(for router: Router) throws {
     try authMiddleware.register(collection: NumberInputTaskController())
     try authMiddleware.register(collection: FlashCardTaskController())
     try authMiddleware.register(collection: TaskResultController())
+    try authMiddleware.register(collection: SubtopicController())
 }
