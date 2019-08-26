@@ -42,7 +42,7 @@ class SubjectTests: VaporTestCase {
 
         let user = try User.create(on: conn)
 
-        let requestBody = CreateSubjectRequest(
+        let requestBody = Subject.Request.Create(
             name: "OS",
             colorClass: .primary,
             description: "Operativstystemer",
@@ -64,7 +64,7 @@ class SubjectTests: VaporTestCase {
 
 
     func testCreateSubjectWhenNotLoggedInError() throws {
-        let requestBody = CreateSubjectRequest(
+        let requestBody = Subject.Request.Create(
             name: "OS",
             colorClass: .primary,
             description: "Operativstystemer",

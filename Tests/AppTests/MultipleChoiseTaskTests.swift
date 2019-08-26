@@ -18,9 +18,9 @@ class MultipleChoiseTaskTests: VaporTestCase {
     
     func testGetAllTasks() throws {
         let user        = try User.create(on: conn)
-        let topic       = try Topic.create(creator: user, on: conn)
-        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+        let subtopic    = try Subtopic.create(on: conn)
+        _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
+        _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
         let tasks       = try response.content.syncDecode([MultipleChoiseTaskContent].self)
@@ -31,9 +31,9 @@ class MultipleChoiseTaskTests: VaporTestCase {
     
     
     func testGetAllTasksNotLoggedInnError() throws {
-        let topic       = try Topic.create(on: conn)
-        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+        let subtopic    = try Subtopic.create(on: conn)
+        _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
+        _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders)
         XCTAssert(response.http.status  == .unauthorized,   "Expexted a unauthorized response, but got \(response.http.status)")
@@ -103,10 +103,10 @@ class MultipleChoiseTaskTests: VaporTestCase {
 //    }
     
     func testGetTaskInstanceNotLoggedInnError() throws {
-        let topic       = try Topic.create(on: conn)
+        let subtopic    = try Subtopic.create(on: conn)
         _               = try Task.create(on: conn)
-        let task        = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _               = try MultipleChoiseTask.create(topic: topic, on: conn)
+        let task        = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
+        _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let uri         = try self.uri + "/\(task.requireID())"
         let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders)
@@ -118,10 +118,10 @@ class MultipleChoiseTaskTests: VaporTestCase {
     
     func testDeleteTaskInstance() throws {
         let user                = try User.create(on: conn)
-        let topic               = try Topic.create(creator: user, on: conn)
+        let subtopic            = try Subtopic.create(on: conn)
         _                       = try Task.create(on: conn)
-        let task                = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _                       = try MultipleChoiseTask.create(topic: topic, on: conn)
+        let task                = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
+        _                       = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let uri                 = try self.uri + "/\(task.requireID())"
         let response            = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders, loggedInUser: user)
@@ -154,10 +154,10 @@ class MultipleChoiseTaskTests: VaporTestCase {
 //    }
     
     func testDeleteTaskInstanceNotLoggedInError() throws {
-        let topic               = try Topic.create(on: conn)
+        let subtopic            = try Subtopic.create(on: conn)
         _                       = try Task.create(on: conn)
-        let task                = try MultipleChoiseTask.create(topic: topic, on: conn)
-        _                       = try MultipleChoiseTask.create(topic: topic, on: conn)
+        let task                = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
+        _                       = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let uri                 = try self.uri + "/\(task.requireID())"
         let response            = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders)

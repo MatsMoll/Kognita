@@ -32,7 +32,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     setupDatabase(for: env, in: &services)
 
-    let migrations = DatabaseMigrations.migrationConfig()
+    let migrations = DatabaseMigrations.migrationConfig(enviroment: env)
     services.register(migrations)
 
     // Needs to be after addMigrations(), because it relies on the tables created there
@@ -119,6 +119,7 @@ private func setupTemplates() throws -> HTMLRenderer {
     // Create Content
     try renderer.add(template: CreateSubjectPage())
     try renderer.add(template: CreateTopicPage())
+    try renderer.add(template: Subtopic.Create.Template())
 
     // Create Task Templates
     try renderer.add(template: CreateMultipleChoiseTaskPage())
