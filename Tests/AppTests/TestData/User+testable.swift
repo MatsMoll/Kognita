@@ -9,14 +9,13 @@ import Vapor
 import FluentPostgreSQL
 import Crypto
 @testable import KognitaCore
-@testable import App
 
 
 extension User {
     static func create(name: String = "Mats", email: String? = nil, role: Role = .creator, on conn: PostgreSQLConnection) throws -> User {
-
+        
         let createEmail = email ?? UUID().uuidString + "@live.com"
-
+        
         let password = try BCrypt.hash("password")
         let user = User(name: name, email: createEmail, passwordHash: password, role: role)
         return try user.save(on: conn).wait()
