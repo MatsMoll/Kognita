@@ -23,7 +23,7 @@ function startPracticeSession(topicId, subjectId) {
         }
     };
     var data = JSON.stringify({
-        "topicIDs" : selectedTopics,
+        "subtopicsIDs" : selectedTopics,
         "numberOfTaskGoal" : taskGoal,
     });
     console.log(data);
