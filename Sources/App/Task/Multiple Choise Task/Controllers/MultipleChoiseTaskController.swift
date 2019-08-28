@@ -23,7 +23,7 @@ class MultipleChoiseTaskController: CRUDControllable, RouteCollection {
             use: submitAnswer)
     }
 
-    func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[MultipleChoiseTaskContent]> {
+    func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[MultipleChoiseTask.Data]> {
 
         return MultipleChoiseTask
             .query(on: req)
@@ -37,7 +37,7 @@ class MultipleChoiseTaskController: CRUDControllable, RouteCollection {
         }
     }
 
-    func getInstance(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTaskContent> {
+    func getInstance(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTask.Data> {
 
         return try req.parameters
             .next(MultipleChoiseTask.self)
@@ -48,12 +48,12 @@ class MultipleChoiseTaskController: CRUDControllable, RouteCollection {
         }
     }
 
-    func create(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTaskContent> {
+    func create(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTask.Data> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(MultipleChoiseTaskCreationContent.self)
+            .decode(MultipleChoiseTask.Create.Data.self)
             .flatMap { content in
 
                 try MultipleChoiseTaskRepository.shared
@@ -79,7 +79,7 @@ class MultipleChoiseTaskController: CRUDControllable, RouteCollection {
             }
     }
 
-    func edit(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTaskContent> {
+    func edit(_ req: Request) throws -> EventLoopFuture<MultipleChoiseTask.Data> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -88,7 +88,7 @@ class MultipleChoiseTaskController: CRUDControllable, RouteCollection {
             .flatMap { multipleTask in
 
                 try req.content
-                    .decode(MultipleChoiseTaskCreationContent.self)
+                    .decode(MultipleChoiseTask.Create.Data.self)
                     .flatMap { content in
                         
                         try MultipleChoiseTaskRepository.shared

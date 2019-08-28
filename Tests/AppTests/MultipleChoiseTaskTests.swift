@@ -23,7 +23,7 @@ class MultipleChoiseTaskTests: VaporTestCase {
         _               = try MultipleChoiseTask.create(subtopic: subtopic, on: conn)
 
         let response    = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
-        let tasks       = try response.content.syncDecode([MultipleChoiseTaskContent].self)
+        let tasks       = try response.content.syncDecode([MultipleChoiseTask.Data].self)
 
         XCTAssert(response.http.status  == .ok,     "Expexted a ok response, but got \(response.http.status)")
         XCTAssert(tasks.count           == 2,       "expexted two tasks, but returned \(tasks.count)")

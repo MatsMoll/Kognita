@@ -139,12 +139,12 @@ final class PracticeSessionController: RouteCollection {
     /// - Parameter req: The http request
     /// - Returns: A response containing the result
     /// - Throws: if unautorized, database errors ext.
-    func submitInputTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTaskSubmitResponse>> {
+    func submitInputTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTask.Submit.Response>> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(NumberInputTaskSubmit.self)
+            .decode(NumberInputTask.Submit.Data.self)
             .flatMap { submit in
 
                 try req.parameters

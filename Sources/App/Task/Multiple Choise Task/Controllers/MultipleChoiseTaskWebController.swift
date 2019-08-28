@@ -150,10 +150,10 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 final class MultipleChoiseTaskWebContent: Content {
 
     let topic: Topic
-    let task: MultipleChoiseTaskContent
+    let task: MultipleChoiseTask.Data
     let nextTaskID: MultipleChoiseTask.ID?
 
-    init(taskContent: MultipleChoiseTaskContent, topic: Topic, nextTask: MultipleChoiseTask?) {
+    init(taskContent: MultipleChoiseTask.Data, topic: Topic, nextTask: MultipleChoiseTask?) {
         self.task = taskContent
         self.topic = topic
         self.nextTaskID = nextTask?.id

@@ -21,7 +21,7 @@ class NumberInputTaskController: CRUDControllable, RouteCollection {
             use: submitAnswer)
     }
 
-    func getInstance(_ req: Request) throws -> EventLoopFuture<NumberInputTaskContent> {
+    func getInstance(_ req: Request) throws -> EventLoopFuture<NumberInputTask.Data> {
         return try req.parameters
             .next(NumberInputTask.self)
 
@@ -31,7 +31,7 @@ class NumberInputTaskController: CRUDControllable, RouteCollection {
         }
     }
 
-    func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[NumberInputTaskContent]> {
+    func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[NumberInputTask.Data]> {
         return NumberInputTask.query(on: req)
             .all()
             .flatMap { tasks in
@@ -43,11 +43,11 @@ class NumberInputTaskController: CRUDControllable, RouteCollection {
         }
     }
 
-    func create(_ req: Request) throws -> EventLoopFuture<NumberInputTaskContent> {
+    func create(_ req: Request) throws -> EventLoopFuture<NumberInputTask.Data> {
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(NumberInputTaskCreateContent.self)
+            .decode(NumberInputTask.Create.Data.self)
             .flatMap { content in
 
                 try NumberInputTaskRepository.shared
@@ -73,30 +73,29 @@ class NumberInputTaskController: CRUDControllable, RouteCollection {
         }
     }
 
-    func edit(_ req: Request) throws -> EventLoopFuture<NumberInputTaskContent> {
+    func edit(_ req: Request) throws -> EventLoopFuture<NumberInputTask.Data> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(NumberInputTaskCreateContent.self)
+            .decode(NumberInputTask.Create.Data.self)
             .flatMap { content in
 
-            return try req.parameters
-                .next(NumberInputTask.self)
-                .flatMap { inputTask in
+                return try req.parameters
+                    .next(NumberInputTask.self)
+                    .flatMap { inputTask in
 
-                    try NumberInputTaskRepository.shared
-                        .edit(task: inputTask, with: content, user: user, conn: req)
-                        .flatMap { task in
-                            try NumberInputTaskRepository.shared
-                                .get(task: task, conn: req)
-                    }
-            }
-
+                        try NumberInputTaskRepository.shared
+                            .edit(task: inputTask, with: content, user: user, conn: req)
+                            .flatMap { task in
+                                try NumberInputTaskRepository.shared
+                                    .get(task: task, conn: req)
+                        }
+                }
         }
     }
 
-    func submitAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTaskSubmitResponse>> {
+    func submitAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTask.Submit.Response>> {
 
         throw Abort(.internalServerError)
 //        return try req.content.decode(NumberInputTaskSubmit.self).flatMap { submit in
@@ -106,30 +105,3 @@ class NumberInputTaskController: CRUDControllable, RouteCollection {
 //        }
     }
 }
-
-//struct NumberInputTaskCreateContent: Content, TaskCreationContentable {
-//
-//    let topicId: Topic.ID
-//
-//    let difficulty: Double
-//
-//    let estimatedTime: TimeInterval
-//
-//    let description: String?
-//
-//    let question: String
-//
-//    let solution: String?
-//
-//    let examPaper: String?
-//
-//    let examPaperYear: Int?
-//
-//    let examPaperSemester: Task.ExamSemester?
-//
-//    let isExaminable: Bool
-//
-//    let correctAnswer: Double
-//
-//    let unit: String?
-//}
