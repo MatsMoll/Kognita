@@ -34,11 +34,11 @@ final class CreatorWebController: RouteCollection {
 
         return req.withPooledConnection(to: .psql) { conn in
 
-            try TopicRepository.shared
+            try Topic.Repository.shared
                 .timelyTopics(on: conn)
                 .flatMap { topics in
 
-                    try TaskRepository.shared
+                    try Task.repository
                         .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
                         .map { tasks in
 
@@ -69,11 +69,11 @@ final class CreatorWebController: RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                SubjectRepository.shared
+                Subject.Repository.shared
                     .getSubjectWith(id: topic.subjectId, on: req)
                     .flatMap { subject in
 
-                        try TaskRepository.shared
+                        try Task.repository
                             .getTasks(where: \Topic.id == topic.id, conn: req)
                             .map(to: HTTPResponse.self) { taskContent in
 

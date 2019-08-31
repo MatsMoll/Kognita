@@ -51,75 +51,9 @@ class TopicTests: VaporTestCase {
         }
     }
     
-    
-    
-    // MARK: - POST /subjects/:id/topics
-    
-//    func testCreateTopicInSubject() {
-//        do {
-//            let user            = try User.create(on: conn)
-//            let subject         = try Subject.create(creator: user, on: conn)
-//
-//            let topicContent    = CreateTopicAPI(name: "Test", chapter: 1, preTopicId: nil)
-//
-//            let uri             = try path + "\(subject.requireID())/topics"
-//            let response        = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: topicContent, loggedInUser: user)
-//
-//            let topic           = try response.content.syncDecode(Topic.self)
-//            let databaseTopic   = try Topic.find(topic.requireID(), on: conn).wait()
-//
-//            XCTAssert(response.http.status  == .ok,                         "The http statuscode should have been ok, but were \(response.http.status)")
-//            XCTAssert(topic.name            == topicContent.name,           "The topic has a different value then the submitted. \(topic.name)")
-//            XCTAssert(topic.preTopicId      == topicContent.preTopicId,     "The topic has a different value then the submitted. \(topic.preTopicId ?? 0)")
-//            XCTAssert(topic.subjectId       == subject.id,                  "The subject id is incorrect. Were \(topic.subjectId)")
-//            XCTAssert(topic.name            == databaseTopic?.name,         "Topic is not in database")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
-//
-//
-//    func testCreateTopicInSubjectWhenNotCreatorError() {
-//        do {
-//            let user            = try User.create(on: conn)
-//            let subject         = try Subject.create(on: conn)
-//            let topicContent    = CreateTopicAPI(name: "Test", chapter: 1, preTopicId: nil)
-//
-//            let uri             = try path + "\(subject.requireID())/topics"
-//            let response        = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: topicContent, loggedInUser: user)
-//
-//            let databaseTopic   = try Topic.query(on: conn).filter(\.name == topicContent.name).all().wait()
-//
-//            XCTAssert(response.http.status      == .forbidden,      "The http statuscode should have been forbidden, but were \(response.http.status)")
-//            XCTAssert(databaseTopic.isEmpty     == true,            "Topic was saved in database, but should not have been saved")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
-//
-//
-//    func testCreateTopicInSubjectWhenNotLoggedIn() {
-//        do {
-//            let subject         = try Subject.create(on: conn)
-//            let topicContent    = CreateTopicAPI(name: "Test", chapter: 1, preTopicId: nil)
-//
-//            let uri             = try path + "\(subject.requireID())/topics"
-//            let response        = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: topicContent)
-//
-//            let databaseTopic   = try Topic.query(on: conn).filter(\.name == topicContent.name).all().wait()
-//
-//            XCTAssert(response.http.status      == .unauthorized,   "The http statuscode should have been unauthorized, but were \(response.http.status)")
-//            XCTAssert(databaseTopic.isEmpty     == true,            "Topic was saved in database, but should not have been saved")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
-    
-    
-    
     // MARK: - GET /subjects/:id/topics/:id
     
-    func testGetSubjectWithId() throws {
+    func testGetTopicWithId() throws {
 
         let user            = try User.create(on: conn)
         let topic           = try Topic.create(on: conn)
@@ -137,7 +71,7 @@ class TopicTests: VaporTestCase {
     }
     
     
-    func testGetSubjectWithIdWhenNotLoggedInError() throws {
+    func testGetTopicWithIdWhenNotLoggedInError() throws {
 
         let topic           = try Topic.create(on: conn)
         _                   = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
@@ -189,75 +123,12 @@ class TopicTests: VaporTestCase {
         XCTAssert(databaseTopic         != nil,             "The topic should NOT be deleted, but the topic is not in the database")
     }
     
-    
-    // MARK: - PUT /subjects/:id/topics/:id
-    
-//    func testEditTopic() {
-//        do {
-//            let user            = try User.create(on: conn)
-//            let subject         = try Subject.create(creator: user, on: conn)
-//            let preTopic        = try Topic.create(creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//            let topicToModify   = try Topic.create(chapter: 2, creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//
-//            let topicContent    = try CreateTopicAPI(name: "Modified Topic", chapter: 3, preTopicId: preTopic.requireID())
-//
-//            let uri             = try path + "\(subject.requireID())/topics/\(topicToModify.requireID())"
-//            let response        = try app.sendRequest(to: uri, method: .PUT, headers: standardHeaders, body: topicContent, loggedInUser: user)
-//
-//            let databaseTopic   = try Topic.find(topicToModify.requireID(), on: conn).wait()
-//
-//            XCTAssert(response.http.status      == .ok,                     "The http statuscode should have been ok, but were \(response.http.status)")
-//            XCTAssert(databaseTopic?.name       == topicContent.name,       "Topic was not updated in the database")
-//            XCTAssert(databaseTopic?.preTopicId == topicContent.preTopicId, "Topic was not updated in the database")
-//            XCTAssert(databaseTopic?.chapter    == topicContent.chapter,    "Topic was not updated in the database")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
-//
-//
-//    func testEditTopicWhenNotCreatorError() {
-//        do {
-//            let user            = try User.create(on: conn)
-//            let subject         = try Subject.create(on: conn)
-//            let preTopic        = try Topic.create(creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//            let topicToModify   = try Topic.create(chapter: 2, creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//
-//            let topicContent    = try CreateTopicAPI(name: "Modified Topic", chapter: 3, preTopicId: preTopic.requireID())
-//
-//            let uri             = try path + "\(subject.requireID())/topics/\(topicToModify.requireID())"
-//            let response        = try app.sendRequest(to: uri, method: .PUT, headers: standardHeaders, body: topicContent, loggedInUser: user)
-//
-//            let databaseTopic   = try Topic.find(topicToModify.requireID(), on: conn).wait()
-//
-//            XCTAssert(response.http.status      == .forbidden,              "The http statuscode should have been forbidden, but were \(response.http.status)")
-//            XCTAssert(databaseTopic?.name       != topicContent.name,       "Topic was updated in the database")
-//            XCTAssert(databaseTopic?.preTopicId != topicContent.preTopicId, "Topic was updated in the database")
-//            XCTAssert(databaseTopic?.chapter    != topicContent.chapter,    "Topic was updated in the database")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
-//
-//    func testEditTopicWhenNotLoggedInError() {
-//        do {
-//            let subject         = try Subject.create(on: conn)
-//            let preTopic        = try Topic.create(creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//            let topicToModify   = try Topic.create(chapter: 2, creatorId: subject.creatorId, subjectId: subject.requireID(), on: conn)
-//
-//            let topicContent    = try CreateTopicAPI(name: "Modified Topic", chapter: 3, preTopicId: preTopic.requireID())
-//
-//            let uri             = try path + "\(subject.requireID())/topics/\(topicToModify.requireID())"
-//            let response        = try app.sendRequest(to: uri, method: .PUT, headers: standardHeaders, body: topicContent)
-//
-//            let databaseTopic   = try Topic.find(topicToModify.requireID(), on: conn).wait()
-//
-//            XCTAssert(response.http.status      == .unauthorized,           "The http statuscode should have been forbidden, but were \(response.http.status)")
-//            XCTAssert(databaseTopic?.name       != topicContent.name,       "Topic was updated in the database")
-//            XCTAssert(databaseTopic?.preTopicId != topicContent.preTopicId, "Topic was updated in the database")
-//            XCTAssert(databaseTopic?.chapter    != topicContent.chapter,    "Topic was updated in the database")
-//        } catch let error {
-//            XCTFail("ERROR: \(error)")
-//        }
-//    }
+    static let allTests = [
+        ("testGetAllTopics", testGetAllTopics),
+        ("testGetTopicsWhenNotLoggedInError", testGetTopicsWhenNotLoggedInError),
+        ("testGetTopicWithId", testGetTopicWithId),
+        ("testGetTopicWithIdWhenNotLoggedInError", testGetTopicWithIdWhenNotLoggedInError),
+        ("testDeleteingTopic", testDeleteingTopic),
+        ("testDeleteingTopicWhenNotLoggedInError", testDeleteingTopicWhenNotLoggedInError)
+    ]
 }

@@ -33,7 +33,7 @@ final class TopicWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try TopicRepository.shared
+                try Topic.Repository.shared
                     .getTopicResponses(in: subject, conn: req)
                     .flatMap { topics in
 
@@ -126,7 +126,7 @@ final class TopicWebController: RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                SubjectRepository.shared
+                Subject.Repository.shared
                     .getSubject(in: topic, on: req)
                     .flatMap { subject in
 
@@ -136,7 +136,7 @@ final class TopicWebController: RouteCollection {
                                 .getAllResults(for: user.requireID(), filter: \Topic.id == topic.requireID(), with: conn, maxRevisitDays: nil)
                                 .flatMap { results in
 
-                                    try TaskRepository.shared
+                                    try Task.repository
                                         .getTasks(in: topic, with: conn)
                                         .map { tasks in
 

@@ -34,4 +34,8 @@ final class PracticeSessionTests: VaporTestCase {
         
         XCTAssert(try task1.requireID() == id || task2.requireID() == id)
     }
+    
+    static let allTests = [
+        ("testToAssignTask", testToAssignTask)
+    ]
 }

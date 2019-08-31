@@ -25,12 +25,16 @@ class SubtopicWebController : RouteCollection {
     func create(on req: Request) throws -> Future<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
+        
+        guard user.isCreator else {
+            throw Abort(.forbidden)
+        }
 
         return try req.parameters
             .next(Subject.self)
             .flatMap { subject in
 
-                try TopicRepository.shared
+                try Topic.Repository.shared
                     .getTopics(in: subject, conn: req)
                     .map { topics in
 
@@ -58,7 +62,7 @@ class SubtopicWebController : RouteCollection {
                 .next(Subtopic.self)
                 .flatMap { subtopic in
 
-                    try TopicRepository.shared
+                    try Topic.Repository.shared
                         .getTopics(in: subject, conn: req)
                         .map { topics in
 

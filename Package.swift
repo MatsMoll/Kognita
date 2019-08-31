@@ -3,7 +3,7 @@ import PackageDescription
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(url: "https://github.com/vapor/vapor.git", from: "3.2.2"),
+    .package(url: "https://github.com/vapor/vapor.git", from: "3.3.0"),
 
     // Encodes Form requests
     .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0")

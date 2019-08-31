@@ -13,15 +13,15 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
 
     func render(_ session: PracticeSession, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        return try NumberInputTaskRepository.shared
+        return try NumberInputTask.repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try PracticeSessionRepository.shared
+                try PracticeSession.repository
                     .getNextTaskPath(for: session, on: req)
                     .flatMap { nextPath in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .goalProgress(in: session, on: req)
                             .flatMap { progress in
 
@@ -29,7 +29,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                                     .getLastResult(for: preview.task.requireID(), by: user, on: req)
                                     .flatMap { lastResult in
 
-                                        try PracticeSessionRepository.shared
+                                        try PracticeSession.repository
                                             .getNumberOfTasks(in: session, on: req)
                                             .map { numberOfTasks in
 
@@ -56,7 +56,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return try NumberInputTaskRepository.shared
+        return try NumberInputTask.repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
