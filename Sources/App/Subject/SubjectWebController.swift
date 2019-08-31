@@ -25,14 +25,14 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try controller.getInstanceCollection(req).flatMap { subjects in
+        return try controller.getAll(req).flatMap { subjects in
             req.withPooledConnection(to: .psql) { conn in
                 
                 try TaskResultRepository.shared
                     .getAllResultsContent(for: user, with: conn)
                     .flatMap { response in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .getLatestUnfinnishedSessionPath(for: user, on: conn)
                             .map { ongoingSessionPath in
 
@@ -55,6 +55,11 @@ final class SubjectWebController: RouteCollection {
 
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
+        
+        guard user.isCreator else {
+            throw Abort(.forbidden)
+        }
+        
         return try req.renderer()
             .render(
                 CreateSubjectPage.self,

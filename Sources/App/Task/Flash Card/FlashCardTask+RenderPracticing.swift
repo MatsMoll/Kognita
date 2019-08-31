@@ -13,19 +13,19 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
     func render(_ session: PracticeSession, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
         
-        return FlashCardRepository.shared
+        return FlashCardTask.repository
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try PracticeSessionRepository.shared
+                try PracticeSession.repository
                     .getNextTaskPath(for: session, on: req)
                     .flatMap { nextPath in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .goalProgress(in: session, on: req)
                             .flatMap { progress in
 
-                                try PracticeSessionRepository.shared
+                                try PracticeSession.repository
                                     .getNumberOfTasks(in: session, on: req)
                                     .flatMap { numberOfTasks in
 
@@ -55,7 +55,7 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return FlashCardRepository.shared
+        return FlashCardTask.repository
             .content(for: self, on: req)
             .flatMap { preview in
 

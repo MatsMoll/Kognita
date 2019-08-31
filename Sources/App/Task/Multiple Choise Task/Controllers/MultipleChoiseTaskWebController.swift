@@ -34,22 +34,6 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             use: getInstance)
     }
 
-//    func getInstanceInTopic(on req: Request) throws -> Future<Response> {
-//
-//        return try req.parameters.next(Topic.self)
-//            .flatMap { (topic) in
-//                MultipleChoiseTaskRepository.shared.
-//                try Task.query(on: req)
-//                    .filter(\.topicId == topic.requireID())
-//                    .join(\MultipleChoiseTask.id, to: \Task.id)
-//                    .decode(MultipleChoiseTask.self)
-//                    .first()
-//                    .unwrap(or: Abort(.badRequest))
-//            } .map { task in
-//                try req.redirect(to: "/tasks/multiple-choise/\(task.requireID())")
-//        }
-//    }
-
     func getInstance(on req: Request) throws -> Future<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
@@ -58,7 +42,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTaskRepository.shared
+                try MultipleChoiseTask.repository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
@@ -92,7 +76,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try TopicRepository.shared
+                try Topic.Repository.shared
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
@@ -122,11 +106,11 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTaskRepository.shared
+                try MultipleChoiseTask.repository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
-                        try TopicRepository.shared
+                        try Topic.Repository.shared
                             .getTopicResponses(in: preview.subject, conn: req)
                             .map { topics in
 
@@ -150,10 +134,10 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 final class MultipleChoiseTaskWebContent: Content {
 
     let topic: Topic
-    let task: MultipleChoiseTaskContent
+    let task: MultipleChoiseTask.Data
     let nextTaskID: MultipleChoiseTask.ID?
 
-    init(taskContent: MultipleChoiseTaskContent, topic: Topic, nextTask: MultipleChoiseTask?) {
+    init(taskContent: MultipleChoiseTask.Data, topic: Topic, nextTask: MultipleChoiseTask?) {
         self.task = taskContent
         self.topic = topic
         self.nextTaskID = nextTask?.id

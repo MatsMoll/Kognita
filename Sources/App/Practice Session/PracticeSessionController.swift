@@ -10,7 +10,12 @@ import FluentPostgreSQL
 import KognitaCore
 import KognitaViews
 
-final class PracticeSessionController: RouteCollection {
+final class PracticeSessionController: RouteCollection, KognitaCRUDControllable {
+    
+    typealias Model = PracticeSession
+    typealias ResponseContent = PracticeSession.Create.Response
+    
+    static let shared = PracticeSessionController()
 
     func boot(router: Router) {
         router.post(
@@ -37,36 +42,18 @@ final class PracticeSessionController: RouteCollection {
             "practice-session", PracticeSession.parameter,
             use: endSession)
     }
-
-    static let shared = PracticeSessionController()
-
-    /// Creates a new session
-    ///
-    /// - Requires:
-    ///     A subject code in the url ".../**Some Subject Code**/...",
-    ///
-    /// - Parameter req:
-    ///     The http request containing a `PracticeSessionCreateContent` body
-    ///
-    /// - Throws:
-    ///     - If unauthorized
-    ///     - Missing or invalid url parameter
-    ///     - Missing or invalid `PracticeSessionCreateContent` content
-    ///
-    /// - Returns:
-    ///     A `PracticeSessionCreateResponse` struct
-    func create(_ req: Request) throws -> Future<PracticeSessionCreateResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return try req.content
-            .decode(PracticeSessionCreateContent.self)
-            .flatMap { content in
-                PracticeSessionRepository.shared
-                    .create(for: user, with: content, on: req)
-        }
+    
+    func getAll(_ req: Request) throws -> EventLoopFuture<[PracticeSession.Create.Response]> {
+        throw Abort(.internalServerError)
     }
-
+    
+    func map(model: PracticeSession, on conn: DatabaseConnectable) throws -> EventLoopFuture<PracticeSession.Create.Response> {
+        throw Abort(.internalServerError)
+    }
+    
+    func edit(_ req: Request) throws -> EventLoopFuture<PracticeSession.Create.Response> {
+        throw Abort(.internalServerError)
+    }
     
     func renderCurrentTask<T>(_ taskType: T.Type, on req: Request) throws -> Future<Response> where T: PostgreSQLModel, T: RenderTaskPracticing {
 
@@ -84,7 +71,7 @@ final class PracticeSessionController: RouteCollection {
                         req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result"))
                 }
 
-                return try PracticeSessionRepository.shared
+                return try PracticeSession.repository
                     .getCurrent(taskType, for: session, on: req)
                     .flatMap { task in
                         try task.render(session, for: user, on: req)
@@ -116,19 +103,19 @@ final class PracticeSessionController: RouteCollection {
     /// - Parameter req: The http request
     /// - Returns: A response containing the result
     /// - Throws: if unautorized, database errors ext.
-    func submitMultipleTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<[MultipleChoiseTaskChoiseResult]>> {
+    func submitMultipleTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<[MultipleChoiseTaskChoise.Result]>> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(MultipleChoiseTaskSubmit.self)
+            .decode(MultipleChoiseTask.Submit.self)
             .flatMap { submit in
 
                 try req.parameters
                     .next(PracticeSession.self)
                     .flatMap { (session) in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .submitMultipleChoise(submit, in: session, by: user, on: req)
                 }
         }
@@ -139,38 +126,38 @@ final class PracticeSessionController: RouteCollection {
     /// - Parameter req: The http request
     /// - Returns: A response containing the result
     /// - Throws: if unautorized, database errors ext.
-    func submitInputTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTaskSubmitResponse>> {
+    func submitInputTaskAnswer(_ req: Request) throws -> Future<PracticeSessionResult<NumberInputTask.Submit.Response>> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(NumberInputTaskSubmit.self)
+            .decode(NumberInputTask.Submit.Data.self)
             .flatMap { submit in
 
                 try req.parameters
                     .next(PracticeSession.self)
                     .flatMap { session in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .submitInputTask(submit, in: session, by: user, on: req)
                 }
         }
     }
 
 
-    func submitFlashCardKnowledge(_ req: Request) throws -> Future<PracticeSessionResult<FlashCardTaskSubmit>> {
+    func submitFlashCardKnowledge(_ req: Request) throws -> Future<PracticeSessionResult<FlashCardTask.Submit>> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try req.content
-            .decode(FlashCardTaskSubmit.self)
+            .decode(FlashCardTask.Submit.self)
             .flatMap { submit in
 
                 try req.parameters
                     .next(PracticeSession.self)
                     .flatMap { session in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .submitFlashCard(submit, in: session, by: user, on: req)
                 }
         }
@@ -194,11 +181,11 @@ final class PracticeSessionController: RouteCollection {
                     throw Abort(.forbidden)
                 }
 
-                return try PracticeSessionRepository.shared
+                return try PracticeSession.repository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try PracticeSessionRepository.shared
+                        try PracticeSession.repository
                             .getResult(for: session, on: req)
                             .map { results in
 
@@ -222,7 +209,7 @@ final class PracticeSessionController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try PracticeSessionRepository.shared
+        return try PracticeSession.repository
             .getAllSessions(by: user, on: req)
             .map { sessions in
 
@@ -244,58 +231,14 @@ final class PracticeSessionController: RouteCollection {
         return try req.parameters
             .next(PracticeSession.self)
             .flatMap { session in
-                try PracticeSessionRepository.shared
+                try PracticeSession.repository
                     .end(session, for: user, on: req)
                     .transform(to:
                         PracticeSessionEndResponse(sessionResultPath: "/practice-sessions/\(session.id ?? 0)/result")
                 )
         }
     }
-//
-//    /// Returns the result of a given session and task
-//    ///
-//    /// - Parameter req: The HTTP-request
-//    /// - Returns: A view displaying the result
-//    /// - Throws: Misformd data etc.
-//    func getMultupleTaskResult(_ req: Request) throws -> Future<HTTPResponse> {
-//
-//        let user = try req.requireAuthenticated(User.self)
-//
-//        return try req.parameters.next(PracticeSession.self).flatMap { session in
-//            try req.parameters.next(MultipleChoiseTask.self).flatMap { multiple in
-//                guard let task = multiple.task else {
-//                    throw Abort(.internalServerError)
-//                }
-//                return task.get(on: req).flatMap { task in
-//                    try multiple.content(on: req).flatMap { content in
-//                        Topic.find(task.topicId, on: req)
-//                            .unwrap(or: Abort(.internalServerError))
-//                            .flatMap { topic in
-//                                topic.subject.get(on: req).map { subject in
-//
-//                                    let preview = TaskPreviewContent(
-//                                        subject: subject,
-//                                        topic: topic,
-//                                        task: task,
-//                                        actionDescription: multiple.actionDescription
-//                                    )
-//                                    return try req.renderer()
-//                                        .render(
-//                                            MultipleChoiseTaskTemplate.self,
-//                                            with: .init(
-//                                                multiple: content,
-//                                                taskContent: preview,
-//                                                user: user
-//                                            )
-//                                    )
-//                                }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
+    
     /// Renders the current task in a `PracticeSession`
     ///
     /// - Parameter req: The http request
@@ -305,7 +248,7 @@ final class PracticeSessionController: RouteCollection {
         return try renderCurrentTask(FlashCardTask.self, on: req)
     }
 
-    func getAmountHistogram(_ req: Request) throws -> Future<[TaskResultHistory]> {
+    func getAmountHistogram(_ req: Request) throws -> Future<[TaskResult.History]> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -316,37 +259,8 @@ final class PracticeSessionController: RouteCollection {
     }
 }
 
-//struct PracticeSessionHistory: Content {
-//
-//    let timePracticed: TimeInterval
-//
-//    let date: Date
-//}
-//
-///// The content needed to create a session
-//class PracticeSessionCreateContent: Decodable {
-//
-//    /// The number of task to complete in a session
-//    let numberOfTaskGoal: Int
-//
-//    /// The topic id's for the tasks to map
-//    let topicIDs: [Topic.ID]
-//}
-//
-///// The response when creating a new session
-//final class PracticeSessionCreateResponse: Content {
-//
-//    /// A redirection to the session
-//    let redirectionUrl: String
-//
-//    init(redirectionUrl: String) {
-//        self.redirectionUrl = redirectionUrl
-//    }
-//}
-
 
 extension PSTaskResult: TaskResultable {}
-
 
 struct PracticeSessionEndResponse: Content {
     let sessionResultPath: String

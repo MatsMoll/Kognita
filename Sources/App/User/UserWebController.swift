@@ -40,7 +40,7 @@ final class UserWebController: RouteCollection {
     }
 
     func create(_ req: Request) throws -> EventLoopFuture<Response> {
-        return try req.content.decode(CreateUserRequest.self).flatMap { createUser in
+        return try req.content.decode(User.Create.Data.self).flatMap { createUser in
             try UserController.shared.create(req).flatMap { newUser in
                 User.authenticate(
                     username: createUser.email,
@@ -48,7 +48,7 @@ final class UserWebController: RouteCollection {
                     using: BCryptDigest(),
                     on: req).map { user in
                         guard let user = user else {
-                            throw UserRepository.UserErrors.unauthorized
+                            throw User.Repository.Errors.unauthorized
                         }
                         try req.authenticate(user)
                         return req.redirect(to: "/subjects")
@@ -57,7 +57,7 @@ final class UserWebController: RouteCollection {
             }.catchFlatMap({ (error) in
                 print("Error: ", error)
                 switch error {
-                case is UserRepository.UserErrors:
+                case is User.Repository.Errors:
                     return try req.renderer()
                         .render(SignupPage.self, with: .init(errorMessage: error.localizedDescription))
                         .encode(for: req)
