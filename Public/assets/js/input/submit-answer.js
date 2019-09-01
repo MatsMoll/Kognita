@@ -122,8 +122,9 @@ function handleSuccess(response) {
         $("#goal-progress-label").text(progress + "%");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%; ");
-        if (progress >= 100) {
+        if (progress == 100) {
             $("#goal-progress-bar").addClass("bg-success");
+            $("#achivement-success").modal();
         }
     }
 }
