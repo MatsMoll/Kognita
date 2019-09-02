@@ -14,7 +14,13 @@ function submitAnswer() {
     answerString = answerString.replace(",", ".");
     var answer = parseFloat(answerString);
 
-    var url = "/api/" + window.location.pathname;
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    var sessionId = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+    var url = "/api/practice-sessions/" + sessionId + "/submit/input";
     
     var now = new Date();
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
@@ -81,7 +87,6 @@ function updateTimer() {
 function handleSuccess(response) {
     console.log(response);
     let progress = response["progress"];
-    let change = response["change"];
     results = response["result"]
 
     $("#nextButton").removeClass("d-none");
@@ -95,27 +100,6 @@ function handleSuccess(response) {
         $("#answer").addClass("bg-danger text-white");
         $("#correct-answer").removeClass("d-none");
         $("#correct-answer").html("Riktig svar: " + results["correctAnswer"]);
-    }
-
-    let notificationLength = 20 * 1000;
-    if (change >= 0) {
-        (window.jQuery).NotificationApp.send(
-            "Bra jobba!",
-            "Du gikk opp " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "success",
-            notificationLength
-        );
-    } else if (change < 0) {
-        (window.jQuery).NotificationApp.send(
-            "Oh, prøv en gang til!",
-            "Du gikk ned " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "warning",
-            notificationLength
-        );
     }
 
     if (progress) {

@@ -18,8 +18,8 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
             .flatMap { preview, content in
 
                 try PracticeSession.repository
-                    .getNextTaskPath(for: session, on: req)
-                    .flatMap { nextPath in
+                    .getCurrentTaskIndex(for: session.requireID(), on: req)
+                    .flatMap { index in
 
                         try PracticeSession.repository
                             .goalProgress(in: session, on: req)
@@ -40,7 +40,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                                                             numberTask: content,
                                                             taskPreview: preview,
                                                             user: user,
-                                                            nextTaskPath: nextPath,
+                                                            nextTaskPath: session.pathFor(index: index + 1),
                                                             session: session,
                                                             practiceProgress: progress,
                                                             lastResult: lastResult?.content,

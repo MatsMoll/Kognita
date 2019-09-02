@@ -37,7 +37,7 @@ function revealSolution() {
 }
 
 function nextTask() {
-    submitPerformance(function() { window.location.pathname = $("#next-task").val(); })
+    submitPerformance(function() { location.reload(); })
 }
 
 function submitAndEndSession() {
@@ -49,7 +49,14 @@ function submitAndEndSession() {
 }
 
 function submitPerformance(handleSuccess) {
-    var url = "/api" + window.location.pathname;
+
+    let path = window.location.pathname;
+    let splitURI = "sessions/";
+    var sessionId = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+    var url = "/api/practice-sessions/" + sessionId + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
     let knowledge = parseFloat($("#knowledge-slider").val());

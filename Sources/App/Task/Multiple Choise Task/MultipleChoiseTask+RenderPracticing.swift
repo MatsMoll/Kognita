@@ -18,8 +18,8 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
             .flatMap { preview, content in
 
                 try PracticeSession.repository
-                    .getNextTaskPath(for: session, on: req)
-                    .flatMap { nextPath in
+                    .getCurrentTaskIndex(for: session.requireID(), on: req)
+                    .flatMap { index in
 
                         try PracticeSession.repository
                             .goalProgress(in: session, on: req)
@@ -40,7 +40,7 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
                                                             multiple: content,
                                                             taskContent: preview,
                                                             user: user,
-                                                            nextTaskPath: nextPath,
+                                                            nextTaskPath: session.pathFor(index: index + 1),
                                                             session: session,
                                                             practiceProsess: progress,
                                                             lastResult: lastResult?.content,

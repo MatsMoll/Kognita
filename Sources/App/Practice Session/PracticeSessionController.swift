@@ -13,7 +13,7 @@ import KognitaViews
 final class PracticeSessionController: RouteCollection, KognitaCRUDControllable {
     
     typealias Model = PracticeSession
-    typealias ResponseContent = PracticeSession.Create.Response
+    typealias ResponseContent = PracticeSession.Create.WebResponse
     
     static let shared = PracticeSessionController()
 
@@ -23,15 +23,15 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
             use: create)
 
         router.post(
-            "practice-sessions", PracticeSession.parameter, "tasks/multiple-choise/current",
+            "practice-sessions", PracticeSession.parameter, "submit/multiple-choise",
             use: submitMultipleTaskAnswer)
 
         router.post(
-            "practice-sessions", PracticeSession.parameter, "tasks/input/current",
+            "practice-sessions", PracticeSession.parameter, "submit/input",
             use: submitInputTaskAnswer)
 
         router.post(
-            "practice-sessions", PracticeSession.parameter, "tasks/flash-card/current",
+            "practice-sessions", PracticeSession.parameter, "submit/flash-card",
             use: submitFlashCardKnowledge)
 
         router.get(
@@ -43,19 +43,27 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
             use: endSession)
     }
     
-    func getAll(_ req: Request) throws -> EventLoopFuture<[PracticeSession.Create.Response]> {
+    
+    func getAll(_ req: Request) throws -> EventLoopFuture<[PracticeSession.Create.WebResponse]> {
         throw Abort(.internalServerError)
     }
     
-    func map(model: PracticeSession, on conn: DatabaseConnectable) throws -> EventLoopFuture<PracticeSession.Create.Response> {
-        throw Abort(.internalServerError)
+    func map(model: PracticeSession, on conn: DatabaseConnectable) throws -> EventLoopFuture<PracticeSession.Create.WebResponse> {
+        
+        return try model
+            .getCurrentTaskIndex(conn)
+            .map { index in
+                return try .init(
+                    redirectionUrl: model.pathFor(index: index)
+                )
+        }
     }
     
     func edit(_ req: Request) throws -> EventLoopFuture<PracticeSession.Create.Response> {
         throw Abort(.internalServerError)
     }
     
-    func renderCurrentTask<T>(_ taskType: T.Type, on req: Request) throws -> Future<Response> where T: PostgreSQLModel, T: RenderTaskPracticing {
+    func renderCurrentTask(on req: Request) throws -> Future<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -66,36 +74,18 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                 guard session.userID == user.id else {
                     throw Abort(.forbidden)
                 }
-                if session.hasAssignedTask == false {
-                    return req.future(
-                        req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result"))
-                }
 
-                return try PracticeSession.repository
-                    .getCurrent(taskType, for: session, on: req)
-                    .flatMap { task in
-                        try task.render(session, for: user, on: req)
-                            .encode(for: req)
+                return req.databaseConnection(to: .psql)
+                    .flatMap { conn in
+                        
+                        try session.currentTask(on: conn)
+                            .flatMap { taskContent in
+                            
+                                try TaskType(content: taskContent)
+                                    .render(session, for: user, on: req)
+                        }
                 }
         }
-    }
-
-    /// Renders the current task in a `PracticeSession`
-    ///
-    /// - Parameter req: The http request
-    /// - Returns: A rendered `View`
-    /// - Throws: If missing any parameters or an internal database error
-    func getCurrentMultipleTask(_ req: Request) throws -> Future<Response> {
-        return try renderCurrentTask(MultipleChoiseTask.self, on: req)
-    }
-
-    /// Renders the current task in a `PracticeSession`
-    ///
-    /// - Parameter req: The http request
-    /// - Returns: A rendered `View`
-    /// - Throws: If missing any parameters or an internal database error
-    func getCurrentInputTask(_ req: Request) throws -> Future<Response> {
-        return try renderCurrentTask(NumberInputTask.self, on: req)
     }
 
     /// Submits an answer to a session
@@ -239,15 +229,6 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
         }
     }
     
-    /// Renders the current task in a `PracticeSession`
-    ///
-    /// - Parameter req: The http request
-    /// - Returns: A rendered `View`
-    /// - Throws: If missing any parameters or an internal database error
-    func getCurrentFlashCardTask(_ req: Request) throws -> Future<Response> {
-        return try renderCurrentTask(FlashCardTask.self, on: req)
-    }
-
     func getAmountHistogram(_ req: Request) throws -> Future<[TaskResult.History]> {
 
         let user = try req.requireAuthenticated(User.self)
@@ -264,4 +245,31 @@ extension PSTaskResult: TaskResultable {}
 
 struct PracticeSessionEndResponse: Content {
     let sessionResultPath: String
+}
+
+struct TaskType: RenderTaskPracticing {
+    
+    let task: Task
+    let multipleChoise: MultipleChoiseTask?
+    let numberInputTask: NumberInputTask?
+    
+    init(content: (task: Task, chosie: MultipleChoiseTask?, input: NumberInputTask?)) {
+        self.task = content.task
+        self.multipleChoise = content.chosie
+        self.numberInputTask = content.input
+    }
+    
+    func render(_ session: PracticeSession, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+        
+        return try renderableTask
+            .render(session, for: user, on: req)
+    }
+    
+    var renderableTask: RenderTaskPracticing {
+        switch (multipleChoise, numberInputTask) {
+        case (.some(let multiple),   _              ):  return multiple
+        case (_,                    .some(let input)):  return input
+        default:                                        return FlashCardTask(taskId: task.id)
+        }
+    }
 }

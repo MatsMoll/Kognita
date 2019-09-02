@@ -18,8 +18,8 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
             .flatMap { preview in
 
                 try PracticeSession.repository
-                    .getNextTaskPath(for: session, on: req)
-                    .flatMap { nextPath in
+                    .getCurrentTaskIndex(for: session.requireID(), on: req)
+                    .flatMap { currentIndex in
 
                         try PracticeSession.repository
                             .goalProgress(in: session, on: req)
@@ -39,7 +39,7 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
                                                         with: .init(
                                                             taskPreview: preview,
                                                             user: user,
-                                                            nextTaskPath: nextPath,
+                                                            nextTaskPath: "",
                                                             practiceProgress: progress,
                                                             session: session,
                                                             lastResult: lastResult?.content,

@@ -83,15 +83,6 @@
         }
       },
       {
-        "package": "FluentQuery",
-        "repositoryURL": "https://github.com/MihaelIsaev/FluentQuery.git",
-        "state": {
-          "branch": null,
-          "revision": "370bdab9664a5e745e8fd6211b1f35658379933e",
-          "version": "0.4.32"
-        }
-      },
-      {
         "package": "HTMLKit",
         "repositoryURL": "https://github.com/vapor-community/HTMLKit.git",
         "state": {
@@ -137,6 +128,15 @@
         }
       },
       {
+        "package": "MySQL",
+        "repositoryURL": "https://github.com/vapor/mysql.git",
+        "state": {
+          "branch": null,
+          "revision": "6e86ff53e18f02faf26c2cbea1c1fb466bff6866",
+          "version": "3.2.6"
+        }
+      },
+      {
         "package": "PostgreSQL",
         "repositoryURL": "https://github.com/vapor/postgresql.git",
         "state": {
@@ -179,6 +179,15 @@
           "branch": null,
           "revision": "314d9cd21165bcf14215e336a23ff8214f40e411",
           "version": "3.2.1"
+        }
+      },
+      {
+        "package": "SwifQL",
+        "repositoryURL": "https://github.com/MihaelIsaev/SwifQL.git",
+        "state": {
+          "branch": null,
+          "revision": "add1534996e4dec3a04a50556cc8bc37b4cdb662",
+          "version": "0.22.0"
         }
       },
       {
