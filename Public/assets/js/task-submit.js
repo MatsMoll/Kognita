@@ -24,7 +24,14 @@ function submitChoises() {
     var now = new Date();
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
 
-    var url = "/api" + window.location.pathname.replace("creator/", "");
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    var sessionId = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+    var url = "/api/practice-sessions/" + sessionId + "/submit/multiple-choise";
+
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
         "choises": selectedChoises
@@ -105,33 +112,13 @@ function handleSuccess(results) {
         }
     }
 
-    let notificationLength = 20 * 1000;
-    if (change >= 0) {
-        (window.jQuery).NotificationApp.send(
-            "Bra jobba!",
-            "Du gikk opp " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "success",
-            notificationLength
-        );
-    } else if (change < 0) {
-        (window.jQuery).NotificationApp.send(
-            "Oh, prøv en gang til!",
-            "Du gikk ned " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "warning",
-            notificationLength
-        );
-    }
-
     if (progress) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-        if (progress >= 100) {
+        if (progress == 100) {
             $("#goal-progress-bar").addClass("bg-success");
+            $("#achivement-success").modal();
         }
     }
 }

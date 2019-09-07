@@ -50,7 +50,7 @@ class NumberInputTaskWebController: RouteCollection {
         return try req.parameters
             .next(Subject.self).flatMap { subject in
 
-                try TopicRepository.shared
+                try Topic.Repository.shared
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
@@ -79,11 +79,11 @@ class NumberInputTaskWebController: RouteCollection {
             .next(NumberInputTask.self)
             .flatMap { task in
 
-                try NumberInputTaskRepository.shared
+                try NumberInputTask.repository
                     .content(for: task, on: req)
                     .flatMap { preview, content in
 
-                        try TopicRepository.shared
+                        try Topic.Repository.shared
                             .getTopicResponses(in: preview.subject, conn: req)
                             .map { topics in
 

@@ -3,10 +3,12 @@ import PackageDescription
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(url: "https://github.com/vapor/vapor.git", from: "3.2.2"),
+    .package(url: "https://github.com/vapor/vapor.git", from: "3.3.0"),
 
     // Encodes Form requests
-    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0")
+    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
+
+    .package(url: "https://github.com/twof/VaporMailgunService.git", from: "1.5.0")
 ]
 
 
@@ -31,7 +33,13 @@ let package = Package(
     name: "KognitaVapor",
     dependencies: dependencies,
     targets: [
-        .target(name: "App", dependencies: ["KognitaCore", "KognitaViews", "Vapor", "URLEncodedForm"]),
+        .target(name: "App", dependencies: [
+            "KognitaCore",
+            "KognitaViews",
+            "Vapor",
+            "URLEncodedForm",
+            "Mailgun"
+        ]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App"])
     ]

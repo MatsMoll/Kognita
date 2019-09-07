@@ -12,7 +12,7 @@ function jsonData() {
         solution = $("#card-solution").summernote("code");
     }
 
-    if (isNaN(subtopicId) || subtopicId > 0) {
+    if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
     }
     if (question.length < 1) {

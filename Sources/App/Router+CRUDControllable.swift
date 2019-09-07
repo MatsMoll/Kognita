@@ -31,4 +31,16 @@ extension Router {
     func register<T: CRUDControllable>(controller: T, at path: PathComponentsRepresentable...) {
         grouped(path).register(controller)
     }
+    
+    func register<T: KognitaCRUDControllable>(_ controller: T) {
+        post    ("/",                       use: controller.create)
+        get     ("/",                       use: controller.getAll)
+        get     ("/", controller.parameter, use: controller.get)
+        delete  ("/", controller.parameter, use: controller.delete)
+        put     ("/", controller.parameter, use: controller.edit)
+    }
+    
+    func register<T: KognitaCRUDControllable>(controller: T, at path: PathComponentsRepresentable...) {
+        grouped(path).register(controller)
+    }
 }

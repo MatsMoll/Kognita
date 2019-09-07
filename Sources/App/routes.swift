@@ -34,17 +34,9 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: SubtopicWebController())
 
     redirectMiddle.get(
-        "practice-sessions/", PracticeSession.parameter, "tasks/multiple-choise/current",
-        use: PracticeSessionController.shared.getCurrentMultipleTask)
-
-    redirectMiddle.get(
-        "practice-sessions", PracticeSession.parameter, "tasks/input/current",
-        use: PracticeSessionController.shared.getCurrentInputTask)
-
-    redirectMiddle.get(
-        "practice-sessions", PracticeSession.parameter, "tasks/flash-card/current",
-        use: PracticeSessionController.shared.getCurrentFlashCardTask)
-
+        "practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter,
+        use: PracticeSessionController.shared.renderCurrentTask)
+    
     redirectMiddle.get(
         "practice-sessions/", PracticeSession.parameter, "result",
         use: PracticeSessionController.shared.getSessionResult)

@@ -83,15 +83,6 @@
         }
       },
       {
-        "package": "FluentQuery",
-        "repositoryURL": "https://github.com/MihaelIsaev/FluentQuery.git",
-        "state": {
-          "branch": null,
-          "revision": "370bdab9664a5e745e8fd6211b1f35658379933e",
-          "version": "0.4.32"
-        }
-      },
-      {
         "package": "HTMLKit",
         "repositoryURL": "https://github.com/vapor-community/HTMLKit.git",
         "state": {
@@ -150,8 +141,8 @@
         "repositoryURL": "https://github.com/vapor/routing.git",
         "state": {
           "branch": null,
-          "revision": "626190ddd2bd9f967743b60ba6adaf90bbd2651c",
-          "version": "3.0.2"
+          "revision": "d76f339c9716785e5079af9d7075d28ff7da3d92",
+          "version": "3.1.0"
         }
       },
       {
@@ -251,6 +242,15 @@
           "branch": null,
           "revision": "c86ada59b31c69f08a6abd4f776537cba48d5df6",
           "version": "3.3.0"
+        }
+      },
+      {
+        "package": "Mailgun",
+        "repositoryURL": "https://github.com/twof/VaporMailgunService.git",
+        "state": {
+          "branch": null,
+          "revision": "9c41e744bced6f2f854bd3632333d57d6db46d51",
+          "version": "1.8.1"
         }
       },
       {

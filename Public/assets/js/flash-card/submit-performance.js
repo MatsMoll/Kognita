@@ -22,8 +22,9 @@ function revealSolution() {
             $("#goal-progress-label").text(progress + "% ");
             $("#goal-progress-bar").attr("aria-valuenow", progress);
             $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-            if (progress >= 100) {
+            if (progress == 100) {
                 $("#goal-progress-bar").addClass("bg-success");
+                $("#achivement-success").modal();
             }
         }
     }
@@ -37,19 +38,30 @@ function revealSolution() {
 }
 
 function nextTask() {
-    submitPerformance(function() { window.location.pathname = $("#next-task").val(); })
+    submitPerformance(function() {
+        location.href = $("#next-task").val();
+    })
 }
 
 function submitAndEndSession() {
     if ($("#solution").hasClass("d-none")) {
         endSession();
     } else {
-        submitPerformance(function() { endSession(); });
+        submitPerformance(function() { 
+            endSession(); 
+        });
     }
 }
 
 function submitPerformance(handleSuccess) {
-    var url = "/api" + window.location.pathname;
+
+    let path = window.location.pathname;
+    let splitURI = "sessions/";
+    var sessionId = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+    var url = "/api/practice-sessions/" + sessionId + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
     let knowledge = parseFloat($("#knowledge-slider").val());

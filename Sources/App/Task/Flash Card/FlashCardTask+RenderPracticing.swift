@@ -11,43 +11,33 @@ import KognitaViews
 
 extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
-    func render(_ session: PracticeSession, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> Future<HTTPResponse> {
         
-        return FlashCardRepository.shared
+        return FlashCardTask.repository
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try PracticeSessionRepository.shared
-                    .getNextTaskPath(for: session, on: req)
-                    .flatMap { nextPath in
+                try PracticeSession.repository
+                    .goalProgress(in: session, on: req)
+                    .flatMap { progress in
 
-                        try PracticeSessionRepository.shared
-                            .goalProgress(in: session, on: req)
-                            .flatMap { progress in
+                        try TaskResultRepository.shared
+                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .map { lastResult in
 
-                                try PracticeSessionRepository.shared
-                                    .getNumberOfTasks(in: session, on: req)
-                                    .flatMap { numberOfTasks in
-
-                                        try TaskResultRepository.shared
-                                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                                            .map { lastResult in
-
-                                                try req.renderer()
-                                                    .render(
-                                                        FlashCardTaskTemplate.self,
-                                                        with: .init(
-                                                            taskPreview: preview,
-                                                            user: user,
-                                                            nextTaskPath: nextPath,
-                                                            practiceProgress: progress,
-                                                            session: session,
-                                                            lastResult: lastResult?.content,
-                                                            numberOfTasks: numberOfTasks
-                                                        )
-                                                )
-                                        }
-                                }
+                                try req.renderer()
+                                    .render(
+                                        FlashCardTaskTemplate.self,
+                                        with: .init(
+                                            taskPreview: preview,
+                                            user: user,
+                                            nextTaskPath: "\(index + 1)",
+                                            practiceProgress: progress,
+                                            session: session,
+                                            lastResult: lastResult?.content,
+                                            numberOfTasks: 0
+                                        )
+                                )
                         }
                 }
         }
@@ -55,7 +45,7 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return FlashCardRepository.shared
+        return FlashCardTask.repository
             .content(for: self, on: req)
             .flatMap { preview in
 

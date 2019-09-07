@@ -19,11 +19,11 @@ test: &test
 
 pipelines:
     default:
-    - <<: *static-test
+#    - <<: *static-test
     - <<: *test
     branches:
         master:
-            - <<: *static-test
+#            - <<: *static-test
             - <<: *test
             - step:
                 name: Release

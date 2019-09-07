@@ -2,6 +2,8 @@ import Crypto
 import Vapor
 import FluentPostgreSQL
 import KognitaCore
+import Mailgun
+import KognitaViews
 
 /// Creates new users and logs them in.
 final class UserController: RouteCollection {
@@ -26,27 +28,27 @@ final class UserController: RouteCollection {
         // get user auth'd by basic auth middleware
         let user = try req.requireAuthenticated(User.self)
 
-        return try UserRepository.shared
+        return try User.Repository.shared
             .login(with: user, conn: req)
     }
 
     /// Creates a new user.
-    func create(_ req: Request) throws -> Future<UserResponse> {
+    func create(_ req: Request) throws -> Future<User.Response> {
         // decode request content
         return try req.content
-            .decode(CreateUserRequest.self)
+            .decode(User.Create.Data.self)
             .flatMap { content in
-                try UserRepository.shared
-                    .create(with: content, conn: req)
+                try User.Repository.shared
+                    .create(from: content, by: nil, on: req)
         }
     }
 
-    func getAllUsers(on req: Request) throws -> Future<[UserResponse]> {
+    func getAllUsers(on req: Request) throws -> Future<[User.Response]> {
         let user = try req.requireAuthenticated(User.self)
         guard user.isCreator else {
             throw Abort(.forbidden)
         }
-        return UserRepository.shared
+        return User.Repository.shared
             .getAll(on: req)
     }
 }
