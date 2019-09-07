@@ -75,14 +75,14 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                     throw Abort(.forbidden)
                 }
 
+                let index = try req.parameters.next(Int.self)
                 return req.databaseConnection(to: .psql)
                     .flatMap { conn in
-                        
-                        try session.currentTask(on: conn)
-                            .flatMap { taskContent in
-                            
-                                try TaskType(content: taskContent)
-                                    .render(session, for: user, on: req)
+
+                        try session
+                            .taskAt(index: index, on: conn)
+                            .flatMap { task in
+                                try task.render(in: session, index: index, for: user, on: req)
                         }
                 }
         }
@@ -247,22 +247,12 @@ struct PracticeSessionEndResponse: Content {
     let sessionResultPath: String
 }
 
-struct TaskType: RenderTaskPracticing {
-    
-    let task: Task
-    let multipleChoise: MultipleChoiseTask?
-    let numberInputTask: NumberInputTask?
-    
-    init(content: (task: Task, chosie: MultipleChoiseTask?, input: NumberInputTask?)) {
-        self.task = content.task
-        self.multipleChoise = content.chosie
-        self.numberInputTask = content.input
-    }
-    
-    func render(_ session: PracticeSession, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        
+extension TaskType: RenderTaskPracticing {
+
+    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
         return try renderableTask
-            .render(session, for: user, on: req)
+            .render(in: session, index: index, for: user, on: req)
     }
     
     var renderableTask: RenderTaskPracticing {

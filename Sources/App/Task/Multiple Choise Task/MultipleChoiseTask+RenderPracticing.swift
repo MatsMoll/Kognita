@@ -11,44 +11,33 @@ import KognitaViews
 
 extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
 
-    func render(_ session: PracticeSession, for user: User, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         return try MultipleChoiseTask.repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
                 try PracticeSession.repository
-                    .getCurrentTaskIndex(for: session.requireID(), on: req)
-                    .flatMap { index in
+                    .goalProgress(in: session, on: req)
+                    .flatMap { progress in
 
-                        try PracticeSession.repository
-                            .goalProgress(in: session, on: req)
-                            .flatMap { progress in
+                        try TaskResultRepository.shared
+                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .map { lastResult in
 
-                                try PracticeSession.repository
-                                    .getNumberOfTasks(in: session, on: req)
-                                    .flatMap { numberOfTasks in
-
-                                        try TaskResultRepository.shared
-                                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                                            .map { lastResult in
-
-                                                try req.renderer()
-                                                    .render(
-                                                        MultipleChoiseTaskTemplate.self,
-                                                        with: .init(
-                                                            multiple: content,
-                                                            taskContent: preview,
-                                                            user: user,
-                                                            nextTaskPath: session.pathFor(index: index + 1),
-                                                            session: session,
-                                                            practiceProsess: progress,
-                                                            lastResult: lastResult?.content,
-                                                            numberOfTasks: numberOfTasks
-                                                        )
-                                                )
-                                        }
-                                }
+                                try req.renderer()
+                                    .render(
+                                        MultipleChoiseTaskTemplate.self,
+                                        with: .init(
+                                            multiple: content,
+                                            taskContent: preview,
+                                            user: user,
+                                            nextTaskPath: "\(index + 1)",
+                                            session: session,
+                                            practiceProsess: progress,
+                                            lastResult: lastResult?.content
+                                        )
+                                )
                         }
                 }
         }
@@ -70,8 +59,7 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
                                 multiple: content,
                                 taskContent: preview,
                                 user: user,
-                                lastResult: lastResult?.content,
-                                numberOfTasks: 1
+                                lastResult: lastResult?.content
                             )
                         )
                 }

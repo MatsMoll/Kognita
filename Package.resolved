@@ -128,15 +128,6 @@
         }
       },
       {
-        "package": "MySQL",
-        "repositoryURL": "https://github.com/vapor/mysql.git",
-        "state": {
-          "branch": null,
-          "revision": "6e86ff53e18f02faf26c2cbea1c1fb466bff6866",
-          "version": "3.2.6"
-        }
-      },
-      {
         "package": "PostgreSQL",
         "repositoryURL": "https://github.com/vapor/postgresql.git",
         "state": {
@@ -179,15 +170,6 @@
           "branch": null,
           "revision": "314d9cd21165bcf14215e336a23ff8214f40e411",
           "version": "3.2.1"
-        }
-      },
-      {
-        "package": "SwifQL",
-        "repositoryURL": "https://github.com/MihaelIsaev/SwifQL.git",
-        "state": {
-          "branch": null,
-          "revision": "add1534996e4dec3a04a50556cc8bc37b4cdb662",
-          "version": "0.22.0"
         }
       },
       {
@@ -260,6 +242,15 @@
           "branch": null,
           "revision": "c86ada59b31c69f08a6abd4f776537cba48d5df6",
           "version": "3.3.0"
+        }
+      },
+      {
+        "package": "Mailgun",
+        "repositoryURL": "https://github.com/twof/VaporMailgunService.git",
+        "state": {
+          "branch": null,
+          "revision": "9c41e744bced6f2f854bd3632333d57d6db46d51",
+          "version": "1.8.1"
         }
       },
       {

@@ -2,6 +2,8 @@ import Crypto
 import Vapor
 import FluentPostgreSQL
 import KognitaCore
+import Mailgun
+import KognitaViews
 
 /// Creates new users and logs them in.
 final class UserController: RouteCollection {

@@ -37,7 +37,10 @@ function revealSolution() {
 }
 
 function nextTask() {
-    submitPerformance(function() { location.reload(); })
+    submitPerformance(function() {
+        var nextTaskId = $("#next-task").val();
+        location.href = nextTaskId
+    })
 }
 
 function submitAndEndSession() {
