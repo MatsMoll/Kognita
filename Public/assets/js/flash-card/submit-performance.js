@@ -22,8 +22,9 @@ function revealSolution() {
             $("#goal-progress-label").text(progress + "% ");
             $("#goal-progress-bar").attr("aria-valuenow", progress);
             $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-            if (progress >= 100) {
+            if (progress == 100) {
                 $("#goal-progress-bar").addClass("bg-success");
+                $("#achivement-success").modal();
             }
         }
     }
@@ -38,8 +39,7 @@ function revealSolution() {
 
 function nextTask() {
     submitPerformance(function() {
-        var nextTaskId = $("#next-task").val();
-        location.href = nextTaskId
+        location.href = $("#next-task").val();
     })
 }
 
@@ -47,7 +47,9 @@ function submitAndEndSession() {
     if ($("#solution").hasClass("d-none")) {
         endSession();
     } else {
-        submitPerformance(function() { endSession(); });
+        submitPerformance(function() { 
+            endSession(); 
+        });
     }
 }
 
