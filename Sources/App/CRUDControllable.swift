@@ -155,15 +155,27 @@ extension KognitaCRUDControllable where Model == ResponseContent {
     }
 }
 
-extension KognitaCRUDControllable where Model.Create.Response == Model.Edit.Response {
-    func mapEdit(response: Model.Edit.Response, on conn: DatabaseConnectable) throws -> Future<ResponseContent> {
-        return try self.mapCreate(response: response, on: conn)
+extension KognitaCRUDControllable where Model.Create.Response == ResponseContent, Model == Model.Create.Response {
+    func mapCreate(response: Model.Create.Response, on conn: DatabaseConnectable) throws -> Future<ResponseContent> {
+        return conn.future(response)
+    }
+}
+
+extension KognitaCRUDControllable where Model == Model.Create.Response {
+    func mapCreate(response: Model.Create.Response, on conn: DatabaseConnectable) throws -> Future<ResponseContent> {
+        return try map(model: response, on: conn)
     }
 }
 
 extension KognitaCRUDControllable where Model.Create.Response == ResponseContent {
     func mapCreate(response: Model.Create.Response, on conn: DatabaseConnectable) throws -> Future<ResponseContent> {
         return conn.future(response)
+    }
+}
+
+extension KognitaCRUDControllable where Model.Create.Response == Model.Edit.Response {
+    func mapEdit(response: Model.Edit.Response, on conn: DatabaseConnectable) throws -> Future<ResponseContent> {
+        return try self.mapCreate(response: response, on: conn)
     }
 }
 

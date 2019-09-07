@@ -5,6 +5,7 @@ import HTMLKit
 import KognitaCore
 import Lingo
 import KognitaViews
+import Mailgun
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
@@ -44,6 +45,17 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     }
 
     try services.register(setupTemplates())
+    setupMailgun(in: &services)
+}
+
+private func setupMailgun(in services: inout Services) {
+    guard let mailgunKey = Environment.get("MAILGUN_KEY"),
+        let mailgunDomain = Environment.get("MAILGUN_DOMAIN") else {
+            print("Mailgun is NOT activated")
+            return
+    }
+    let mailgun = Mailgun(apiKey: mailgunKey, domain: mailgunDomain, region: .eu)
+    services.register(mailgun, as: Mailgun.self)
 }
 
 private func setupDatabase(for enviroment: Environment, in services: inout Services) {
@@ -62,7 +74,7 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
     } else {                                        // Localy testing
         var databaseName = Environment.get("DATABASE_DB") ?? "local"
         if enviroment == .testing {
-            databaseName = "postgres"
+            databaseName = "testing"
         }
         let databasePort = 5432
         let password = Environment.get("DATABASE_PASSWORD") ?? nil
@@ -102,6 +114,9 @@ private func setupTemplates() throws -> HTMLRenderer {
     // Auth
     try renderer.add(template: LoginPage())
     try renderer.add(template: SignupPage())
+    try renderer.add(template: User.ResetPassword.Templates.Start())
+    try renderer.add(template: User.ResetPassword.Templates.Mail())
+    try renderer.add(template: User.ResetPassword.Templates.Reset())
 
     // Main User pages
     try renderer.add(template: SubjectListTemplate())
