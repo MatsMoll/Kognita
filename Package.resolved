@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/vapor/postgresql.git",
         "state": {
           "branch": null,
-          "revision": "41cec2846f9cdd8233675da0d256efa3b8d62b21",
-          "version": "1.4.1"
+          "revision": "561fa7905030cb1240b7359ba829fa5afbf45b00",
+          "version": "1.4.2"
         }
       },
       {

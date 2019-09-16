@@ -32,7 +32,7 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
                                             multiple: content,
                                             taskContent: preview,
                                             user: user,
-                                            nextTaskPath: "\(index + 1)",
+                                            currentTaskIndex: index,
                                             session: session,
                                             practiceProsess: progress,
                                             lastResult: lastResult?.content

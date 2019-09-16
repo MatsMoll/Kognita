@@ -90,6 +90,7 @@ function handleSuccess(response) {
     results = response["result"]
 
     $("#nextButton").removeClass("d-none");
+    $("#prevButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
     $("#solution").fadeIn();
     $("#solution").removeClass("d-none");
@@ -111,4 +112,12 @@ function handleSuccess(response) {
             $("#achivement-success").modal();
         }
     }
+}
+
+function presentControlls() {
+    $("#nextButton").removeClass("d-none");
+    $("#prevButton").removeClass("d-none");
+    $("#solution-button").removeClass("d-none");
+    $("#solution").fadeIn();
+    $("#solution").removeClass("d-none");
 }

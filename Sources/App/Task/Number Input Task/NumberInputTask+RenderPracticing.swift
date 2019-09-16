@@ -31,7 +31,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                                             numberTask: content,
                                             taskPreview: preview,
                                             user: user,
-                                            nextTaskPath: "\(index + 1)",
+                                            currentTaskIndex: index,
                                             session: session,
                                             practiceProgress: progress,
                                             lastResult: lastResult?.content
@@ -58,7 +58,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                                 numberTask: content,
                                 taskPreview: preview,
                                 user: user,
-                                nextTaskPath: nil,
+                                currentTaskIndex: nil,
                                 lastResult: lastResult?.content
                             )
                         )

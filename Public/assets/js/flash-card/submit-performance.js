@@ -29,11 +29,7 @@ function revealSolution() {
         }
     }
 
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
-    $("#submitButton").attr("disabled", false);
-    $("#knowledge-card").fadeIn();
-    $("#knowledge-card").removeClass("d-none");
+    presentControlls();
     document.getElementById("solution").scrollIntoView();
 }
 
@@ -100,6 +96,14 @@ function submitPerformance(handleSuccess) {
     });
 }
 
+function presentControlls() {
+    $("#solution").fadeIn();
+    $("#solution").removeClass("d-none");
+    $("#submitButton").attr("disabled", false);
+    $("#knowledge-card").fadeIn();
+    $("#knowledge-card").removeClass("d-none");
+}
+
 
 Number.prototype.toMinuteString = function() {
     var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
@@ -114,3 +118,4 @@ function updateTimer() {
     var timeUsed = now.getTime() -  startDate.getTime();
     $("#timer").html(timeUsed.toMinuteString());
 }
+

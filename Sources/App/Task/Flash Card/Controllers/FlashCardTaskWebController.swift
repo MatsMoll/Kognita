@@ -112,7 +112,7 @@ class FlashCardTaskWebController: RouteCollection {
                             with: .init(
                                 taskPreview: preview,
                                 user: user,
-                                nextTaskPath: nil,
+                                currentTaskIndex: nil,
                                 numberOfTasks: 1
                             )
                         )

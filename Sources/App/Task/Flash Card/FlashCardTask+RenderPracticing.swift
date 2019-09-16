@@ -31,7 +31,7 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
                                         with: .init(
                                             taskPreview: preview,
                                             user: user,
-                                            nextTaskPath: "\(index + 1)",
+                                            currentTaskIndex: index,
                                             practiceProgress: progress,
                                             session: session,
                                             lastResult: lastResult?.content,

@@ -53,7 +53,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                     multiple: content,
                                     taskContent: preview,
                                     user: user,
-                                    nextTaskPath: nil
+                                    currentTaskIndex: nil
                                 )
                             )
                         }
