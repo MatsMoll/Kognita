@@ -52,10 +52,15 @@ function submitAndEndSession() {
 function submitPerformance(handleSuccess) {
 
     let path = window.location.pathname;
-    let splitURI = "sessions/";
+    var splitURI = "sessions/";
     var sessionId = parseInt(path.substring(
         path.indexOf(splitURI) + splitURI.length, 
         path.lastIndexOf("/tasks")
+    ));
+    splitURI = "tasks/";
+    var taskIndex = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
     ));
     var url = "/api/practice-sessions/" + sessionId + "/submit/flash-card";
     
@@ -67,7 +72,8 @@ function submitPerformance(handleSuccess) {
     }
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
-        "knowledge": knowledge
+        "knowledge": knowledge,
+        "taskIndex": taskIndex
     });
 
     fetch(url, {

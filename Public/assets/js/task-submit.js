@@ -25,16 +25,22 @@ function submitChoises() {
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
 
     let path = window.location.pathname;
-    let splitURI = "sessions/"
+    var splitURI = "sessions/"
     var sessionId = parseInt(path.substring(
         path.indexOf(splitURI) + splitURI.length, 
         path.lastIndexOf("/tasks")
+    ));
+    splitURI = "tasks/";
+    var taskIndex = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
     ));
     var url = "/api/practice-sessions/" + sessionId + "/submit/multiple-choise";
 
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
-        "choises": selectedChoises
+        "choises": selectedChoises,
+        "taskIndex": taskIndex
     });
 
     fetch(url, {
@@ -102,15 +108,19 @@ function handleSuccess(results) {
     for (var i = 0; i < results.length; i++) {
 
         var id = results[i]["id"];
-        var div = $("#" + id + "-div");
+        let div = $("#" + id + "-div");
+        let label = div.find("label");
         div.removeClass("text-secondary");
 
         if (results[i]["isCorrect"]) {
-            div.addClass("bg-success text-white");
+            div.addClass("bg-success");
         } else {
             div.addClass("bg-danger text-white");
         }
+        label.addClass("text-white");
     }
+
+    $("input[name=choiseInput]").attr('disabled', true);
 
     if (progress) {
         $("#goal-progress-label").text(progress + "% ");

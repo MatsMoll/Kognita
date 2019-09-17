@@ -15,10 +15,15 @@ function submitAnswer() {
     var answer = parseFloat(answerString);
 
     let path = window.location.pathname;
-    let splitURI = "sessions/"
+    var splitURI = "sessions/"
     var sessionId = parseInt(path.substring(
         path.indexOf(splitURI) + splitURI.length, 
         path.lastIndexOf("/tasks")
+    ));
+    splitURI = "tasks/";
+    var taskIndex = parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
     ));
     var url = "/api/practice-sessions/" + sessionId + "/submit/input";
     
@@ -32,7 +37,8 @@ function submitAnswer() {
     clearInterval(timer);
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
-        "answer": answer
+        "answer": answer,
+        "taskIndex": taskIndex
     });
     fetch(url, {
         method: "POST",
