@@ -3,8 +3,8 @@
 import XCTest
 @testable import AppTests
 
-XCTMain([
+XCTMain(
     AppTests.allTests()
-])
+)
 
 #endif
