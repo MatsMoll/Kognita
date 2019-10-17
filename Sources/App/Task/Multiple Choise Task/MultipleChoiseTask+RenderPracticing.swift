@@ -13,21 +13,21 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
 
     func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        return try MultipleChoiseTask.repository
+        return try MultipleChoiseTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try PracticeSession.repository
+                try PracticeSession.Repository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResultRepository.shared
+                        try TaskResultRepository
                             .getLastResult(for: preview.task.requireID(), by: user, on: req)
                             .map { lastResult in
 
                                 try req.renderer()
                                     .render(
-                                        MultipleChoiseTaskTemplate.self,
+                                        MultipleChoiseTask.Templates.Execute.self,
                                         with: .init(
                                             multiple: content,
                                             taskContent: preview,
@@ -45,16 +45,16 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return try MultipleChoiseTask.repository
+        return try MultipleChoiseTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try TaskResultRepository.shared
+                try TaskResultRepository
                     .getLastResult(for: preview.task.requireID(), by: user, on: req)
                     .map { lastResult in
 
                         try req.renderer().render(
-                            MultipleChoiseTaskTemplate.self,
+                            MultipleChoiseTask.Templates.Execute.self,
                             with: .init(
                                 multiple: content,
                                 taskContent: preview,

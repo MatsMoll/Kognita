@@ -12,21 +12,21 @@ import KognitaViews
 extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
     func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        return try NumberInputTask.repository
+        return try NumberInputTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try PracticeSession.repository
+                try PracticeSession.Repository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResultRepository.shared
+                        try TaskResultRepository
                             .getLastResult(for: preview.task.requireID(), by: user, on: req)
                             .map { lastResult in
-                                
+
                                 try req.renderer()
                                     .render(
-                                        NumberInputTaskTemplate.self,
+                                        NumberInputTask.Templates.Execute.self,
                                         with: .init(
                                             numberTask: content,
                                             taskPreview: preview,
@@ -44,16 +44,16 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return try NumberInputTask.repository
+        return try NumberInputTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try TaskResultRepository.shared
+                try TaskResultRepository
                     .getLastResult(for: preview.task.requireID(), by: user, on: req)
                     .map { lastResult in
 
                         try req.renderer().render(
-                            NumberInputTaskTemplate.self,
+                            NumberInputTask.Templates.Execute.self,
                             with: .init(
                                 numberTask: content,
                                 taskPreview: preview,

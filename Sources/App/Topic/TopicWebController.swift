@@ -33,31 +33,37 @@ final class TopicWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository.shared
+                try Topic.Repository
                     .getTopicResponses(in: subject, conn: req)
                     .flatMap { topics in
 
                         req.withPooledConnection(to: .psql) { conn in
 
-                            try TaskResultRepository.shared
+                            try TaskResultRepository
                                 .getUserLevel(for: user.requireID(), in: topics.map { try $0.topic.requireID() }, on: conn)
                                 .flatMap { levels in
 
-                                    try TaskResultRepository.shared
+                                    try TaskResultRepository
                                         .getUserLevel(in: subject, userId: user.requireID(), on: conn)
                                         .map { subjectLevel in
 
-                                            try req.renderer()
-                                                .render(
-                                                    SubjectDetailTemplate.self,
-                                                    with: .init(
-                                                        user: user,
-                                                        subject: subject,
-                                                        topics: topics,
-                                                        levels: levels,
-                                                        subjectLevel: subjectLevel
+//                                            try WorkPoints.Repository
+//                                                .leaderboard(in: subject, for: user, on: conn)
+//                                                .map { leaderboard in
+
+                                                    try req.renderer()
+                                                        .render(
+                                                            Subject.Templates.Details.self,
+                                                            with: .init(
+                                                                user: user,
+                                                                subject: subject,
+                                                                topics: topics,
+                                                                levels: levels,
+                                                                subjectLevel: subjectLevel,
+                                                                leaderboard: []
+                                                            )
                                                     )
-                                            )
+//                                            }
                                     }
                             }
                         }
@@ -79,7 +85,7 @@ final class TopicWebController: RouteCollection {
 
                 try req.renderer()
                     .render(
-                        CreateTopicPage.self,
+                        Topic.Templates.Create.self,
                         with: .init(
                             user: user,
                             subject: subject
@@ -106,7 +112,7 @@ final class TopicWebController: RouteCollection {
 
                         try req.renderer()
                             .render(
-                                CreateTopicPage.self,
+                                Topic.Templates.Create.self,
                                 with: .init(
                                     user: user,
                                     subject: subject,
@@ -126,17 +132,17 @@ final class TopicWebController: RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                Subject.Repository.shared
+                Subject.Repository
                     .getSubject(in: topic, on: req)
                     .flatMap { subject in
 
                         req.withPooledConnection(to: .psql) { conn in
 
-                            try TaskResultRepository.shared
+                            try TaskResultRepository
                                 .getAllResults(for: user.requireID(), filter: \Topic.id == topic.requireID(), with: conn, maxRevisitDays: nil)
                                 .flatMap { results in
 
-                                    try Task.repository
+                                    try Task.Repository
                                         .getTasks(in: topic, with: conn)
                                         .map { tasks in
 
@@ -147,16 +153,17 @@ final class TopicWebController: RouteCollection {
                                                 )
                                             }
 
-                                            return try req.renderer()
-                                                .render(
-                                                    TaskOverviewListTemplate.self,
-                                                    with: TaskOverviewListTemplate.Context.init(
-                                                        user: user,
-                                                        subject: subject,
-                                                        topic: topic,
-                                                        results: resultOverview
-                                                    )
-                                            )
+                                            throw Abort(.internalServerError)
+//                                            return try req.renderer()
+//                                                .render(
+//                                                    TaskOverviewListTemplate.self,
+//                                                    with: TaskOverviewListTemplate.Context.init(
+//                                                        user: user,
+//                                                        subject: subject,
+//                                                        topic: topic,
+//                                                        results: resultOverview
+//                                                    )
+//                                            )
                                     }
                             }
                         }
@@ -177,9 +184,10 @@ final class TopicWebController: RouteCollection {
         return Subject.query(on: req)
             .all()
             .map { subjects in
+
                 try req.renderer()
                     .render(
-                        SelectSubjectTemplate.self,
+                        Subject.Templates.SelectRedirect.self,
                         with: .init(
                             user: user,
                             subjects: subjects,

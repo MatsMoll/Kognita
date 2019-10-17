@@ -28,7 +28,7 @@ final class UserController: RouteCollection {
         // get user auth'd by basic auth middleware
         let user = try req.requireAuthenticated(User.self)
 
-        return try User.Repository.shared
+        return try User.Repository
             .login(with: user, conn: req)
     }
 
@@ -38,7 +38,7 @@ final class UserController: RouteCollection {
         return try req.content
             .decode(User.Create.Data.self)
             .flatMap { content in
-                try User.Repository.shared
+                try User.Repository
                     .create(from: content, by: nil, on: req)
         }
     }
@@ -48,7 +48,7 @@ final class UserController: RouteCollection {
         guard user.isCreator else {
             throw Abort(.forbidden)
         }
-        return User.Repository.shared
+        return User.Repository
             .getAll(on: req)
     }
 }

@@ -28,23 +28,23 @@ final class MultipleChoiseTaskController: KognitaCRUDControllable, RouteCollecti
     
     func map(model: MultipleChoiseTask, on conn: DatabaseConnectable) throws -> EventLoopFuture<MultipleChoiseTask.Data> {
         
-        return try MultipleChoiseTask.repository
+        return try MultipleChoiseTask.Repository
             .get(task: model, conn: conn)
     }
     
     func mapCreate(response: MultipleChoiseTask, on conn: DatabaseConnectable) throws -> EventLoopFuture<MultipleChoiseTask.Data> {
         
-        return try MultipleChoiseTask.repository
+        return try MultipleChoiseTask.Repository
             .get(task: response, conn: conn)
     }
     
     func getAll(_ req: Request) throws -> EventLoopFuture<[MultipleChoiseTask.Data]> {
-        return MultipleChoiseTask.repository
+        return MultipleChoiseTask.Repository
             .all(on: req)
             .flatMap { tasks in
                 
                 try tasks.map {
-                    try MultipleChoiseTask.repository
+                    try MultipleChoiseTask.Repository
                         .get(task: $0, conn: req)
                 }.flatten(on: req)
         }

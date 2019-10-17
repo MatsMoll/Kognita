@@ -23,7 +23,7 @@ final class SubjectController: KognitaCRUDControllable, RouteCollection {
     }
     
     func getAll(_ req: Request) throws -> EventLoopFuture<[Subject]> {
-        return Subject.repository
+        return Subject.Repository
             .all(on: req)
     }
 
@@ -41,17 +41,17 @@ final class SubjectController: KognitaCRUDControllable, RouteCollection {
     func export(on req: Request) throws -> Future<SubjectExportContent> {
         _ = try req.requireAuthenticated(User.self)
         return try req.parameters.next(Subject.self).flatMap { subject in
-            try Topic.Repository.shared
+            try Topic.Repository
                 .exportTopics(in: subject, on: req)
         }
     }
 
     func exportAll(on req: Request) throws -> Future<[SubjectExportContent]> {
         _ = try req.requireAuthenticated(User.self)
-        return Subject.repository
+        return Subject.Repository
             .all(on: req)
             .flatMap { subjects in
-                try subjects.map { try Topic.repository
+                try subjects.map { try Topic.Repository
                     .exportTopics(in: $0, on: req)
                 }
                 .flatten(on: req)
@@ -64,7 +64,7 @@ final class SubjectController: KognitaCRUDControllable, RouteCollection {
         return try req.content
             .decode(SubjectExportContent.self)
             .flatMap {
-                Subject.Repository.shared
+                Subject.Repository
                     .importContent($0, on: req)
         }
     }

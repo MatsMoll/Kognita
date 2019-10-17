@@ -105,7 +105,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                     .next(PracticeSession.self)
                     .flatMap { (session) in
 
-                        try PracticeSession.repository
+                        try PracticeSession.Repository
                             .submitMultipleChoise(submit, in: session, by: user, on: req)
                 }
         }
@@ -128,7 +128,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                     .next(PracticeSession.self)
                     .flatMap { session in
 
-                        try PracticeSession.repository
+                        try PracticeSession.Repository
                             .submitInputTask(submit, in: session, by: user, on: req)
                 }
         }
@@ -147,7 +147,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                     .next(PracticeSession.self)
                     .flatMap { session in
 
-                        try PracticeSession.repository
+                        try PracticeSession.Repository
                             .submitFlashCard(submit, in: session, by: user, on: req)
                 }
         }
@@ -171,22 +171,22 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                     throw Abort(.forbidden)
                 }
 
-                return try PracticeSession.repository
+                return try PracticeSession.Repository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try PracticeSession.repository
+                        try PracticeSession.Repository
                             .getResult(for: session, on: req)
                             .map { results in
 
                                 try req.renderer()
                                     .render(
-                                        PSResultTemplate.self,
+                                        PracticeSession.Templates.Result.self,
                                         with: .init(
                                             user: user,
                                             tasks: results,
                                             progress: progress,
-                                            timeUsed: session.timeUsed ?? results.map { $0.result.timeUsed }.reduce(0, +)
+                                            timeUsed: results.map { $0.result.timeUsed }.reduce(0, +)
                                         )
                                 )
                         }
@@ -199,13 +199,13 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try PracticeSession.repository
+        return try PracticeSession.Repository
             .getAllSessions(by: user, on: req)
             .map { sessions in
 
                 try req.renderer()
                     .render(
-                        PSHistoryTemplate.self,
+                        PracticeSession.Templates.History.self,
                         with: .init(
                             user: user,
                             sessions: sessions
@@ -221,7 +221,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
         return try req.parameters
             .next(PracticeSession.self)
             .flatMap { session in
-                try PracticeSession.repository
+                try PracticeSession.Repository
                     .end(session, for: user, on: req)
                     .transform(to:
                         PracticeSessionEndResponse(sessionResultPath: "/practice-sessions/\(session.id ?? 0)/result")
@@ -234,7 +234,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
         let user = try req.requireAuthenticated(User.self)
 
         return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository.shared
+            try TaskResultRepository
                 .getAmountHistory(for: user, on: conn)
         }
     }

@@ -22,7 +22,7 @@ final class FlashCardTaskController: RouteCollection, KognitaCRUDControllable {
     }
     
     func map(model: FlashCardTask, on conn: DatabaseConnectable) throws -> EventLoopFuture<Task> {
-        return try FlashCardTask.repository
+        return try FlashCardTask.Repository
             .get(task: model, conn: conn)
     }
     

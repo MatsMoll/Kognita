@@ -10,6 +10,7 @@ import XCTest
 import Vapor
 import FluentPostgreSQL
 import KognitaCore
+import KognitaCoreTestable
 
 
 class TopicTests: VaporTestCase {

@@ -34,12 +34,12 @@ class SubtopicWebController : RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository.shared
+                try Topic.Repository
                     .getTopics(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer().render(
-                            Subtopic.Create.Template.self,
+                            Subtopic.Templates.Create.self,
                             with: .init(
                                 user: user,
                                 subject: subject,
@@ -62,12 +62,12 @@ class SubtopicWebController : RouteCollection {
                 .next(Subtopic.self)
                 .flatMap { subtopic in
 
-                    try Topic.Repository.shared
+                    try Topic.Repository
                         .getTopics(in: subject, conn: req)
                         .map { topics in
 
                             try req.renderer().render(
-                                Subtopic.Create.Template.self,
+                                Subtopic.Templates.Create.self,
                                 with: .init(
                                     user: user,
                                     subject: subject,
@@ -91,9 +91,10 @@ class SubtopicWebController : RouteCollection {
         return Subject.query(on: req)
             .all()
             .map { subjects in
+                
                 try req.renderer()
                     .render(
-                        SelectSubjectTemplate.self,
+                        Subject.Templates.SelectRedirect.self,
                         with: .init(
                             user: user,
                             subjects: subjects,

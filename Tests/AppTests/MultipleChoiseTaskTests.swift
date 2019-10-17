@@ -10,6 +10,7 @@ import Vapor
 import XCTest
 import FluentPostgreSQL
 import KognitaCore
+import KognitaCoreTestable
 
 class MultipleChoiseTaskTests: VaporTestCase {
     

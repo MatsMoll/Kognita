@@ -27,7 +27,7 @@ final class SubtopicController : KognitaCRUDControllable, RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                try Subtopic.Repository.shared
+                try Subtopic.Repository
                     .getSubtopics(in: topic, with: req)
         }
     }

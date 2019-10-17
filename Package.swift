@@ -30,7 +30,7 @@ dependencies.append(contentsOf: [
 
 
 let package = Package(
-    name: "KognitaVapor",
+    name: "Kognita",
     dependencies: dependencies,
     targets: [
         .target(name: "App", dependencies: [
@@ -41,7 +41,7 @@ let package = Package(
             "Mailgun"
         ]),
         .target(name: "Run", dependencies: ["App"]),
-        .testTarget(name: "AppTests", dependencies: ["App"])
+        .testTarget(name: "AppTests", dependencies: ["App", "KognitaCoreTestable"])
     ]
 )
 

@@ -3,6 +3,7 @@ import XCTest
 import Vapor
 import FluentPostgreSQL
 @testable import KognitaCore
+import KognitaCoreTestable
 
 class UserTests: VaporTestCase {
     

@@ -3,7 +3,6 @@ import FluentPostgreSQL
 import Vapor
 import HTMLKit
 import KognitaCore
-import Lingo
 import KognitaViews
 import Mailgun
 
@@ -13,7 +12,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register providers first
     try services.register(FluentPostgreSQLProvider())
     try services.register(AuthenticationProvider())
-    try services.register(HTMLKitProvider())
+//    try services.register(HTMLKitProvider())
     let connectionConfig = DatabaseConnectionPoolConfig(maxConnections: 3)
     services.register(connectionConfig)
 
@@ -43,8 +42,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         commandConfig.useFluentCommands()
         services.register(commandConfig)
     }
-
-    try services.register(setupTemplates())
+    try services.register(setupTemplates(), as: HTMLRenderable.self)
     setupMailgun(in: &services)
 }
 
@@ -102,52 +100,52 @@ private func registerRouter(in services: inout Services) throws {
     services.register(router, as: Router.self)
 }
 
-private func setupTemplates() throws -> HTMLRenderer {
+func setupTemplates() throws -> HTMLRenderer {
 
     var renderer = HTMLRenderer()
 
-    try renderer.registerLocalization(defaultLocale: "nb")
+//    try renderer.registerLocalization(defaultLocale: "nb")
+//
+//    // Starter
+    try renderer.add(view: Pages.Landing())
+//
+//    // Auth
+    try renderer.add(view: LoginPage())
+    try renderer.add(view: User.Templates.Signup())
+    try renderer.add(view: User.Templates.ResetPassword.Start())
+    try renderer.add(view: User.Templates.ResetPassword.Mail())
+    try renderer.add(view: User.Templates.ResetPassword.Reset())
+//
+//    // Main User pages
+    try renderer.add(view: Subject.Templates.ListOverview())
+    try renderer.add(view: Subject.Templates.Details())
+    try renderer.add(view: Subject.Templates.SelectRedirect())
+//
+//    // Task Overview
+//    try renderer.add(template: TaskOverviewListTemplate())
+//
+//    // Task Template
+    try renderer.add(view: FlashCardTask.Templates.Execute())
+    try renderer.add(view: MultipleChoiseTask.Templates.Execute())
+    try renderer.add(view: NumberInputTask.Templates.Execute())
+//
+//    // Create Content
+    try renderer.add(view: Subject.Templates.Create())
+    try renderer.add(view: Topic.Templates.Create())
+    try renderer.add(view: Subtopic.Templates.Create())
+//
+//    // Create Task Templates
+    try renderer.add(view: FlashCardTask.Templates.Create())
+    try renderer.add(view: MultipleChoiseTask.Templates.Create())
+    try renderer.add(view: NumberInputTask.Templates.Create())
+//
+//    // Practice Session
+    try renderer.add(view: PracticeSession.Templates.History())
+    try renderer.add(view: PracticeSession.Templates.Result())
 
-    // Starter
-    try renderer.add(template: StarterPage())
-
-    // Auth
-    try renderer.add(template: LoginPage())
-    try renderer.add(template: SignupPage())
-    try renderer.add(template: User.ResetPassword.Templates.Start())
-    try renderer.add(template: User.ResetPassword.Templates.Mail())
-    try renderer.add(template: User.ResetPassword.Templates.Reset())
-
-    // Main User pages
-    try renderer.add(template: SubjectListTemplate())
-    try renderer.add(template: SubjectDetailTemplate())
-    try renderer.add(template: SelectSubjectTemplate())
-
-    // Task Overview
-    try renderer.add(template: TaskOverviewListTemplate())
-
-    // Task Template
-    try renderer.add(template: MultipleChoiseTaskTemplate())
-    try renderer.add(template: NumberInputTaskTemplate())
-    try renderer.add(template: FlashCardTaskTemplate())
-
-    // Create Content
-    try renderer.add(template: CreateSubjectPage())
-    try renderer.add(template: CreateTopicPage())
-    try renderer.add(template: Subtopic.Create.Template())
-
-    // Create Task Templates
-    try renderer.add(template: CreateMultipleChoiseTaskPage())
-    try renderer.add(template: CreateNumberInputTaskTemplate())
-    try renderer.add(template: CreateFlashCardTaskTemplate())
-
-    // Practice Session
-    try renderer.add(template: PSResultTemplate())
-    try renderer.add(template: PSHistoryTemplate())
-
-    // Creator pages
-    try renderer.add(template: CreatorInformationPage())
-    try renderer.add(template: CreatorDashboard())
-    try renderer.add(template: CreatorTopicPage())
+//    // Creator pages
+    try renderer.add(view: CreatorTemplates.Dashboard())
+    try renderer.add(view: CreatorTemplates.TopicDetails())
+//    try renderer.add(template: CreatorInformationPage())
     return renderer
 }

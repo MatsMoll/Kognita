@@ -13,21 +13,21 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
     func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> Future<HTTPResponse> {
         
-        return FlashCardTask.repository
+        return FlashCardTask.Repository
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try PracticeSession.repository
+                try PracticeSession.Repository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResultRepository.shared
+                        try TaskResultRepository
                             .getLastResult(for: preview.task.requireID(), by: user, on: req)
                             .map { lastResult in
 
                                 try req.renderer()
                                     .render(
-                                        FlashCardTaskTemplate.self,
+                                        FlashCardTask.Templates.Execute.self,
                                         with: .init(
                                             taskPreview: preview,
                                             user: user,
@@ -45,16 +45,16 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return FlashCardTask.repository
+        return FlashCardTask.Repository
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try TaskResultRepository.shared
+                try TaskResultRepository
                     .getLastResult(for: preview.task.requireID(), by: user, on: req)
                     .map { lastResult in
 
                         try req.renderer().render(
-                            FlashCardTaskTemplate.self,
+                            FlashCardTask.Templates.Execute.self,
                             with: .init(
                                 taskPreview: preview,
                                 user: user,

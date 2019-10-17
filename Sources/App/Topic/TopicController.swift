@@ -26,7 +26,7 @@ final class TopicController: KognitaCRUDControllable, RouteCollection {
             .next(Subject.self)
             .flatMap { (subject) in
 
-                try Topic.Repository.shared
+                try Topic.Repository
                     .getTopics(in: subject, conn: req)
         }
     }

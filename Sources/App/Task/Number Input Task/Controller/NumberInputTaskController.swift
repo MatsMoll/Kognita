@@ -27,22 +27,22 @@ final class NumberInputTaskController: KognitaCRUDControllable, RouteCollection 
     }
     
     func map(model: NumberInputTask, on conn: DatabaseConnectable) throws -> EventLoopFuture<NumberInputTask.Data> {
-        return try NumberInputTask.repository
+        return try NumberInputTask.Repository
             .get(task: model, conn: conn)
     }
     
     func mapCreate(response: NumberInputTask, on conn: DatabaseConnectable) throws -> EventLoopFuture<NumberInputTask.Data> {
-        return try NumberInputTask.repository
+        return try NumberInputTask.Repository
             .get(task: response, conn: conn)
     }
 
     func getAll(_ req: Request) throws -> EventLoopFuture<[NumberInputTask.Data]> {
-        return NumberInputTask.repository
+        return NumberInputTask.Repository
             .all(on: req)
             .flatMap { tasks in
 
                 return try tasks.map {
-                    try NumberInputTask.repository
+                    try NumberInputTask.Repository
                         .get(task: $0, conn: req)
                     }.flatten(on: req)
         }

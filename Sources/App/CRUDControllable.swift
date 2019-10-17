@@ -189,7 +189,7 @@ extension KognitaCRUDControllable where Model.Create.Data : Decodable {
             .decode(Model.Create.Data.self)
             .flatMap { content in
                 
-                try Model.Repository.shared
+                try Model.Repository
                     .create(from: content, by: user, on: req)
                     .flatMap { try Self.shared.mapCreate(response: $0, on: req) }
         }
@@ -209,7 +209,7 @@ extension KognitaCRUDControllable where Model: Parameter, Model.ResolvedParamete
             .next(Model.self)
             .flatMap { model in
 
-                try Model.Repository.shared
+                try Model.Repository
                     .delete(model, by: user, on: req)
                     .transform(to: .ok)
         }
@@ -238,7 +238,7 @@ extension KognitaCRUDControllable where Model: Parameter, Model.ResolvedParamete
                     .next(Model.self)
                     .flatMap { model in
                         
-                        try Model.Repository.shared
+                        try Model.Repository
                             .edit(model, to: content, by: user, on: req)
                             .flatMap { try Self.shared.mapEdit(response: $0, on: req) }
                 }

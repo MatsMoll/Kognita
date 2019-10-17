@@ -8,6 +8,7 @@
 import XCTest
 @testable import App
 @testable import KognitaCore
+import KognitaCoreTestable
 
 final class PracticeSessionTests: VaporTestCase {
     

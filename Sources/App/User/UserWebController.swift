@@ -32,7 +32,7 @@ final class UserWebController: RouteCollection {
 
     func signupForm(_ req: Request) throws -> HTTPResponse {
         return try req.renderer()
-            .render(SignupPage.self, with: .init())
+            .render(User.Templates.Signup.self, with: .init())
     }
 
     func loginForm(_ req: Request) throws -> Future<Response> {
@@ -66,7 +66,7 @@ final class UserWebController: RouteCollection {
                 switch error {
                 case is User.Repository.Errors:
                     return try req.renderer()
-                        .render(SignupPage.self, with: .init(errorMessage: error.localizedDescription))
+                        .render(User.Templates.Signup.self, with: .init(errorMessage: error.localizedDescription))
                         .encode(for: req)
                 default:
                     throw error
@@ -108,8 +108,8 @@ final class UserWebController: RouteCollection {
 
         return try req.renderer()
             .render(
-                User.ResetPassword.Templates.Start.self,
-                with: .init()
+                User.Templates.ResetPassword.Start.self,
+                with: .init(errorMessage: nil)
         )
     }
 
@@ -117,35 +117,30 @@ final class UserWebController: RouteCollection {
 
         let successPage = try req.renderer()
             .render(
-                User.ResetPassword.Templates.Start.self,
-                with: .init(
-                    alertMessage: (
-                        message: "Du skal snart få en email med en link for å gjenopprette passordet ditt",
-                        colorClass: "success"
-                    )
-                )
+                User.Templates.ResetPassword.Start.self,
+                with: .init(errorMessage: "Du skal snart få en email med en link for å gjenopprette passordet ditt")
         )
 
         return try req.content.decode(User.ResetPassword.Email.self)
             .flatMap { email in
 
-                User.repository
+                User.Repository
                     .first(where: \User.email == email.email, on: req)
                     .flatMap { user in
 
                         guard let user = user else {
                             return req.future(successPage)
                         }
-                        return try User.ResetPassword.Token.repository
+                        return try User.ResetPassword.Token.Repository
                             .create(by: user, on: req)
                             .flatMap { token in
 
-                                let mailContext = User.ResetPassword.Templates.Mail.Context(
+                                let mailContext = User.Templates.ResetPassword.Mail.Context(
                                     user: user,
                                     changeUrl: "uni.kognita.no/reset-password?token=\(token.token)"
                                 )
                                 let mailHtml = try req.renderer()
-                                    .renderRaw(User.ResetPassword.Templates.Mail.self, with: mailContext)
+                                    .renderRaw(User.Templates.ResetPassword.Mail.self, with: mailContext)
                                 let mail = Mailgun.Message(
                                     from:       "kontakt@kognita.no",
                                     to:         email.email,
@@ -156,7 +151,6 @@ final class UserWebController: RouteCollection {
                                 let mailgun = try req.make(Mailgun.self)
                                 return try mailgun.send(mail, on: req)
                                     .transform(to: successPage)
-//                                return req.future(successPage)
                         }
                 }
         }
@@ -169,20 +163,20 @@ final class UserWebController: RouteCollection {
 
             return try req.renderer()
                 .render(
-                    User.ResetPassword.Templates.Reset.self,
+                    User.Templates.ResetPassword.Reset.self,
                     with: .init(token: tokenContent.token)
             )
         } else {
 
             return try req.renderer()
                 .render(
-                    User.ResetPassword.Templates.Reset.self,
+                    User.Templates.ResetPassword.Reset.self,
                     with: .init(
                         token: "",
                         alertMessage: (
                             message: "Ups! Denne forespørselen er enten gått ut på dato, eller eksisterer ikke",
                             colorClass: "danger"
-                        )
+                        ) // FIXME: - Not presenting error message
                     )
             )
         }
@@ -198,7 +192,7 @@ final class UserWebController: RouteCollection {
                     .decode(User.ResetPassword.Data.self)
                     .flatMap { data in
 
-                        try User.ResetPassword.Token.repository
+                        try User.ResetPassword.Token.Repository
                             .reset(to: data, with: token.token, on: req)
                             .transform(to: req.redirect(to: "/login"))
                 }

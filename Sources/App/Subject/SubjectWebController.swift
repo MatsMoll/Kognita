@@ -28,17 +28,17 @@ final class SubjectWebController: RouteCollection {
         return try controller.getAll(req).flatMap { subjects in
             req.withPooledConnection(to: .psql) { conn in
                 
-                try TaskResultRepository.shared
+                try TaskResultRepository
                     .getAllResultsContent(for: user, with: conn)
                     .flatMap { response in
 
-                        try PracticeSession.repository
+                        try PracticeSession.Repository
                             .getLatestUnfinnishedSessionPath(for: user, on: conn)
                             .map { ongoingSessionPath in
 
                                 try req.renderer()
                                     .render(
-                                        SubjectListTemplate.self,
+                                        Subject.Templates.ListOverview.self,
                                         with: .init(
                                             user: user,
                                             cards: subjects,
@@ -59,10 +59,10 @@ final class SubjectWebController: RouteCollection {
         guard user.isCreator else {
             throw Abort(.forbidden)
         }
-        
+
         return try req.renderer()
             .render(
-                CreateSubjectPage.self,
+                Subject.Templates.Create.self,
                 with: .init(
                     user: user
                 )
@@ -79,7 +79,7 @@ final class SubjectWebController: RouteCollection {
 
                 return try req.renderer()
                     .render(
-                        CreateSubjectPage.self,
+                        Subject.Templates.Create.self,
                         with: .init(
                             user: user,
                             subjectInfo: subject

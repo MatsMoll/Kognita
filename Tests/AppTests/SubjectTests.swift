@@ -11,6 +11,7 @@ import XCTest
 import FluentPostgreSQL
 import Crypto
 @testable import KognitaCore
+import KognitaCoreTestable
 
 class SubjectTests: VaporTestCase {
     

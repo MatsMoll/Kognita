@@ -42,13 +42,13 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTask.repository
+                try MultipleChoiseTask.Repository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
                         return req.future().map {
                             try req.renderer().render(
-                                MultipleChoiseTaskTemplate.self,
+                                MultipleChoiseTask.Templates.Execute.self,
                                 with: .init(
                                     multiple: content,
                                     taskContent: preview,
@@ -75,13 +75,13 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository.shared
+                try Topic.Repository
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer()
                             .render(
-                                CreateMultipleChoiseTaskPage.self,
+                                MultipleChoiseTask.Templates.Create.self,
                                 with: .init(
                                     user: user,
                                     subject: subject,
@@ -105,17 +105,17 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTask.repository
+                try MultipleChoiseTask.Repository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
-                        try Topic.Repository.shared
+                        try Topic.Repository
                             .getTopicResponses(in: preview.subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()
                                     .render(
-                                        CreateMultipleChoiseTaskPage.self,
+                                        MultipleChoiseTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
                                             subject: preview.subject,

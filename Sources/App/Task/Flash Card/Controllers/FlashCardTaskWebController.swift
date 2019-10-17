@@ -41,12 +41,12 @@ class FlashCardTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository.shared
+                try Topic.Repository
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer().render(
-                            CreateFlashCardTaskTemplate.self,
+                            FlashCardTask.Templates.Create.self,
                             with: .init(
                                 user: user,
                                 subject: subject,
@@ -70,17 +70,17 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardTask.repository
+                FlashCardTask.Repository
                     .content(for: flashCard, on: req)
                     .flatMap { content in
 
-                        try Topic.repository
+                        try Topic.Repository
                             .getTopicResponses(in: content.subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()
                                     .render(
-                                        CreateFlashCardTaskTemplate.self,
+                                        FlashCardTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
                                             subject: content.subject,
@@ -103,12 +103,12 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardTask.repository
+                FlashCardTask.Repository
                     .content(for: flashCard, on: req)
                     .map { preview in
 
                         try req.renderer().render(
-                            FlashCardTaskTemplate.self,
+                            FlashCardTask.Templates.Execute.self,
                             with: .init(
                                 taskPreview: preview,
                                 user: user,
