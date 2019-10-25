@@ -104,7 +104,8 @@ func setupTemplates() throws -> HTMLRenderer {
 
     var renderer = HTMLRenderer()
 
-//    try renderer.registerLocalization(defaultLocale: "nb")
+    let path = DirectoryConfig.detect().workDir + "Resources/Localization"
+    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
 //
 //    // Starter
     try renderer.add(view: Pages.Landing())
@@ -128,6 +129,7 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: FlashCardTask.Templates.Execute())
     try renderer.add(view: MultipleChoiseTask.Templates.Execute())
     try renderer.add(view: NumberInputTask.Templates.Execute())
+    try renderer.add(view: TaskSolutionsTemplate())
 //
 //    // Create Content
     try renderer.add(view: Subject.Templates.Create())

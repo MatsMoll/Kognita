@@ -3,12 +3,14 @@ var startDate = new Date();
 var now = new Date();
 
 var timer = setInterval(updateTimer, 1000);
+var isSubmiting = false;
 
 if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
 function revealSolution() {
+    isSubmiting = true;
     clearInterval(timer);
 
     if ($("#solution").hasClass("d-none")) {
@@ -51,18 +53,12 @@ function submitAndEndSession() {
 
 function submitPerformance(handleSuccess) {
 
-    let path = window.location.pathname;
-    var splitURI = "sessions/";
-    var sessionId = parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.lastIndexOf("/tasks")
-    ));
-    splitURI = "tasks/";
-    var taskIndex = parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.length
-    ));
-    var url = "/api/practice-sessions/" + sessionId + "/submit/flash-card";
+    if (isSubmiting == false) {
+        handleSuccess();
+        return
+    }
+
+    var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
     let knowledge = parseFloat($("#knowledge-slider").val());
@@ -73,7 +69,7 @@ function submitPerformance(handleSuccess) {
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
         "knowledge": knowledge,
-        "taskIndex": taskIndex
+        "taskIndex": taskIndex()
     });
 
     fetch(url, {
@@ -102,12 +98,38 @@ function submitPerformance(handleSuccess) {
     });
 }
 
+function fetchSolutions(taskIndex, practiceSessionID) {
+    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+        method: "GET",
+        headers: {
+            "Accept": "application/html, text/plain, */*",
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (html) {
+        $("#solution").html(html);
+        $("#solution").fadeIn();
+        $("#solution").removeClass("d-none");
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
+}
+
 function presentControlls() {
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
     $("#submitButton").attr("disabled", false);
     $("#knowledge-card").fadeIn();
     $("#knowledge-card").removeClass("d-none");
+    fetchSolutions(taskIndex(), sessionID());
 }
 
 
@@ -125,3 +147,20 @@ function updateTimer() {
     $("#timer").html(timeUsed.toMinuteString());
 }
 
+function sessionID() {
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+}
+
+function taskIndex() {
+    let path = window.location.pathname;
+    let splitURI = "tasks/";
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
+    ));
+}

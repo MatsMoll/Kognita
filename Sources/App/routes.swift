@@ -82,18 +82,7 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: CreatorWebController())
     try redirectMiddle.register(collection: FlashCardTaskWebController())
     try redirectMiddle.register(collection: SubtopicWebController())
-
-    redirectMiddle.get(
-        "practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter,
-        use: PracticeSessionController.shared.renderCurrentTask)
-    
-    redirectMiddle.get(
-        "practice-sessions/", PracticeSession.parameter, "result",
-        use: PracticeSessionController.shared.getSessionResult)
-
-    redirectMiddle.get(
-        "practice-sessions/history",
-        use: PracticeSessionController.shared.getSessions)
+    try redirectMiddle.register(collection: PracticeSessionWebController())
 }
 
 private func setupApi(for router: Router) throws {

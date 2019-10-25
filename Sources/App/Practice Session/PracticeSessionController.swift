@@ -62,31 +62,7 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
     func edit(_ req: Request) throws -> EventLoopFuture<PracticeSession.Create.Response> {
         throw Abort(.internalServerError)
     }
-    
-    func renderCurrentTask(on req: Request) throws -> Future<HTTPResponse> {
 
-        let user = try req.requireAuthenticated(User.self)
-
-        return try req.parameters
-            .next(PracticeSession.self)
-            .flatMap { (session) in
-
-                guard session.userID == user.id else {
-                    throw Abort(.forbidden)
-                }
-
-                let index = try req.parameters.next(Int.self)
-                return req.databaseConnection(to: .psql)
-                    .flatMap { conn in
-
-                        try session
-                            .taskAt(index: index, on: conn)
-                            .flatMap { task in
-                                try task.render(in: session, index: index, for: user, on: req)
-                        }
-                }
-        }
-    }
 
     /// Submits an answer to a session
     ///
@@ -150,67 +126,6 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
                         try PracticeSession.Repository
                             .submitFlashCard(submit, in: session, by: user, on: req)
                 }
-        }
-    }
-
-
-    /// Get the statistics of a session
-    ///
-    /// - Parameter req: The HTTP request
-    /// - Returns: A rendered view
-    /// - Throws: If unauth or any other error
-    func getSessionResult(_ req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-
-        return try req.parameters
-            .next(PracticeSession.self)
-            .flatMap { session in
-                guard user.id == session.userID else {
-                    throw Abort(.forbidden)
-                }
-
-                return try PracticeSession.Repository
-                    .goalProgress(in: session, on: req)
-                    .flatMap { progress in
-
-                        try PracticeSession.Repository
-                            .getResult(for: session, on: req)
-                            .map { results in
-
-                                try req.renderer()
-                                    .render(
-                                        PracticeSession.Templates.Result.self,
-                                        with: .init(
-                                            user: user,
-                                            tasks: results,
-                                            progress: progress,
-                                            timeUsed: results.map { $0.result.timeUsed }.reduce(0, +)
-                                        )
-                                )
-                        }
-                }
-        }
-    }
-
-    /// Returns a session history
-    func getSessions(_ req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return try PracticeSession.Repository
-            .getAllSessions(by: user, on: req)
-            .map { sessions in
-
-                try req.renderer()
-                    .render(
-                        PracticeSession.Templates.History.self,
-                        with: .init(
-                            user: user,
-                            sessions: sessions
-                        )
-                )
         }
     }
 

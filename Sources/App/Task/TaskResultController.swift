@@ -8,14 +8,15 @@
 import Vapor
 import FluentPostgreSQL
 import KognitaCore
+import KognitaViews
 
 
 class TaskResultController: RouteCollection {
 
     func boot(router: Router) throws {
-        router.get("results",                       use: getRevisitSchedual)
-        router.get("results/topics", Int.parameter, use: getRevisitSchedualFilter)
-        router.get("results/overview",              use: getResultsOverview)
+        router.get("results",                           use: getRevisitSchedual)
+        router.get("results/topics", Int.parameter,     use: getRevisitSchedualFilter)
+        router.get("results/overview",                  use: getResultsOverview)
     }
 
     func getRevisitSchedual(_ req: Request) throws -> Future<[TaskResult]> {

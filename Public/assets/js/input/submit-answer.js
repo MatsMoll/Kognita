@@ -6,6 +6,24 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+function sessionID() {
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+}
+
+function taskIndex() {
+    let path = window.location.pathname;
+    let splitURI = "tasks/";
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
+    ));
+}
+
 function submitAnswer() {
 
     var answerString = $("#answer").val()
@@ -13,19 +31,8 @@ function submitAnswer() {
     answerString = answerString.replace(" ", "");
     answerString = answerString.replace(",", ".");
     var answer = parseFloat(answerString);
-
-    let path = window.location.pathname;
-    var splitURI = "sessions/"
-    var sessionId = parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.lastIndexOf("/tasks")
-    ));
-    splitURI = "tasks/";
-    var taskIndex = parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.length
-    ));
-    var url = "/api/practice-sessions/" + sessionId + "/submit/input";
+    
+    var url = "/api/practice-sessions/" + sessionID() + "/submit/input";
     
     var now = new Date();
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
@@ -38,7 +45,7 @@ function submitAnswer() {
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
         "answer": answer,
-        "taskIndex": taskIndex
+        "taskIndex": taskIndex()
     });
     fetch(url, {
         method: "POST",
@@ -66,16 +73,6 @@ function submitAnswer() {
     });
 }
 
-var numberOfHints = 0;
-function presentHint() {
-    numberOfHints += 1;
-    $('#hint-card').fadeIn('slow');
-    $('#hint-body').append(
-        $('<li id="hint-' + numberOfHints + '" style="display: none;"><p>This is hint nr.' + numberOfHints + '</p></li>')
-    );
-    $('#hint-' + numberOfHints).fadeIn('slow');
-}
-
 Number.prototype.toMinuteString = function() {
     var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
     var seconds = Math.floor((this % (1000 * 60)) / 1000);
@@ -94,12 +91,8 @@ function handleSuccess(response) {
     console.log(response);
     let progress = response["progress"];
     results = response["result"]
-
-    $("#nextButton").removeClass("d-none");
-    $("#prevButton").removeClass("d-none");
-    $("#solution-button").removeClass("d-none");
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
+    
+    presentControlls();
 
     if (results["wasCorrect"]) {
         $("#answer").addClass("bg-success text-white");
@@ -113,17 +106,40 @@ function handleSuccess(response) {
         $("#goal-progress-label").text(progress + "%");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%; ");
-        if (progress == 100) {
-            $("#goal-progress-bar").addClass("bg-success");
-            $("#achivement-success").modal();
-        }
     }
 }
 
 function presentControlls() {
+    $("#submitButton").attr("disabled", true);
     $("#nextButton").removeClass("d-none");
     $("#prevButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
+    fetchSolutions(taskIndex(), sessionID());
+}
+
+function fetchSolutions(taskIndex, practiceSessionID) {
+    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+        method: "GET",
+        headers: {
+            "Accept": "application/html, text/plain, */*",
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (html) {
+        $("#solution").html(html);
+        $("#solution").fadeIn();
+        $("#solution").removeClass("d-none");
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
 }

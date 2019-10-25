@@ -126,49 +126,51 @@ final class TopicWebController: RouteCollection {
 
     func taskOverview(_ req: Request) throws -> Future<HTTPResponse> {
 
-        let user = try req.requireAuthenticated(User.self)
+//        let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Topic.self)
-            .flatMap { topic in
+        throw Abort(.internalServerError)
 
-                Subject.Repository
-                    .getSubject(in: topic, on: req)
-                    .flatMap { subject in
-
-                        req.withPooledConnection(to: .psql) { conn in
-
-                            try TaskResultRepository
-                                .getAllResults(for: user.requireID(), filter: \Topic.id == topic.requireID(), with: conn, maxRevisitDays: nil)
-                                .flatMap { results in
-
-                                    try Task.Repository
-                                        .getTasks(in: topic, with: conn)
-                                        .map { tasks in
-
-                                            let resultOverview = tasks.map { task in
-                                                TaskResultOverview(
-                                                    result: results.first(where: { $0.taskID == task.id }),
-                                                    task: task
-                                                )
-                                            }
-
-                                            throw Abort(.internalServerError)
-//                                            return try req.renderer()
-//                                                .render(
-//                                                    TaskOverviewListTemplate.self,
-//                                                    with: TaskOverviewListTemplate.Context.init(
-//                                                        user: user,
-//                                                        subject: subject,
-//                                                        topic: topic,
-//                                                        results: resultOverview
-//                                                    )
-//                                            )
-                                    }
-                            }
-                        }
-                }
-        }
+//        return try req.parameters
+//            .next(Topic.self)
+//            .flatMap { topic in
+//
+//                Subject.Repository
+//                    .getSubject(in: topic, on: req)
+//                    .flatMap { subject in
+//
+//                        req.withPooledConnection(to: .psql) { conn in
+//
+//                            try TaskResultRepository
+//                                .getAllResults(for: user.requireID(), filter: \Topic.id == topic.requireID(), with: conn, maxRevisitDays: nil)
+//                                .flatMap { results in
+//
+//                                    try Task.Repository
+//                                        .getTasks(in: topic, with: conn)
+//                                        .map { tasks in
+//
+//                                            let resultOverview = tasks.map { task in
+//                                                TaskResultOverview(
+//                                                    result: results.first(where: { $0.taskID == task.id }),
+//                                                    task: task
+//                                                )
+//                                            }
+//
+//                                            throw Abort(.internalServerError)
+////                                            return try req.renderer()
+////                                                .render(
+////                                                    TaskOverviewListTemplate.self,
+////                                                    with: TaskOverviewListTemplate.Context.init(
+////                                                        user: user,
+////                                                        subject: subject,
+////                                                        topic: topic,
+////                                                        results: resultOverview
+////                                                    )
+////                                            )
+//                                    }
+//                            }
+//                        }
+//                }
+//        }
     }
 
     func selectSubject(on req: Request) throws -> Future<HTTPResponse> {
