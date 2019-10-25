@@ -1,4 +1,5 @@
 
+var submitedAnswer = "";
 var startDate = new Date();
 var now = new Date();
 
@@ -10,8 +11,16 @@ if (window.location.pathname.includes("session") == false) {
 }
 
 function revealSolution() {
+    submitedAnswer = $("#flash-card-answer").val();
+    console.log(submitedAnswer);
+    if (submitedAnswer == null || submitedAnswer.length == 0) {
+        $("#flash-card-answer").addClass("is-invalid");
+        return
+    }
+    $("#flash-card-answer").removeClass("is-invalid");
     isSubmiting = true;
     clearInterval(timer);
+    presentControlls();
 
     if ($("#solution").hasClass("d-none")) {
         now = new Date();
@@ -30,9 +39,6 @@ function revealSolution() {
             }
         }
     }
-
-    presentControlls();
-    document.getElementById("solution").scrollIntoView();
 }
 
 function nextTask() {
@@ -69,7 +75,8 @@ function submitPerformance(handleSuccess) {
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
         "knowledge": knowledge,
-        "taskIndex": taskIndex()
+        "taskIndex": taskIndex(),
+        "answer": submitedAnswer
     });
 
     fetch(url, {
@@ -126,7 +133,8 @@ function fetchSolutions(taskIndex, practiceSessionID) {
 }
 
 function presentControlls() {
-    $("#submitButton").attr("disabled", false);
+    $("#flash-card-answer").prop('readonly', true)
+    $("#submitButton").prop('disabled', true)
     $("#knowledge-card").fadeIn();
     $("#knowledge-card").removeClass("d-none");
     fetchSolutions(taskIndex(), sessionID());
