@@ -1,28 +1,18 @@
-name: Swift Tests
+name: Swift
 
-on:
-  pull_request:
-    branches:
-      - master
-      - develop
-  push:
-    branches:
-      - master
-      - develop
-      - rc/*
-      - 1.*
+on: [push]
 
 jobs:
   container-job:
-    container:
-      image: swift:5.1.2-bionic
+    container: 
+      image: vapor/swift:5.1-bionic
       env:
         DATABASE_USER: postgres
         DATABASE_PASSWORD: postgres
         DATABASE_DB: postgres
-        DATABASE_HOSTNAME: postgres
+        DATABASE_HOSTNAME: psql
     services:
-      postgres:
+      psql:
         image: postgres
         ports:
           - 5432:5432
@@ -40,8 +30,8 @@ jobs:
           && rm -r /var/lib/apt/lists/*
         swift test
     - name: Build library in release mode
-      run: swift build -c release
-      if: github.ref == 'master'
-    - name: Release new version
-      run: bash ./CI/release-version.sh
-      if: github.ref == 'master'
+      run: |
+        apt-get -qq update && apt-get install -y \
+          libssl-dev zlib1g-dev \
+          && rm -r /var/lib/apt/lists/*
+        swift build -c release
