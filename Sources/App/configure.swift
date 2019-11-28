@@ -2,6 +2,7 @@ import Authentication
 import FluentPostgreSQL
 import Vapor
 import HTMLKit
+import HTMLKitVapor
 import KognitaCore
 import KognitaViews
 import Mailgun
@@ -27,6 +28,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     if env != .production {
         middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     }
+    /// In order to upload big files
     services.register(NIOServerConfig.default(maxBodySize: 20_000_000))
     services.register(middlewares)
 
@@ -42,7 +44,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         commandConfig.useFluentCommands()
         services.register(commandConfig)
     }
-    try services.register(setupTemplates(), as: HTMLRenderable.self)
+    try services.register(setupTemplates())
     setupMailgun(in: &services)
 }
 
@@ -102,7 +104,7 @@ private func registerRouter(in services: inout Services) throws {
 
 func setupTemplates() throws -> HTMLRenderer {
 
-    var renderer = HTMLRenderer()
+    let renderer = HTMLRenderer()
 
     let path = DirectoryConfig.detect().workDir + "Resources/Localization"
     try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
@@ -112,7 +114,7 @@ func setupTemplates() throws -> HTMLRenderer {
 //
 //    // Auth
     try renderer.add(view: LoginPage())
-    try renderer.add(view: User.Templates.Signup())
+//    try renderer.add(view: User.Templates.Signup())
     try renderer.add(view: User.Templates.ResetPassword.Start())
     try renderer.add(view: User.Templates.ResetPassword.Mail())
     try renderer.add(view: User.Templates.ResetPassword.Reset())

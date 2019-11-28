@@ -30,9 +30,11 @@ final class UserWebController: RouteCollection {
         router.post("reset-password",       use: resetPassword)
     }
 
-    func signupForm(_ req: Request) throws -> HTTPResponse {
-        return try req.renderer()
-            .render(User.Templates.Signup.self, with: .init())
+    func signupForm(_ req: Request) throws -> Future<View> {
+        try User.Templates.Signup()
+            .render(with: .init(), for: req)
+//        return try req.renderer()
+//            .render(User.Templates.Signup.self, with: .init())
     }
 
     func loginForm(_ req: Request) throws -> Future<Response> {
@@ -140,7 +142,7 @@ final class UserWebController: RouteCollection {
                                     changeUrl: "uni.kognita.no/reset-password?token=\(token.token)"
                                 )
                                 let mailHtml = try req.renderer()
-                                    .renderRaw(User.Templates.ResetPassword.Mail.self, with: mailContext)
+                                    .render(raw: User.Templates.ResetPassword.Mail.self, with: mailContext)
                                 let mail = Mailgun.Message(
                                     from:       "kontakt@kognita.no",
                                     to:         email.email,
