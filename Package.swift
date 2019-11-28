@@ -22,8 +22,8 @@ dependencies.append(contentsOf: [
 )
 #else
 dependencies.append(contentsOf: [
-        .package(url: "https://MatsKognita:dyjdov-bupgev-goffY8@bitbucket.org/MatsEikelandMollestad/kognita-core.git", from: "1.0.0"),
-        .package(url: "https://MatsKognita:dyjdov-bupgev-goffY8@bitbucket.org/MatsEikelandMollestad/kognitapages.git", from: "1.0.0")
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: "1.0.0"),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "1.0.0")
     ]
 )
 #endif
