@@ -1,0 +1,38 @@
+image: swift:4.2.3
+
+static-test: &static-test
+    step:
+        name: Static Tests
+        script:
+            - chmod +x ./CI/install-swiftlint.sh
+            - ./CI/install-swiftlint.sh
+            - swiftlint
+test: &test
+    step:
+        name: Test
+        script:
+            - swift package resolve
+            - swift package clean
+            - swift test
+        services:
+            - postgres
+
+pipelines:
+    default:
+#    - <<: *static-test
+    - <<: *test
+    branches:
+        master:
+#            - <<: *static-test
+            - <<: *test
+            - step:
+                name: Release
+                script:
+                    - chmod +x ./CI/release-version.sh
+                    - ./CI/release-version.sh
+                    - git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git HEAD:master
+
+definitions:
+    services:
+        postgres:
+            image: postgres

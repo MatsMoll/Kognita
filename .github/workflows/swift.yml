@@ -1,0 +1,37 @@
+name: Swift
+
+on: [push]
+
+jobs:
+  container-job:
+    container: 
+      image: vapor/swift:5.1-bionic
+      env:
+        DATABASE_USER: postgres
+        DATABASE_PASSWORD: postgres
+        DATABASE_DB: postgres
+        DATABASE_HOSTNAME: psql
+    services:
+      psql:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Run unit tests
+      run: |
+        apt-get -qq update && apt-get install -y \
+          libssl-dev zlib1g-dev \
+          && rm -r /var/lib/apt/lists/*
+        swift test
+    - name: Build library in release mode
+      run: |
+        apt-get -qq update && apt-get install -y \
+          libssl-dev zlib1g-dev \
+          && rm -r /var/lib/apt/lists/*
+        swift build -c release

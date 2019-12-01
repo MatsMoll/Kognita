@@ -24,23 +24,19 @@ function editTopic(id) {
             window.location.reload();
         }
     };
-    
-    var preTopicId = parseInt($("#create-topic-preTopicId").val());
+
     var name = $("#create-topic-name").val();
     var description = null;
     if (!$('#create-topic-description').summernote("isEmpty")) {
         description = $("#create-topic-description").summernote("code");
     }
     var chapter = parseInt($("#create-topic-chapter").val());
-    var importance = parseFloat($("#create-topic-importance").val());
 
-    if (chapter && importance) {
+    if (chapter) {
         var data = JSON.stringify({
-            "preTopicId"    : preTopicId,
             "name"          : name,
             "description"   : description,
             "chapter"       : chapter,
-            "importance"    : importance,
         });
         xhr.send(data);
     } else {

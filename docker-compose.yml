@@ -1,0 +1,15 @@
+version: '3'
+services:
+  kognita-app:
+    depends_on:
+      - postgres
+    build: .
+    environment:
+      - DATABASE_HOSTNAME=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PORT=5432
+  postgres:
+    image: "postgres"
+    container_name: postgres
+    environment:
+      POSTGRES_DB: "testing"

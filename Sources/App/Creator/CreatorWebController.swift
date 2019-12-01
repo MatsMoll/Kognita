@@ -20,8 +20,9 @@ final class CreatorWebController: RouteCollection {
 
     func informationPage(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
-        return try req.renderer()
-            .render(CreatorInformationPage.self, with: .init(user: user))
+        throw Abort(.internalServerError)
+//        return try req.renderer()
+//            .render(CreatorInformationPage.self, with: .init(user: user))
     }
 
     func dashboard(_ req: Request) throws -> Future<HTTPResponse> {
@@ -34,17 +35,17 @@ final class CreatorWebController: RouteCollection {
 
         return req.withPooledConnection(to: .psql) { conn in
 
-            try TopicRepository.shared
+            try Topic.Repository
                 .timelyTopics(on: conn)
                 .flatMap { topics in
 
-                    try TaskRepository.shared
-                        .getTasks(where: \Task.creatorId == user.requireID(), conn: conn)
+                    try Task.Repository
+                        .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
                         .map { tasks in
 
                             try req.renderer()
                                 .render(
-                                    CreatorDashboard.self,
+                                    CreatorTemplates.Dashboard.self,
                                     with: .init(
                                         user: user,
                                         tasks: tasks,
@@ -69,18 +70,18 @@ final class CreatorWebController: RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                SubjectRepository.shared
+                Subject.Repository
                     .getSubjectWith(id: topic.subjectId, on: req)
                     .flatMap { subject in
 
-                        try TaskRepository.shared
+                        try Task.Repository
                             .getTasks(where: \Topic.id == topic.id, conn: req)
                             .map(to: HTTPResponse.self) { taskContent in
 
                                 try req.renderer()
                                     .render(
-                                        CreatorTopicPage.self,
-                                        with: CreatorTopicPage.Context(
+                                        CreatorTemplates.TopicDetails.self,
+                                        with: .init(
                                             user: user,
                                             subject: subject,
                                             topic: topic,
@@ -93,4 +94,22 @@ final class CreatorWebController: RouteCollection {
     }
 }
 
-extension TaskContent: CreatorTaskContent {}
+extension TaskContent: CreatorTaskContent {
+    public var deletedAt: Date? { return task.deletedAt }
+
+    public var creatorName: String? { return creator?.name }
+
+    public var subjectName: String { return subject.name }
+
+    public var subjectID: Int { return subject.id ?? 0 }
+
+    public var topicName: String { return topic.name }
+
+    public var topicID: Int { return topic.id ?? 0 }
+
+    public var taskID: Int { return task.id ?? 0 }
+
+    public var question: String { return task.question }
+
+    public var status: String { return "" }
+}

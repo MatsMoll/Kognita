@@ -8,66 +8,23 @@
 import Vapor
 import KognitaCore
 
-class SubjectController: CRUDControllable, RouteCollection {
+final class SubjectController: KognitaCRUDControllable, RouteCollection {
+    
+    typealias Model = Subject
+    typealias ResponseContent = Subject
 
     static let shared = SubjectController()
 
     func boot(router: Router) {
         router.register(controller: self, at: "subjects")
+        router.get("subjects", Subject.parameter, "export", use: export)
+        router.get("subjects/export", use: exportAll)
+        router.post("subjects/import", use: importContent)
     }
-
-    func getInstanceCollection(_ req: Request) throws -> EventLoopFuture<[Subject]> {
-        return SubjectRepository.shared
-            .getAll(on: req)
-    }
-
-    func getInstance(_ req: Request) throws -> EventLoopFuture<Subject> {
-        return try req.parameters.next(Subject.self)
-    }
-
-    func create(_ req: Request) throws -> Future<Subject> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return try req.content
-            .decode(CreateSubjectRequest.self)
-            .flatMap { content in
-
-                try SubjectRepository.shared
-                    .createSubject(with: content, for: user, conn: req)
-        }
-    }
-
-    /// Deletes a subject with parameter /:id
-    func delete(_ req: Request) throws -> Future<HTTPStatus> {
-
-        let user = try req.requireAuthenticated(User.self)
-        return try req.parameters
-            .next(Subject.self)
-            .flatMap { subject in
-
-            try SubjectRepository.shared
-                .delete(subject: subject, user: user, conn: req)
-                .transform(to: .ok)
-        }
-    }
-
-    func edit(_ req: Request) throws -> Future<Subject> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return try req.parameters
-            .next(Subject.self)
-            .flatMap { subject in
-
-                try req.content
-                    .decode(CreateSubjectRequest.self)
-                    .flatMap { content in
-
-                        try SubjectRepository.shared
-                            .edit(subject: subject, with: content, user: user, conn: req)
-                }
-        }
+    
+    func getAll(_ req: Request) throws -> EventLoopFuture<[Subject]> {
+        return Subject.Repository
+            .all(on: req)
     }
 
 //    func createTest(_ req: Request) throws -> Future<SubjectTestSet> {
@@ -80,6 +37,37 @@ class SubjectController: CRUDControllable, RouteCollection {
 //                try SubjectTest.create(for: user, on: subject, with: req)
 //            }
 //    }
+
+    func export(on req: Request) throws -> Future<SubjectExportContent> {
+        _ = try req.requireAuthenticated(User.self)
+        return try req.parameters.next(Subject.self).flatMap { subject in
+            try Topic.Repository
+                .exportTopics(in: subject, on: req)
+        }
+    }
+
+    func exportAll(on req: Request) throws -> Future<[SubjectExportContent]> {
+        _ = try req.requireAuthenticated(User.self)
+        return Subject.Repository
+            .all(on: req)
+            .flatMap { subjects in
+                try subjects.map { try Topic.Repository
+                    .exportTopics(in: $0, on: req)
+                }
+                .flatten(on: req)
+        }
+    }
+
+    func importContent(on req: Request) throws -> Future<Subject> {
+        _ = try req.requireAuthenticated(User.self)
+
+        return try req.content
+            .decode(SubjectExportContent.self)
+            .flatMap {
+                Subject.Repository
+                    .importContent($0, on: req)
+        }
+    }
 }
 
 struct CreateSubjectTest: Content {

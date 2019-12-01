@@ -41,12 +41,12 @@ class FlashCardTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try TopicRepository.shared
-                    .getTopics(in: subject, conn: req)
+                try Topic.Repository
+                    .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
                         try req.renderer().render(
-                            CreateFlashCardTaskTemplate.self,
+                            FlashCardTask.Templates.Create.self,
                             with: .init(
                                 user: user,
                                 subject: subject,
@@ -70,17 +70,17 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardRepository.shared
+                FlashCardTask.Repository
                     .content(for: flashCard, on: req)
                     .flatMap { content in
 
-                        try TopicRepository.shared
-                            .getTopics(in: content.subject, conn: req)
+                        try Topic.Repository
+                            .getTopicResponses(in: content.subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()
                                     .render(
-                                        CreateFlashCardTaskTemplate.self,
+                                        FlashCardTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
                                             subject: content.subject,
@@ -103,16 +103,16 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardRepository.shared
+                FlashCardTask.Repository
                     .content(for: flashCard, on: req)
                     .map { preview in
 
                         try req.renderer().render(
-                            FlashCardTaskTemplate.self,
+                            FlashCardTask.Templates.Execute.self,
                             with: .init(
                                 taskPreview: preview,
                                 user: user,
-                                nextTaskPath: nil,
+                                currentTaskIndex: nil,
                                 numberOfTasks: 1
                             )
                         )

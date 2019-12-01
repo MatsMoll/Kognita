@@ -2,9 +2,10 @@ import Authentication
 import FluentPostgreSQL
 import Vapor
 import HTMLKit
+import HTMLKitVapor
 import KognitaCore
-import Lingo
 import KognitaViews
+import Mailgun
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
@@ -12,7 +13,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register providers first
     try services.register(FluentPostgreSQLProvider())
     try services.register(AuthenticationProvider())
-    try services.register(HTMLKitProvider())
+//    try services.register(HTMLKitProvider())
     let connectionConfig = DatabaseConnectionPoolConfig(maxConnections: 3)
     services.register(connectionConfig)
 
@@ -27,11 +28,13 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     if env != .production {
         middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     }
+    /// In order to upload big files
+    services.register(NIOServerConfig.default(maxBodySize: 20_000_000))
     services.register(middlewares)
 
     setupDatabase(for: env, in: &services)
 
-    let migrations = DatabaseMigrations.migrationConfig()
+    let migrations = DatabaseMigrations.migrationConfig(enviroment: env)
     services.register(migrations)
 
     // Needs to be after addMigrations(), because it relies on the tables created there
@@ -41,8 +44,18 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         commandConfig.useFluentCommands()
         services.register(commandConfig)
     }
-
     try services.register(setupTemplates())
+    setupMailgun(in: &services)
+}
+
+private func setupMailgun(in services: inout Services) {
+    guard let mailgunKey = Environment.get("MAILGUN_KEY"),
+        let mailgunDomain = Environment.get("MAILGUN_DOMAIN") else {
+            print("Mailgun is NOT activated")
+            return
+    }
+    let mailgun = Mailgun(apiKey: mailgunKey, domain: mailgunDomain, region: .eu)
+    services.register(mailgun, as: Mailgun.self)
 }
 
 private func setupDatabase(for enviroment: Environment, in services: inout Services) {
@@ -59,9 +72,11 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
         }
         databaseConfig = psqlConfig
     } else {                                        // Localy testing
-        var databaseName = Environment.get("DATABASE_DB") ?? "postgres"
-        if enviroment == .testing {
-            databaseName = "postgres"
+        var databaseName = "local"
+        if let customName = Environment.get("DATABASE_DB") {
+            databaseName = customName
+        } else if enviroment == .testing {
+            databaseName = "testing"
         }
         let databasePort = 5432
         let password = Environment.get("DATABASE_PASSWORD") ?? nil
@@ -83,86 +98,60 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
     services.register(databases)
 }
 
-//class KognitaMigrations {
-//    static func migrationConfig() -> MigrationConfig {
-//        var migrations = MigrationConfig()
-//
-//        // This needs to run before Task migration
-//        migrations.add(migration: Task.ExamSemester.self, database: .psql)
-//
-//        migrations.add(model: User.self, database: .psql)
-//        migrations.add(model: UserToken.self, database: .psql)
-//        migrations.add(model: Subject.self, database: .psql)
-//        migrations.add(model: Topic.self, database: .psql)
-//        migrations.add(model: Task.self, database: .psql)
-//        migrations.add(model: MultipleChoiseTask.self, database: .psql)
-//        migrations.add(model: MultipleChoiseTaskChoise.self, database: .psql)
-//        migrations.add(model: PracticeSession.self, database: .psql)
-//        migrations.add(model: PracticeSessionTaskPivot.self, database: .psql)
-//        migrations.add(model: PracticeSessionTopicPivot.self, database: .psql)
-//        migrations.add(model: UserTopicLevel.self, database: .psql)
-//        migrations.add(model: NumberInputTask.self, database: .psql)
-//        migrations.add(model: FlashCardTask.self, database: .psql)
-//        migrations.add(model: TaskResult.self, database: .psql)
-//
-//        return migrations
-//    }
-//
-//    static func addVersionBumbMigration(_ migrations: inout MigrationConfig) {
-//        // Add migrations here
-////        migrations.add(migration: TaskExamPaperAtomicMigration.self, database: .psql)
-////        migrations.add(migration: TaskCreatedAtUpdatedAtMigration.self, database: .psql)
-////        migrations.add(migration: PSTaskPivotUnforgivingScoreMigration.self, database: .psql)
-//    }
-//}
-
 private func registerRouter(in services: inout Services) throws {
     let router = EngineRouter.default()
     try routes(router)
     services.register(router, as: Router.self)
 }
 
-private func setupTemplates() throws -> HTMLRenderer {
+func setupTemplates() throws -> HTMLRenderer {
 
-    var renderer = HTMLRenderer()
+    let renderer = HTMLRenderer()
 
-    try renderer.registerLocalization(defaultLocale: "nb")
+    let path = DirectoryConfig.detect().workDir + "Resources/Localization"
+    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
+//
+//    // Starter
+    try renderer.add(view: Pages.Landing())
+//
+//    // Auth
+    try renderer.add(view: LoginPage())
+    try renderer.add(view: User.Templates.Signup())
+    try renderer.add(view: User.Templates.ResetPassword.Start())
+    try renderer.add(view: User.Templates.ResetPassword.Mail())
+    try renderer.add(view: User.Templates.ResetPassword.Reset())
+//
+//    // Main User pages
+    try renderer.add(view: Subject.Templates.ListOverview())
+    try renderer.add(view: Subject.Templates.Details())
+    try renderer.add(view: Subject.Templates.SelectRedirect())
+//
+//    // Task Overview
+//    try renderer.add(template: TaskOverviewListTemplate())
+//
+//    // Task Template
+    try renderer.add(view: FlashCardTask.Templates.Execute())
+    try renderer.add(view: MultipleChoiseTask.Templates.Execute())
+    try renderer.add(view: NumberInputTask.Templates.Execute())
+    try renderer.add(view: TaskSolutionsTemplate())
+//
+//    // Create Content
+    try renderer.add(view: Subject.Templates.Create())
+    try renderer.add(view: Topic.Templates.Create())
+    try renderer.add(view: Subtopic.Templates.Create())
+//
+//    // Create Task Templates
+    try renderer.add(view: FlashCardTask.Templates.Create())
+    try renderer.add(view: MultipleChoiseTask.Templates.Create())
+    try renderer.add(view: NumberInputTask.Templates.Create())
+//
+//    // Practice Session
+    try renderer.add(view: PracticeSession.Templates.History())
+    try renderer.add(view: PracticeSession.Templates.Result())
 
-    // Starter
-    try renderer.add(template: StarterPage())
-
-    // Auth
-    try renderer.add(template: LoginPage())
-    try renderer.add(template: SignupPage())
-
-    // Main User pages
-    try renderer.add(template: SubjectListTemplate())
-    try renderer.add(template: SubjectDetailTemplate())
-
-    // Task Overview
-    try renderer.add(template: TaskOverviewListTemplate())
-
-    // Task Template
-    try renderer.add(template: MultipleChoiseTaskTemplate())
-    try renderer.add(template: NumberInputTaskTemplate())
-    try renderer.add(template: FlashCardTaskTemplate())
-
-    // Create Content
-    try renderer.add(template: CreateSubjectPage())
-    try renderer.add(template: CreateTopicPage())
-
-    // Create Task Templates
-    try renderer.add(template: CreateMultipleChoiseTaskPage())
-    try renderer.add(template: CreateNumberInputTaskTemplate())
-    try renderer.add(template: CreateFlashCardTaskTemplate())
-
-    // Practice Session
-    try renderer.add(template: PSResultTemplate())
-    try renderer.add(template: PSHistoryTemplate())
-
-    // Creator pages
-    try renderer.add(template: CreatorInformationPage())
-    try renderer.add(template: CreatorDashboard())
-    try renderer.add(template: CreatorTopicPage())
+//    // Creator pages
+    try renderer.add(view: CreatorTemplates.Dashboard())
+    try renderer.add(view: CreatorTemplates.TopicDetails())
+//    try renderer.add(template: CreatorInformationPage())
     return renderer
 }

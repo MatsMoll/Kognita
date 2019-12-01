@@ -11,44 +11,33 @@ import KognitaViews
 
 extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
 
-    func render(_ session: PracticeSession, for user: User, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        return try MultipleChoiseTaskRepository.shared
+        return try MultipleChoiseTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try PracticeSessionRepository.shared
-                    .getNextTaskPath(for: session, on: req)
-                    .flatMap { nextPath in
+                try PracticeSession.Repository
+                    .goalProgress(in: session, on: req)
+                    .flatMap { progress in
 
-                        try PracticeSessionRepository.shared
-                            .goalProgress(in: session, on: req)
-                            .flatMap { progress in
+                        try TaskResultRepository
+                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .map { lastResult in
 
-                                try PracticeSessionRepository.shared
-                                    .getNumberOfTasks(in: session, on: req)
-                                    .flatMap { numberOfTasks in
-
-                                        try TaskResultRepository.shared
-                                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                                            .map { lastResult in
-
-                                                try req.renderer()
-                                                    .render(
-                                                        MultipleChoiseTaskTemplate.self,
-                                                        with: .init(
-                                                            multiple: content,
-                                                            taskContent: preview,
-                                                            user: user,
-                                                            nextTaskPath: nextPath,
-                                                            session: session,
-                                                            practiceProsess: progress,
-                                                            lastResult: lastResult?.content,
-                                                            numberOfTasks: numberOfTasks
-                                                        )
-                                                )
-                                        }
-                                }
+                                try req.renderer()
+                                    .render(
+                                        MultipleChoiseTask.Templates.Execute.self,
+                                        with: .init(
+                                            multiple: content,
+                                            taskContent: preview,
+                                            user: user,
+                                            currentTaskIndex: index,
+                                            session: session,
+                                            practiceProsess: progress,
+                                            lastResult: lastResult?.content
+                                        )
+                                )
                         }
                 }
         }
@@ -56,22 +45,21 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
 
     func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
 
-        return try MultipleChoiseTaskRepository.shared
+        return try MultipleChoiseTask.Repository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try TaskResultRepository.shared
+                try TaskResultRepository
                     .getLastResult(for: preview.task.requireID(), by: user, on: req)
                     .map { lastResult in
 
                         try req.renderer().render(
-                            MultipleChoiseTaskTemplate.self,
+                            MultipleChoiseTask.Templates.Execute.self,
                             with: .init(
                                 multiple: content,
                                 taskContent: preview,
                                 user: user,
-                                lastResult: lastResult?.content,
-                                numberOfTasks: 1
+                                lastResult: lastResult?.content
                             )
                         )
                 }

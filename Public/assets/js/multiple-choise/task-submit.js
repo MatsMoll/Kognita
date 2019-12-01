@@ -24,10 +24,12 @@ function submitChoises() {
     var now = new Date();
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
 
-    var url = "/api" + window.location.pathname.replace("creator/", "");
+    var url = "/api/practice-sessions/" + sessionID() + "/submit/multiple-choise";
+
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
-        "choises": selectedChoises
+        "choises": selectedChoises,
+        "taskIndex": taskIndex()
     });
 
     fetch(url, {
@@ -56,16 +58,6 @@ function submitChoises() {
     });
 }
 
-var numberOfHints = 0;
-function presentHint() {
-    numberOfHints += 1;
-    $('#hint-card').fadeIn('slow');
-    $('#hint-body').append(
-        $('<li id="hint-' + numberOfHints + '" style="display: none;"><p>This is hint nr.' + numberOfHints + '</p></li>')
-    );
-    $('#hint-' + numberOfHints).fadeIn('slow');
-}
-
 Number.prototype.toMinuteString = function() {
     var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
     var seconds = Math.floor((this % (1000 * 60)) / 1000);
@@ -84,54 +76,83 @@ function updateTimer() {
 function handleSuccess(results) {
 
     let progress = results["progress"];
-    let change = results["change"];
     results = results["result"] != null ? results["result"] : results;
 
-    $("#nextButton").removeClass("d-none");
-    $("#solution-button").removeClass("d-none");
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
+    presentControlls();
 
     for (var i = 0; i < results.length; i++) {
 
         var id = results[i]["id"];
-        var div = $("#" + id + "-div");
+        let div = $("#" + id + "-div");
+        let label = div.find("label");
         div.removeClass("text-secondary");
 
         if (results[i]["isCorrect"]) {
-            div.addClass("bg-success text-white");
+            div.addClass("bg-success");
         } else {
             div.addClass("bg-danger text-white");
         }
+        label.addClass("text-white");
     }
 
-    let notificationLength = 20 * 1000;
-    if (change >= 0) {
-        (window.jQuery).NotificationApp.send(
-            "Bra jobba!",
-            "Du gikk opp " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "success",
-            notificationLength
-        );
-    } else if (change < 0) {
-        (window.jQuery).NotificationApp.send(
-            "Oh, prøv en gang til!",
-            "Du gikk ned " + Math.round(change * 100) + "%.",
-            "bottom-right",
-            "rgba(0,0,0,0.2)",
-            "warning",
-            notificationLength
-        );
-    }
+    $("input[name=choiseInput]").attr('disabled', true);
 
     if (progress) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-        if (progress >= 100) {
-            $("#goal-progress-bar").addClass("bg-success");
-        }
     }
+}
+
+function fetchSolutions(taskIndex, practiceSessionID) {
+    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+        method: "GET",
+        headers: {
+            "Accept": "application/html, text/plain, */*",
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (html) {
+        $("#solution").html(html);
+        $("#solution").fadeIn();
+        $("#solution").removeClass("d-none");
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
+}
+
+
+function presentControlls() {
+    $("#submitButton").attr("disabled", true);
+    $("#nextButton").removeClass("d-none");
+    $("#solution-button").removeClass("d-none");
+    fetchSolutions(taskIndex(), sessionID());
+}
+
+function sessionID() {
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+}
+
+function taskIndex() {
+    let path = window.location.pathname;
+    let splitURI = "tasks/";
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
+    ));
 }

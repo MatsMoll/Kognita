@@ -1,15 +1,26 @@
 
+var submitedAnswer = "";
 var startDate = new Date();
 var now = new Date();
 
 var timer = setInterval(updateTimer, 1000);
+var isSubmiting = false;
 
 if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
 function revealSolution() {
+    submitedAnswer = $("#flash-card-answer").val();
+    console.log(submitedAnswer);
+    if (submitedAnswer == null || submitedAnswer.length == 0) {
+        $("#flash-card-answer").addClass("is-invalid");
+        return
+    }
+    $("#flash-card-answer").removeClass("is-invalid");
+    isSubmiting = true;
     clearInterval(timer);
+    presentControlls();
 
     if ($("#solution").hasClass("d-none")) {
         now = new Date();
@@ -22,34 +33,38 @@ function revealSolution() {
             $("#goal-progress-label").text(progress + "% ");
             $("#goal-progress-bar").attr("aria-valuenow", progress);
             $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-            if (progress >= 100) {
+            if (progress == 100) {
                 $("#goal-progress-bar").addClass("bg-success");
+                $("#achivement-success").modal();
             }
         }
     }
-
-    $("#solution").fadeIn();
-    $("#solution").removeClass("d-none");
-    $("#submitButton").attr("disabled", false);
-    $("#knowledge-card").fadeIn();
-    $("#knowledge-card").removeClass("d-none");
-    document.getElementById("solution").scrollIntoView();
 }
 
 function nextTask() {
-    submitPerformance(function() { window.location.pathname = $("#next-task").val(); })
+    submitPerformance(function() {
+        location.href = $("#next-task").val();
+    })
 }
 
 function submitAndEndSession() {
     if ($("#solution").hasClass("d-none")) {
         endSession();
     } else {
-        submitPerformance(function() { endSession(); });
+        submitPerformance(function() { 
+            endSession(); 
+        });
     }
 }
 
 function submitPerformance(handleSuccess) {
-    var url = "/api" + window.location.pathname;
+
+    if (isSubmiting == false) {
+        handleSuccess();
+        return
+    }
+
+    var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
     let knowledge = parseFloat($("#knowledge-slider").val());
@@ -59,7 +74,9 @@ function submitPerformance(handleSuccess) {
     }
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
-        "knowledge": knowledge
+        "knowledge": knowledge,
+        "taskIndex": taskIndex(),
+        "answer": submitedAnswer
     });
 
     fetch(url, {
@@ -88,6 +105,41 @@ function submitPerformance(handleSuccess) {
     });
 }
 
+function fetchSolutions(taskIndex, practiceSessionID) {
+    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+        method: "GET",
+        headers: {
+            "Accept": "application/html, text/plain, */*",
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (html) {
+        $("#solution").html(html);
+        $("#solution").fadeIn();
+        $("#solution").removeClass("d-none");
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
+}
+
+function presentControlls() {
+    $("#flash-card-answer").prop('readonly', true)
+    $("#submitButton").prop('disabled', true)
+    $("#knowledge-card").fadeIn();
+    $("#knowledge-card").removeClass("d-none");
+    fetchSolutions(taskIndex(), sessionID());
+}
+
 
 Number.prototype.toMinuteString = function() {
     var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
@@ -101,4 +153,22 @@ function updateTimer() {
     var now = new Date();
     var timeUsed = now.getTime() -  startDate.getTime();
     $("#timer").html(timeUsed.toMinuteString());
+}
+
+function sessionID() {
+    let path = window.location.pathname;
+    let splitURI = "sessions/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks")
+    ));
+}
+
+function taskIndex() {
+    let path = window.location.pathname;
+    let splitURI = "tasks/";
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.length
+    ));
 }

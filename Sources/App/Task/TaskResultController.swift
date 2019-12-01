@@ -8,14 +8,15 @@
 import Vapor
 import FluentPostgreSQL
 import KognitaCore
+import KognitaViews
 
 
 class TaskResultController: RouteCollection {
 
     func boot(router: Router) throws {
-        router.get("results", use: getRevisitSchedual)
-        router.get("results/topics", Int.parameter, use: getRevisitSchedualFilter)
-        router.get("results/overview", use: getResultsOverview)
+        router.get("results",                           use: getRevisitSchedual)
+        router.get("results/topics", Int.parameter,     use: getRevisitSchedualFilter)
+        router.get("results/overview",                  use: getResultsOverview)
     }
 
     func getRevisitSchedual(_ req: Request) throws -> Future<[TaskResult]> {
@@ -23,7 +24,7 @@ class TaskResultController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
 
         return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository.shared
+            try TaskResultRepository
                 .getAllResults(for: user.requireID(), with: conn)
         }
     }
@@ -34,7 +35,7 @@ class TaskResultController: RouteCollection {
         let topicID = try req.parameters.next(Int.self)
 
         return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository.shared
+            try TaskResultRepository
                 .getAllResults(for: user.requireID(), filter: \Topic.id == topicID, with: conn)
 
         }
@@ -46,7 +47,7 @@ class TaskResultController: RouteCollection {
             throw Abort(.forbidden)
         }
         return req.withPooledConnection(to: .psql) { conn in
-            TaskResultRepository.shared.getResults(on: conn)
+            TaskResultRepository.getResults(on: conn)
         }
     }
 }
