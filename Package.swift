@@ -14,19 +14,19 @@ var dependencies: [Package.Dependency] = [
 
 // Kognita Core
 
-//#if os(macOS) // Local development
-//dependencies.append(contentsOf: [
-//        .package(path: "../KognitaCore"),
-//        .package(path: "../KognitaViews")
-//    ]
-//)
-//#else
+#if os(macOS) // Local development
+dependencies.append(contentsOf: [
+        .package(path: "../KognitaCore"),
+        .package(path: "../KognitaViews"),
+    ]
+)
+#else
 dependencies.append(contentsOf: [
         .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: "1.0.0"),
         .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "1.0.0")
     ]
 )
-//#endif
+#endif
 
 
 let package = Package(
