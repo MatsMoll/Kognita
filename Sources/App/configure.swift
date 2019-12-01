@@ -72,8 +72,10 @@ private func setupDatabase(for enviroment: Environment, in services: inout Servi
         }
         databaseConfig = psqlConfig
     } else {                                        // Localy testing
-        var databaseName = Environment.get("DATABASE_DB") ?? "local"
-        if enviroment == .testing {
+        var databaseName = "local"
+        if let customName = Environment.get("DATABASE_DB") {
+            databaseName = customName
+        } else if enviroment == .testing {
             databaseName = "testing"
         }
         let databasePort = 5432
@@ -114,7 +116,7 @@ func setupTemplates() throws -> HTMLRenderer {
 //
 //    // Auth
     try renderer.add(view: LoginPage())
-//    try renderer.add(view: User.Templates.Signup())
+    try renderer.add(view: User.Templates.Signup())
     try renderer.add(view: User.Templates.ResetPassword.Start())
     try renderer.add(view: User.Templates.ResetPassword.Mail())
     try renderer.add(view: User.Templates.ResetPassword.Reset())
