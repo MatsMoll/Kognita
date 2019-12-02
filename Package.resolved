@@ -101,24 +101,6 @@
         }
       },
       {
-        "package": "KognitaCore",
-        "repositoryURL": "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore",
-        "state": {
-          "branch": null,
-          "revision": "288106f89ba75023b915df55ef1e65658cef27d1",
-          "version": "1.0.14"
-        }
-      },
-      {
-        "package": "KognitaViews",
-        "repositoryURL": "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages",
-        "state": {
-          "branch": null,
-          "revision": "a6ece1147438b7afe847c5aa83bdf69af38ca674",
-          "version": "1.0.13"
-        }
-      },
-      {
         "package": "Lingo",
         "repositoryURL": "https://github.com/miroslavkovac/Lingo.git",
         "state": {
