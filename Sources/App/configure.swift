@@ -13,7 +13,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register providers first
     try services.register(FluentPostgreSQLProvider())
     try services.register(AuthenticationProvider())
-//    try services.register(HTMLKitProvider())
     let connectionConfig = DatabaseConnectionPoolConfig(maxConnections: 3)
     services.register(connectionConfig)
 
@@ -22,15 +21,30 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     try registerRouter(in: &services)
 
-    var middlewares = MiddlewareConfig() // Create _empty_ middleware config
-    middlewares.use(SessionsMiddleware.self) // Enables sessions.
-    middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
+    var middlewares = MiddlewareConfig()
+
+    // Enables sessions.
+    middlewares.use(SessionsMiddleware.self)
+
+    // Serves files from `Public/` directory
+    middlewares.use(FileMiddleware.self)
+
     if env != .production {
-        middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
+        // Catches errors and converts to HTTP responses for developers
+        middlewares.use(ErrorMiddleware.self)
+    } else {
+        // Catches errors and converts to HTTP responses for users
+        middlewares.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>.self)
     }
     /// In order to upload big files
     services.register(NIOServerConfig.default(maxBodySize: 20_000_000))
     services.register(middlewares)
+    services.register { _ in
+        HTMLKitErrorMiddleware(
+            notFoundPage: Pages.NotFoundError.self,
+            serverErrorTemplate: Pages.ServerError.self
+        )
+    }
 
     setupDatabase(for: env, in: &services)
 
@@ -110,25 +124,29 @@ func setupTemplates() throws -> HTMLRenderer {
 
     let path = DirectoryConfig.detect().workDir + "Resources/Localization"
     try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
-//
-//    // Starter
+
+    // Starter
     try renderer.add(view: Pages.Landing())
-//
-//    // Auth
+
+    // Error Pages
+    try renderer.add(view: Pages.ServerError())
+    try renderer.add(view: Pages.NotFoundError())
+
+    // Auth
     try renderer.add(view: LoginPage())
     try renderer.add(view: User.Templates.Signup())
     try renderer.add(view: User.Templates.ResetPassword.Start())
     try renderer.add(view: User.Templates.ResetPassword.Mail())
     try renderer.add(view: User.Templates.ResetPassword.Reset())
-//
-//    // Main User pages
+
+    // Main User pages
     try renderer.add(view: Subject.Templates.ListOverview())
     try renderer.add(view: Subject.Templates.Details())
     try renderer.add(view: Subject.Templates.SelectRedirect())
-//
+
 //    // Task Overview
 //    try renderer.add(template: TaskOverviewListTemplate())
-//
+
 //    // Task Template
     try renderer.add(view: FlashCardTask.Templates.Execute())
     try renderer.add(view: MultipleChoiseTask.Templates.Execute())

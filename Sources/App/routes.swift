@@ -5,56 +5,6 @@ import KognitaCore
 import KognitaViews
 import HTMLKit
 
-//extension HTMLRenderable {
-//
-//    /// Renders a `StaticView` formula
-//    ///
-//    ///     try renderer.render(WelcomeView.self)
-//    ///
-//    /// - Parameter type: The view type to render
-//    /// - Returns: Returns a rendered view in a `Response`
-//    /// - Throws: If the formula do not exists, or if the rendering process fails
-//    public func render<T: TemplateView>(_ type: T.Type, with value: T.Value) throws -> HTTPResponse {
-//        try HTTPResponse(headers: .init([("content-type", "text/html; charset=utf-8")]), body: renderRaw(type, with: value))
-//    }
-//
-//    public func render<T: StaticView>(_ type: T.Type) throws -> HTTPResponse {
-//        try HTTPResponse(headers: .init([("content-type", "text/html; charset=utf-8")]), body: renderRaw(type))
-//    }
-//}
-
-//extension HTMLRenderer: Service {}
-
-/// A provider for the HTMLKit Library
-//public final class HTMLKitProvider: Provider {
-//
-//    public init() {}
-//
-//    // View `Provider` protocol
-//    public func register(_ services: inout Services) throws {
-//
-//        services.register(HTMLRenderable.self) { (container) in
-//            return try container.make(HTMLRenderer.self)
-//        }
-//    }
-//
-//    // View `Provider` protocol
-//    public func didBoot(_ container: Container) throws -> EventLoopFuture<Void> {
-//        return .done(on: container)
-//    }
-//}
-//
-//extension Request {
-//
-//    /// Creates a `HTMLRenderer` that can render templates
-//    ///
-//    /// - Returns: A `HTMLRenderer` containing all the templates
-//    /// - Throws: If the shared container could not make the `HTMLRenderer`
-//    public func renderer() throws -> HTMLRenderable {
-//        return try sharedContainer.make(HTMLRenderable.self)
-//    }
-//}
-
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
     try setupApi(for: router.grouped("api"))

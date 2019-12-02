@@ -31,10 +31,8 @@ final class UserWebController: RouteCollection {
     }
 
     func signupForm(_ req: Request) throws -> Future<View> {
-        try User.Templates.Signup()
+        User.Templates.Signup()
             .render(with: .init(), for: req)
-//        return try req.renderer()
-//            .render(User.Templates.Signup.self, with: .init())
     }
 
     func loginForm(_ req: Request) throws -> Future<Response> {
@@ -49,6 +47,7 @@ final class UserWebController: RouteCollection {
     }
 
     func create(_ req: Request) throws -> EventLoopFuture<Response> {
+
         return try req.content.decode(User.Create.Data.self).flatMap { createUser in
             try UserController.shared.create(req).flatMap { newUser in
                 User.authenticate(

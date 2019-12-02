@@ -13,38 +13,81 @@ $("#create-topic-description").summernote({
 
 function createTopic() {
     
-    var xhr = new XMLHttpRequest();
     var url = "/api/topics";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-    
-        if (this.status == 200) {
-            window.location.href = "/creator/dashboard"
-        }
-    };
 
+    try {
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type" : "application/json"
+            },
+            body: jsonData()
+        })
+        .then(function (response) {
+            if (response.ok) {
+                return response.json();
+            } else if (response.status == 400) {
+                throw new Error("Sjekk at all nødvendig info er fylt ut");
+            } else {
+                throw new Error(response.statusText);
+            }
+        })
+        .then(function (json) {
+            window.location.href = "/creator/dashboard"
+        })
+        .catch(function (error) {
+            presentErrorMessage(error.message);
+        });
+    } catch(error) {
+        presentErrorMessage(error.message);
+    }
+}
+
+function presentErrorMessage(message) {
+    $("#submitButton").attr("disabled", false);
+    $("#error-massage").text(message);
+    if ($("#error-div").css("display") == "block") {
+        $("#error-div").shake();
+    } else {
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    }
+}
+
+function jsonData() {
     let path = window.location.pathname;
     let subjectURI = "subjects/"
-    var subjectId = parseInt(path.substring(
+
+    let subjectId = parseInt(path.substring(
         path.indexOf(subjectURI) + subjectURI.length, 
         path.lastIndexOf("/topics")
     ));
-    var name = $("#create-topic-name").val();
+
+    let name = $("#create-topic-name").val();
     var description = null;
     if (!$('#create-topic-description').summernote("isEmpty")) {
         description = $("#create-topic-description").summernote("code");
     }
-    var chapter = parseInt($("#create-topic-chapter").val());
+    let chapter = parseInt($("#create-topic-chapter").val());
 
-    if (chapter && subjectId) {
-        var data = JSON.stringify({
-            "subjectId"     : subjectId,
-            "name"          : name,
-            "description"   : description,
-            "chapter"       : chapter
-        });
-        xhr.send(data);
+    if (isNaN(subjectId) || subjectId < 1) {
+        throw Error("Klarer ikke å finne faget oppgaven tilhører. Dette er ikke din feil, så kontakt Kognita");
     }
+    if (isNaN(chapter) || chapter < 1) {
+        throw Error("Du på skrive inn et kapittel");
+    }
+    if (name.length <= 1) {
+        throw Error("Du må skrive inn et navn på temaet");
+    }
+    if (description.length <= 1) {
+        throw Error("Du må skrive inn en beskrivelse");
+    }
+
+    return JSON.stringify({
+        "subjectId"     : subjectId,
+        "name"          : name,
+        "description"   : description,
+        "chapter"       : chapter
+    });
 }
