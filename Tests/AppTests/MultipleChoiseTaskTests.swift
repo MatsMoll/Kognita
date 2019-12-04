@@ -13,8 +13,7 @@ import KognitaCore
 import KognitaCoreTestable
 
 class MultipleChoiseTaskTests: VaporTestCase {
-    
-    
+
     // GET /subjects/:id/topics/:id/multiple-choises
     
     func testGetAllTasks() throws {

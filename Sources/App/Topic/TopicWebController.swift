@@ -34,13 +34,13 @@ final class TopicWebController: RouteCollection {
             .flatMap { subject in
 
                 try Topic.Repository
-                    .getTopics(in: subject, conn: req)
+                    .getTopicsWithTaskCount(in: subject, conn: req)
                     .flatMap { topics in
 
                         req.withPooledConnection(to: .psql) { conn in
 
                             try TaskResultRepository
-                                .getUserLevel(for: user.requireID(), in: topics.map { try $0.requireID() }, on: conn)
+                                .getUserLevel(for: user.requireID(), in: topics.map { try $0.0.requireID() }, on: conn)
                                 .flatMap { levels in
 
                                     try TaskResultRepository
