@@ -20,7 +20,7 @@ final class PracticeSessionWebController: RouteCollection {
         router.get("practice-sessions/history", use: getSessions)
     }
 
-    func renderCurrentTask(on req: Request) throws -> Future<HTTPResponse> {
+    func renderCurrentTask(on req: Request) throws -> Future<Response> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -40,6 +40,14 @@ final class PracticeSessionWebController: RouteCollection {
                             .taskAt(index: index, on: conn)
                             .flatMap { task in
                                 try task.render(in: session, index: index, for: user, on: req)
+                                    .encode(for: req)
+                        }
+                        .catchFlatMap { _ in
+                            try PracticeSession.Repository
+                                .end(session, for: user, on: conn)
+                                .map { _ in
+                                    try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
+                            }
                         }
                 }
         }
