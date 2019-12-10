@@ -1,5 +1,5 @@
 var xhr = new XMLHttpRequest();
-var url = "/api/practice-session/histogram?numberOfWeeks=7";
+var url = "/api/practice-session/histogram";
 xhr.open("GET", url, true);
 xhr.setRequestHeader("Content-Type", "application/json");
 xhr.onreadystatechange = function () {
@@ -26,7 +26,7 @@ xhr.onreadystatechange = function () {
                 }]
             },
             options: {
-                aspectRatio: 4,
+                aspectRatio: 1.5,
                 maintainAspectRatio: true,
                 legend: {
                     display: !1

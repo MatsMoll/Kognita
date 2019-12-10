@@ -1,6 +1,4 @@
 
-# Created by https://www.gitignore.io/api/vapor
-
 ### Vapor ###
 Config/secrets
 
@@ -12,5 +10,4 @@ xcuserdata
 DerivedData/
 coverage.html
 .DS_Store
-
-# End of https://www.gitignore.io/api/vapor
+Package.resolved
