@@ -145,17 +145,23 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
     }
 
     struct HistogramQuery: Codable {
-        let numberOfWeeks: Int
+        let numberOfWeeks: Int?
+        let subjectId: Subject.ID?
     }
 
-    func getAmountHistogram(_ req: Request) throws -> Future<[TaskResult.History]> {
+    func getAmountHistogram(_ req: Request) throws -> EventLoopFuture<[TaskResult.History]> {
 
         let user = try req.requireAuthenticated(User.self)
 
-        let query = try? req.query.decode(HistogramQuery.self)
+        let query = try req.query.decode(HistogramQuery.self)
         return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository
-                .getAmountHistory(for: user, on: conn, numberOfWeeks: query?.numberOfWeeks ?? 4)
+            if let subjectId = query.subjectId {
+                return try TaskResultRepository
+                    .getAmountHistory(for: user, in: subjectId, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
+            } else {
+                return try TaskResultRepository
+                    .getAmountHistory(for: user, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
+            }
         }
     }
 }
