@@ -30,9 +30,6 @@ BUILD_VERSION=${VERSION_BITS[2]:-(-1)}
 GIT_MESSAGE="$(git log --format=%B -n 1 $GIT_COMMIT)"
 NEEDS_TAG=`git describe --contains $GIT_COMMIT`
 
-#only tag if no tag already (would be better if the git describe command above could have a silent option)
-if [ -z "$NEEDS_TAG" ]; then
-
 # Bumping version
 if [[ $GIT_MESSAGE == *"-MAJOR-"* ]]; then
 MAJOR_VERSION=$((MAJOR_VERSION+1))
@@ -53,7 +50,3 @@ echo "Tagged with $NEW_TAG (Ignoring fatal:cannot describe - this means commit i
 
 git tag $NEW_TAG
 git push origin $NEW_TAG
-else
-echo "Already a tag on this commit"
-exit 1
-fi
