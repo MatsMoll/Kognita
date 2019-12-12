@@ -167,7 +167,9 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
 }
 
 
-extension PSTaskResult: TaskResultable {}
+extension PSTaskResult: TaskResultable {
+    public var topicId: Topic.ID { topic.id ?? 0 }
+}
 
 struct PracticeSessionEndResponse: Content {
     let sessionResultPath: String

@@ -1,6 +1,4 @@
 let subjectId = parseInt(window.location.pathname.split("/")[2]);
-console.log(window.location.pathname.split("/"));
-console.log(subjectId);
 if (subjectId > 0) {
     var xhr = new XMLHttpRequest();
     var url = "/api/practice-session/histogram?subjectId=" + subjectId;
