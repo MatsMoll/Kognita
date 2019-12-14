@@ -15,6 +15,7 @@ final class CreatorWebController: RouteCollection {
     func boot(router: Router) {
         router.get("/creator/info", use: informationPage)
         router.get("/creator/dashboard", use: dashboard)
+        router.get("/creator/subjects", Subject.parameter, "overview", use: subjectOverview)
         router.get("/creator/overview/topics", Topic.parameter, use: topicOverview)
     }
 
@@ -58,6 +59,34 @@ final class CreatorWebController: RouteCollection {
         }
     }
 
+    func subjectOverview(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+        let user = try req.requireAuthenticated(User.self)
+
+        guard user.isCreator else {
+            throw Abort(.forbidden)
+        }
+
+        return try req.parameters
+            .next(Subject.self)
+            .flatMap { subject in
+
+                try Task.Repository
+                    .getTasks(in: subject.requireID(), maxAmount: nil, withSoftDeleted: true, conn: req)
+                    .map { tasks in
+
+                        try req.renderer()
+                            .render(
+                                Subject.Templates.ContentOverview.self,
+                                with: .init(
+                                    user: user,
+                                    subject: subject,
+                                    tasks: tasks
+                                )
+                        )
+                }
+        }
+    }
+
     func topicOverview(_ req: Request) throws -> Future<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
@@ -94,7 +123,7 @@ final class CreatorWebController: RouteCollection {
     }
 }
 
-extension TaskContent: CreatorTaskContent {
+extension TaskContent: CreatorTaskContentable {
     public var deletedAt: Date? { return task.deletedAt }
 
     public var creatorName: String? { return creator?.name }

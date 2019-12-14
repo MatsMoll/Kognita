@@ -170,6 +170,7 @@ func setupTemplates() throws -> HTMLRenderer {
 //    // Creator pages
     try renderer.add(view: CreatorTemplates.Dashboard())
     try renderer.add(view: CreatorTemplates.TopicDetails())
+    try renderer.add(view: Subject.Templates.ContentOverview())
 //    try renderer.add(template: CreatorInformationPage())
     return renderer
 }
