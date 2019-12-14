@@ -12,11 +12,6 @@ if (window.location.pathname.includes("session") == false) {
 
 function revealSolution() {
     submitedAnswer = $("#flash-card-answer").val();
-    console.log(submitedAnswer);
-    if (submitedAnswer == null || submitedAnswer.length == 0) {
-        $("#flash-card-answer").addClass("is-invalid");
-        return
-    }
     $("#flash-card-answer").removeClass("is-invalid");
     isSubmiting = true;
     clearInterval(timer);

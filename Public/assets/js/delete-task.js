@@ -1,6 +1,5 @@
-function deleteTask(id) {
+function deleteTask(id, typePath) {
     var xhr = new XMLHttpRequest();
-    let typePath = $("#" + id).val();
     let url = "/api/" + typePath + "/" + id;
     xhr.open("DELETE", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
