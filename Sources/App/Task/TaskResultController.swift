@@ -23,9 +23,10 @@ class TaskResultController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository
-                .getAllResults(for: user.requireID(), with: conn)
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
+                try TaskResultRepository
+                    .getAllResults(for: user.requireID(), with: conn)
         }
     }
 
@@ -34,10 +35,10 @@ class TaskResultController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
         let topicID = try req.parameters.next(Int.self)
 
-        return req.withPooledConnection(to: .psql) { conn in
-            try TaskResultRepository
-                .getAllResults(for: user.requireID(), filter: \Topic.id == topicID, with: conn)
-
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
+                try TaskResultRepository
+                    .getAllResults(for: user.requireID(), filter: \Topic.id == topicID, with: conn)
         }
     }
 
@@ -46,8 +47,9 @@ class TaskResultController: RouteCollection {
         guard user.isCreator else {
             throw Abort(.forbidden)
         }
-        return req.withPooledConnection(to: .psql) { conn in
-            TaskResultRepository.getResults(on: conn)
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
+                TaskResultRepository.getResults(on: conn)
         }
     }
 }

@@ -154,14 +154,16 @@ final class PracticeSessionController: RouteCollection, KognitaCRUDControllable 
         let user = try req.requireAuthenticated(User.self)
 
         let query = try req.query.decode(HistogramQuery.self)
-        return req.withPooledConnection(to: .psql) { conn in
-            if let subjectId = query.subjectId {
-                return try TaskResultRepository
-                    .getAmountHistory(for: user, in: subjectId, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
-            } else {
-                return try TaskResultRepository
-                    .getAmountHistory(for: user, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
-            }
+
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
+                if let subjectId = query.subjectId {
+                    return try TaskResultRepository
+                        .getAmountHistory(for: user, in: subjectId, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
+                } else {
+                    return try TaskResultRepository
+                        .getAmountHistory(for: user, on: conn, numberOfWeeks: query.numberOfWeeks ?? 4)
+                }
         }
     }
 }

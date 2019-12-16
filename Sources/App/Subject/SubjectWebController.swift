@@ -26,30 +26,30 @@ final class SubjectWebController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
 
         return try controller.getAll(req).flatMap { subjects in
-            req.withPooledConnection(to: .psql) { conn in
-                
-                try TaskResultRepository
-                    .getAllResultsContent(for: user, with: conn)
-                    .flatMap { response in
+            req.databaseConnection(to: .psql)
+                .flatMap { conn in
 
-                        try PracticeSession.Repository
-                            .getLatestUnfinnishedSessionPath(for: user, on: conn)
-                            .map { ongoingSessionPath in
+                    try TaskResultRepository
+                        .getAllResultsContent(for: user, with: conn)
+                        .flatMap { response in
 
-                                try req.renderer()
-                                    .render(
-                                        Subject.Templates.ListOverview.self,
-                                        with: .init(
-                                            user: user,
-                                            cards: subjects,
-                                            revisitTasks: response,
-                                            ongoingSessionPath: ongoingSessionPath
-                                        )
-                                )
-                        }
-                }
+                            try PracticeSession.Repository
+                                .getLatestUnfinnishedSessionPath(for: user, on: conn)
+                                .map { ongoingSessionPath in
+
+                                    try req.renderer()
+                                        .render(
+                                            Subject.Templates.ListOverview.self,
+                                            with: .init(
+                                                user: user,
+                                                cards: subjects,
+                                                revisitTasks: response,
+                                                ongoingSessionPath: ongoingSessionPath
+                                            )
+                                    )
+                            }
+                    }
             }
-
         }
     }
 

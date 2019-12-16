@@ -37,35 +37,36 @@ final class TopicWebController: RouteCollection {
                     .getTopicsWithTaskCount(in: subject, conn: req)
                     .flatMap { topics in
 
-                        req.withPooledConnection(to: .psql) { conn in
+                        req.databaseConnection(to: .psql)
+                            .flatMap { conn in
 
-                            try TaskResultRepository
-                                .getUserLevel(for: user.requireID(), in: topics.map { try $0.0.requireID() }, on: conn)
-                                .flatMap { levels in
+                                try TaskResultRepository
+                                    .getUserLevel(for: user.requireID(), in: topics.map { try $0.0.requireID() }, on: conn)
+                                    .flatMap { levels in
 
-                                    try TaskResultRepository
-                                        .getUserLevel(in: subject, userId: user.requireID(), on: conn)
-                                        .map { subjectLevel in
+                                        try TaskResultRepository
+                                            .getUserLevel(in: subject, userId: user.requireID(), on: conn)
+                                            .map { subjectLevel in
 
-//                                            try WorkPoints.Repository
-//                                                .leaderboard(in: subject, for: user, on: conn)
-//                                                .map { leaderboard in
+    //                                            try WorkPoints.Repository
+    //                                                .leaderboard(in: subject, for: user, on: conn)
+    //                                                .map { leaderboard in
 
-                                                    try req.renderer()
-                                                        .render(
-                                                            Subject.Templates.Details.self,
-                                                            with: .init(
-                                                                user: user,
-                                                                subject: subject,
-                                                                topics: [topics],
-                                                                levels: levels,
-                                                                subjectLevel: subjectLevel,
-                                                                leaderboard: []
-                                                            )
-                                                    )
-//                                            }
-                                    }
-                            }
+                                                        try req.renderer()
+                                                            .render(
+                                                                Subject.Templates.Details.self,
+                                                                with: .init(
+                                                                    user: user,
+                                                                    subject: subject,
+                                                                    topics: [topics],
+                                                                    levels: levels,
+                                                                    subjectLevel: subjectLevel,
+                                                                    leaderboard: []
+                                                                )
+                                                        )
+    //                                            }
+                                        }
+                                }
                         }
                 }
         }

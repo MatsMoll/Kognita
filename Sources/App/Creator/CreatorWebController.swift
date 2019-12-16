@@ -34,28 +34,29 @@ final class CreatorWebController: RouteCollection {
             throw Abort(.forbidden)
         }
 
-        return req.withPooledConnection(to: .psql) { conn in
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
 
-            try Topic.Repository
-                .timelyTopics(on: conn)
-                .flatMap { topics in
+                try Topic.Repository
+                    .timelyTopics(on: conn)
+                    .flatMap { topics in
 
-                    try Task.Repository
-                        .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
-                        .map { tasks in
+                        try Task.Repository
+                            .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
+                            .map { tasks in
 
-                            try req.renderer()
-                                .render(
-                                    CreatorTemplates.Dashboard.self,
-                                    with: .init(
-                                        user: user,
-                                        tasks: tasks,
-                                        timelyTopics: topics
-                                    )
-                            )
+                                try req.renderer()
+                                    .render(
+                                        CreatorTemplates.Dashboard.self,
+                                        with: .init(
+                                            user: user,
+                                            tasks: tasks,
+                                            timelyTopics: topics
+                                        )
+                                )
 
-                    }
-            }
+                        }
+                }
         }
     }
 

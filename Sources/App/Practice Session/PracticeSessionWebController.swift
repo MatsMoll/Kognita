@@ -99,20 +99,22 @@ final class PracticeSessionWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return req.withPooledConnection(to: .psql) { psqlConn in
-            try PracticeSession.Repository
-                .getAllSessionsWithSubject(by: user, on: psqlConn)
-                .map { sessions in
+        return req.databaseConnection(to: .psql)
+            .flatMap { psqlConn in
+                
+                try PracticeSession.Repository
+                    .getAllSessionsWithSubject(by: user, on: psqlConn)
+                    .map { sessions in
 
-                    try req.renderer()
-                        .render(
-                            PracticeSession.Templates.History.self,
-                            with: .init(
-                                user: user,
-                                sessions: sessions
-                            )
-                    )
-            }
+                        try req.renderer()
+                            .render(
+                                PracticeSession.Templates.History.self,
+                                with: .init(
+                                    user: user,
+                                    sessions: sessions
+                                )
+                        )
+                }
         }
     }
 
