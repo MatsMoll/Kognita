@@ -8,48 +8,38 @@
 import Vapor
 import KognitaCore
 import KognitaViews
+import KognitaAPI
 
 final class PracticeSessionWebController: RouteCollection {
-
-    private let controller = PracticeSessionController.shared
 
     func boot(router: Router) {
         router.get("practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter, use: renderCurrentTask)
         router.get("practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter, "solutions", use: getSolutions)
         router.get("practice-sessions/", PracticeSession.parameter, "result", use: getSessionResult)
         router.get("practice-sessions/history", use: getSessions)
+        router.post("practice-sessions/", PracticeSession.parameter, "end", use: endSession)
     }
 
-    func renderCurrentTask(on req: Request) throws -> Future<Response> {
+    func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        try PracticeSessionController.getCurrentTask(on: req)
+            .flatMap { currentTask in
 
-        return try req.parameters
-            .next(PracticeSession.self)
-            .flatMap { (session) in
+                try currentTask.render(for: req)
+                    .encode(for: req)
+        }
+        .catchFlatMap { error in
+            switch error {
+            case PracticeSessionController.Errors
+                .unableToFindTask(let session, let user):
 
-                guard session.userID == user.id else {
-                    throw Abort(.forbidden)
-                }
-
-                let index = try req.parameters.next(Int.self)
-                return req.databaseConnection(to: .psql)
-                    .flatMap { conn in
-
-                        try session
-                            .taskAt(index: index, on: conn)
-                            .flatMap { task in
-                                try task.render(in: session, index: index, for: user, on: req)
-                                    .encode(for: req)
-                        }
-                        .catchFlatMap { _ in
-                            try PracticeSession.Repository
-                                .end(session, for: user, on: conn)
-                                .map { _ in
-                                    try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
-                            }
-                        }
-                }
+                    return try PracticeSession.Repository
+                        .end(session, for: user, on: req)
+                        .map { _ in
+                            try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
+                    }
+            default: throw error
+            }
         }
     }
 
@@ -59,85 +49,99 @@ final class PracticeSessionWebController: RouteCollection {
     /// - Parameter req: The HTTP request
     /// - Returns: A rendered view
     /// - Throws: If unauth or any other error
-    func getSessionResult(_ req: Request) throws -> Future<HTTPResponse> {
+    func getSessionResult(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
+        return try PracticeSessionController.getSessionResult(req)
+            .map { results in
 
-        return try req.parameters
-            .next(PracticeSession.self)
-            .flatMap { session in
-                guard user.id == session.userID else {
-                    throw Abort(.forbidden)
-                }
-
-                return try PracticeSession.Repository
-                    .goalProgress(in: session, on: req)
-                    .flatMap { progress in
-
-                        try PracticeSession.Repository
-                            .getResult(for: session, on: req)
-                            .map { results in
-
-                                try req.renderer()
-                                    .render(
-                                        PracticeSession.Templates.Result.self,
-                                        with: .init(
-                                            user: user,
-                                            tasks: results,
-                                            progress: progress,
-                                            timeUsed: results.map { $0.result.timeUsed }.reduce(0, +)
-                                        )
-                                )
-                        }
-                }
+                try req.renderer()
+                    .render(
+                        PracticeSession.Templates.Result.self,
+                        with: .init(
+                            user: user,
+                            tasks: results,
+                            progress: 0,
+                            timeUsed: results.map { $0.result.timeUsed }.reduce(0, +)
+                        )
+                )
         }
     }
 
     /// Returns a session history
-    func getSessions(_ req: Request) throws -> Future<HTTPResponse> {
+    func getSessions(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return req.databaseConnection(to: .psql)
-            .flatMap { psqlConn in
-                
-                try PracticeSession.Repository
-                    .getAllSessionsWithSubject(by: user, on: psqlConn)
-                    .map { sessions in
+        return try PracticeSessionController.getSessions(req)
+            .map { sessions in
 
-                        try req.renderer()
-                            .render(
-                                PracticeSession.Templates.History.self,
-                                with: .init(
-                                    user: user,
-                                    sessions: sessions
-                                )
+                try req.renderer()
+                    .render(
+                        PracticeSession.Templates.History.self,
+                        with: .init(
+                            user: user,
+                            sessions: sessions
                         )
-                }
+                )
         }
     }
 
     func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        let user = try req.requireAuthenticated(User.self)
-
-        return try req.parameters
-            .next(PracticeSession.self)
-            .flatMap { (session) in
-
-                guard session.userID == user.id else {
-                    throw Abort(.forbidden)
-                }
-
-                let index = try req.parameters.next(Int.self)
-                return try PracticeSession.Repository.taskID(index: index, in: session, on: req)
-                    .flatMap { taskID in
-                        TaskSolution.Repository.solutions(for: taskID, on: req)
-                            .map { solutions in
-                                try req.renderer().render(TaskSolutionsTemplate.self, with: solutions)
-                        }
-                }
+        try PracticeSessionController.getSolutions(on: req)
+            .map { solutions in
+                try req.renderer()
+                    .render(
+                        TaskSolutionsTemplate.self,
+                        with: solutions
+                )
         }
+    }
+
+    func endSession(on req: Request) throws -> EventLoopFuture<Response> {
+
+        try PracticeSessionController.endSession(req)
+            .map { session in
+                req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result")
+        }
+    }
+}
+
+
+extension PSTaskResult: TaskResultable {
+    public var topicId: Topic.ID { topic.id ?? 0 }
+}
+
+struct PracticeSessionEndResponse: Content {
+    let sessionResultPath: String
+}
+
+extension TaskType: RenderTaskPracticing {
+
+    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        return try renderableTask
+            .render(in: session, index: index, for: user, on: req)
+    }
+
+    var renderableTask: RenderTaskPracticing {
+        switch (multipleChoise, numberInputTask) {
+        case (.some(let multiple),   _              ):  return multiple
+        case (_,                    .some(let input)):  return input
+        default:                                        return FlashCardTask(taskId: task.id)
+        }
+    }
+}
+
+extension PracticeSession.CurrentTask {
+    func render(for req: Request) throws -> EventLoopFuture<HTTPResponse> {
+        try task.render(
+            in: session,
+            index: index,
+            for: user,
+            on: req
+        )
     }
 }

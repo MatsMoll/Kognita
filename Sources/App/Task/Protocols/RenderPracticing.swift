@@ -20,22 +20,22 @@ protocol RenderTaskPracticing {
     ///
     /// - Returns:
     ///     A renderd `View` of the task
-    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> Future<HTTPResponse>
+    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse>
 }
 
 
-protocol TaskRenderable {
-
-    /// Render a task in practice mode
-    ///
-    /// - Parameters:
-    ///     - req:      The http request
-    ///     - user:     The user to render the task for
-    ///
-    /// - Returns:
-    ///     A renderd `View` of the task
-    func render(for user: User, on req: Request) throws -> Future<HTTPResponse>
-}
+//protocol TaskRenderable {
+//
+//    /// Render a task in practice mode
+//    ///
+//    /// - Parameters:
+//    ///     - req:      The http request
+//    ///     - user:     The user to render the task for
+//    ///
+//    /// - Returns:
+//    ///     A renderd `View` of the task
+//    func render(for user: User, on req: Request) throws -> Future<HTTPResponse>
+//}
 
 
 //final class PracticeSessionResult<T: Content>: Content, TaskSubmitResultable {

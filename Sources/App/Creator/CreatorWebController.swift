@@ -13,14 +13,14 @@ import KognitaViews
 final class CreatorWebController: RouteCollection {
 
     func boot(router: Router) {
-        router.get("/creator/info", use: informationPage)
-        router.get("/creator/dashboard", use: dashboard)
+//        router.get("/creator/info", use: informationPage)
+//        router.get("/creator/dashboard", use: dashboard)
         router.get("/creator/subjects", Subject.parameter, "overview", use: subjectOverview)
         router.get("/creator/overview/topics", Topic.parameter, use: topicOverview)
     }
 
     func informationPage(_ req: Request) throws -> HTTPResponse {
-        let user = try req.requireAuthenticated(User.self)
+//        let user = try req.requireAuthenticated(User.self)
         throw Abort(.internalServerError)
 //        return try req.renderer()
 //            .render(CreatorInformationPage.self, with: .init(user: user))

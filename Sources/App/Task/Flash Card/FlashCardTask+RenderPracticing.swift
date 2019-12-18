@@ -9,9 +9,9 @@ import Vapor
 import KognitaCore
 import KognitaViews
 
-extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
+extension FlashCardTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
         
         return FlashCardTask.Repository
             .content(for: self, on: req)
@@ -22,7 +22,7 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
                     .flatMap { progress in
 
                         try TaskResultRepository
-                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .map { lastResult in
 
                                 try req.renderer()
@@ -43,26 +43,26 @@ extension FlashCardTask: RenderTaskPracticing, TaskRenderable {
         }
     }
 
-    func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
-
-        return FlashCardTask.Repository
-            .content(for: self, on: req)
-            .flatMap { preview in
-
-                try TaskResultRepository
-                    .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                    .map { lastResult in
-
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Execute.self,
-                            with: .init(
-                                taskPreview: preview,
-                                user: user,
-                                lastResult: lastResult?.content,
-                                numberOfTasks: 1
-                            )
-                        )
-                }
-        }
-    }
+//    func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
+//
+//        return FlashCardTask.Repository
+//            .content(for: self, on: req)
+//            .flatMap { preview in
+//
+//                try TaskResultRepository
+//                    .getLastResult(for: preview.task.requireID(), by: user, on: req)
+//                    .map { lastResult in
+//
+//                        try req.renderer().render(
+//                            FlashCardTask.Templates.Execute.self,
+//                            with: .init(
+//                                taskPreview: preview,
+//                                user: user,
+//                                lastResult: lastResult?.content,
+//                                numberOfTasks: 1
+//                            )
+//                        )
+//                }
+//        }
+//    }
 }

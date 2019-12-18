@@ -9,15 +9,14 @@ import Vapor
 import HTMLKit
 import KognitaCore
 import KognitaViews
-
+import KognitaAPI
 
 final class SubjectWebController: RouteCollection {
-
-    private let controller = SubjectController.shared
 
     func boot(router: Router) {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
+        router.get("subjects", Subject.parameter, use: details)
     }
 
 
@@ -25,7 +24,7 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try controller.getAll(req).flatMap { subjects in
+        return try SubjectController.getAll(req).flatMap { subjects in
             req.databaseConnection(to: .psql)
                 .flatMap { conn in
 
@@ -52,6 +51,26 @@ final class SubjectWebController: RouteCollection {
             }
         }
     }
+
+
+    func details(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        return try SubjectController.getDetails(req)
+            .map { details in
+
+                try req.renderer()
+                    .render(
+                        Subject.Templates.Details.self,
+                        with: .init(
+                            user: user,
+                            details: details
+                        )
+                )
+        }
+    }
+
 
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)

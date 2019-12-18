@@ -9,8 +9,8 @@ import Vapor
 import KognitaCore
 import KognitaViews
 
-extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
-    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+extension NumberInputTask: RenderTaskPracticing {
+    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         return try NumberInputTask.Repository
             .content(for: self, on: req)
@@ -21,7 +21,7 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                     .flatMap { progress in
 
                         try TaskResultRepository
-                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .map { lastResult in
 
                                 try req.renderer()
@@ -38,30 +38,6 @@ extension NumberInputTask: RenderTaskPracticing, TaskRenderable {
                                         )
                                 )
                         }
-                }
-        }
-    }
-
-    func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
-
-        return try NumberInputTask.Repository
-            .content(for: self, on: req)
-            .flatMap { preview, content in
-
-                try TaskResultRepository
-                    .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                    .map { lastResult in
-
-                        try req.renderer().render(
-                            NumberInputTask.Templates.Execute.self,
-                            with: .init(
-                                numberTask: content,
-                                taskPreview: preview,
-                                user: user,
-                                currentTaskIndex: nil,
-                                lastResult: lastResult?.content
-                            )
-                        )
                 }
         }
     }

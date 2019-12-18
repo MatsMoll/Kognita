@@ -11,10 +11,9 @@ import KognitaCore
 import KognitaViews
 import Mailgun
 import FluentPostgreSQL
+import KognitaAPI
 
 final class UserWebController: RouteCollection {
-
-    let controller = UserController()
 
     func boot(router: Router) {
 
@@ -23,19 +22,19 @@ final class UserWebController: RouteCollection {
         router.get("start-reset-password",  use: startResetPasswordForm)
         router.get("reset-password",        use: resetPasswordForm)
 
-        router.post("login",                use: login)
+        router.post("login",                use: cookieLogin)
         router.post("logout",               use: logout)
         router.post("signup",               use: create)
         router.post("start-reset-password", use: startResetPassword)
         router.post("reset-password",       use: resetPassword)
     }
 
-    func signupForm(_ req: Request) throws -> Future<View> {
+    func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
         User.Templates.Signup()
             .render(with: .init(), for: req)
     }
 
-    func loginForm(_ req: Request) throws -> Future<Response> {
+    func loginForm(_ req: Request) throws -> EventLoopFuture<Response> {
 
         if try req.authenticated(User.self) != nil {
             return req.future(req.redirect(to: "/subjects"))
@@ -48,20 +47,28 @@ final class UserWebController: RouteCollection {
 
     func create(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        return try req.content.decode(User.Create.Data.self).flatMap { createUser in
-            try UserController.shared.create(req).flatMap { newUser in
-                User.authenticate(
-                    username: createUser.email,
-                    password: createUser.password,
-                    using: BCryptDigest(),
-                    on: req).map { user in
-                        guard let user = user else {
-                            throw User.Repository.Errors.unauthorized
+        return try req.content
+            .decode(User.Create.Data.self)
+            .flatMap { createUser in
+
+                try UserController.create(req)
+                    .flatMap { newUser in
+
+                        User.authenticate(
+                            username: createUser.email,
+                            password: createUser.password,
+                            using: BCryptDigest(),
+                            on: req
+                        )
+                            .map { user in
+
+                                guard let user = user else {
+                                    throw User.Repository.Errors.unauthorized
+                                }
+                                try req.authenticate(user)
+                                return req.redirect(to: "/subjects")
                         }
-                        try req.authenticate(user)
-                        return req.redirect(to: "/subjects")
                 }
-            }
             }.catchFlatMap({ (error) in
                 print("Error: ", error)
                 switch error {
@@ -75,16 +82,18 @@ final class UserWebController: RouteCollection {
             })
     }
 
-    func login(_ req: Request) throws -> EventLoopFuture<Response> {
+    func cookieLogin(_ req: Request) throws -> EventLoopFuture<Response> {
         return try req.content
             .decode(UserLogin.self)
             .flatMap { login in
 
                 return User
-                    .authenticate(username: login.email,
-                                  password: login.password,
-                                  using: BCryptDigest(),
-                                  on: req)
+                    .authenticate(
+                        username: login.email,
+                        password: login.password,
+                        using: BCryptDigest(),
+                        on: req
+                )
                     .flatMap { user in
 
                     guard let user = user else {
@@ -121,40 +130,8 @@ final class UserWebController: RouteCollection {
                 User.Templates.ResetPassword.Start.self,
                 with: .init(errorMessage: "Du skal snart få en email med en link for å gjenopprette passordet ditt")
         )
-
-        return try req.content.decode(User.ResetPassword.Email.self)
-            .flatMap { email in
-
-                User.Repository
-                    .first(where: \User.email == email.email, on: req)
-                    .flatMap { user in
-
-                        guard let user = user else {
-                            return req.future(successPage)
-                        }
-                        return try User.ResetPassword.Token.Repository
-                            .create(by: user, on: req)
-                            .flatMap { token in
-
-                                let mailContext = User.Templates.ResetPassword.Mail.Context(
-                                    user: user,
-                                    changeUrl: "uni.kognita.no/reset-password?token=\(token.token)"
-                                )
-                                let mailHtml = try req.renderer()
-                                    .render(raw: User.Templates.ResetPassword.Mail.self, with: mailContext)
-                                let mail = Mailgun.Message(
-                                    from:       "kontakt@kognita.no",
-                                    to:         email.email,
-                                    subject:    "Kognita - Gjenopprett Passord",
-                                    text:       "",
-                                    html:       mailHtml
-                                )
-                                let mailgun = try req.make(Mailgun.self)
-                                return try mailgun.send(mail, on: req)
-                                    .transform(to: successPage)
-                        }
-                }
-        }
+        return try UserController.startResetPassword(on: req)
+            .transform(to: successPage)
     }
 
     func resetPasswordForm(req: Request) throws -> HTTPResponse {
@@ -184,30 +161,12 @@ final class UserWebController: RouteCollection {
     }
 
     func resetPassword(req: Request) throws -> Future<Response> {
-
-        return try req.content
-            .decode(User.ResetPassword.Token.Data.self)
-            .flatMap { token in
-
-                try req.content
-                    .decode(User.ResetPassword.Data.self)
-                    .flatMap { data in
-
-                        try User.ResetPassword.Token.Repository
-                            .reset(to: data, with: token.token, on: req)
-                            .transform(to: req.redirect(to: "/login"))
-                }
-        }
+        return try UserController.resetPassword(on: req)
+            .transform(to: req.redirect(to: "/login"))
     }
 }
 
 struct UserLogin: Content {
     let email: String
     let password: String
-}
-
-extension User.ResetPassword {
-    public struct Email : Content {
-        let email: String
-    }
 }

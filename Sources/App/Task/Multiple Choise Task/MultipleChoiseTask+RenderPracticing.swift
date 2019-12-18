@@ -9,9 +9,9 @@ import Vapor
 import KognitaCore
 import KognitaViews
 
-extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
+extension MultipleChoiseTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSession, index: Int, for user: User, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         return try MultipleChoiseTask.Repository
             .content(for: self, on: req)
@@ -22,7 +22,7 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
                     .flatMap { progress in
 
                         try TaskResultRepository
-                            .getLastResult(for: preview.task.requireID(), by: user, on: req)
+                            .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .map { lastResult in
 
                                 try req.renderer()
@@ -39,29 +39,6 @@ extension MultipleChoiseTask: RenderTaskPracticing, TaskRenderable {
                                         )
                                 )
                         }
-                }
-        }
-    }
-
-    func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
-
-        return try MultipleChoiseTask.Repository
-            .content(for: self, on: req)
-            .flatMap { preview, content in
-
-                try TaskResultRepository
-                    .getLastResult(for: preview.task.requireID(), by: user, on: req)
-                    .map { lastResult in
-
-                        try req.renderer().render(
-                            MultipleChoiseTask.Templates.Execute.self,
-                            with: .init(
-                                multiple: content,
-                                taskContent: preview,
-                                user: user,
-                                lastResult: lastResult?.content
-                            )
-                        )
                 }
         }
     }
