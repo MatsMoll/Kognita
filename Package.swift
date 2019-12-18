@@ -1,14 +1,12 @@
-// swift-tools-version:4.2
+// swift-tools-version:5.1
 import PackageDescription
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(url: "https://github.com/vapor/vapor.git", from: "3.3.0"),
+    .package(url: "https://github.com/vapor/vapor.git", from: "3.3.1"),
 
     // Encodes Form requests
-    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
-
-    .package(url: "https://github.com/twof/VaporMailgunService.git", from: "1.5.0")
+    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0")
 ]
 
 
@@ -16,6 +14,7 @@ var dependencies: [Package.Dependency] = [
 
 #if os(macOS) // Local development
 dependencies.append(contentsOf: [
+        .package(path: "../KognitaAPI"),
         .package(path: "../KognitaCore"),
         .package(path: "../KognitaViews"),
     ]
@@ -23,7 +22,8 @@ dependencies.append(contentsOf: [
 #else
 dependencies.append(contentsOf: [
         .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: "1.0.0"),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "1.0.0")
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "1.0.0"),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", from: "1.0.0"),
     ]
 )
 #endif
@@ -36,9 +36,9 @@ let package = Package(
         .target(name: "App", dependencies: [
             "KognitaCore",
             "KognitaViews",
+            "KognitaAPI",
             "Vapor",
-            "URLEncodedForm",
-            "Mailgun"
+            "URLEncodedForm"
         ]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App", "KognitaCoreTestable"])

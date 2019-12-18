@@ -13,14 +13,14 @@ import KognitaViews
 final class CreatorWebController: RouteCollection {
 
     func boot(router: Router) {
-        router.get("/creator/info", use: informationPage)
-        router.get("/creator/dashboard", use: dashboard)
+//        router.get("/creator/info", use: informationPage)
+//        router.get("/creator/dashboard", use: dashboard)
         router.get("/creator/subjects", Subject.parameter, "overview", use: subjectOverview)
         router.get("/creator/overview/topics", Topic.parameter, use: topicOverview)
     }
 
     func informationPage(_ req: Request) throws -> HTTPResponse {
-        let user = try req.requireAuthenticated(User.self)
+//        let user = try req.requireAuthenticated(User.self)
         throw Abort(.internalServerError)
 //        return try req.renderer()
 //            .render(CreatorInformationPage.self, with: .init(user: user))
@@ -34,28 +34,29 @@ final class CreatorWebController: RouteCollection {
             throw Abort(.forbidden)
         }
 
-        return req.withPooledConnection(to: .psql) { conn in
+        return req.databaseConnection(to: .psql)
+            .flatMap { conn in
 
-            try Topic.Repository
-                .timelyTopics(on: conn)
-                .flatMap { topics in
+                try Topic.Repository
+                    .timelyTopics(on: conn)
+                    .flatMap { topics in
 
-                    try Task.Repository
-                        .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
-                        .map { tasks in
+                        try Task.Repository
+                            .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
+                            .map { tasks in
 
-                            try req.renderer()
-                                .render(
-                                    CreatorTemplates.Dashboard.self,
-                                    with: .init(
-                                        user: user,
-                                        tasks: tasks,
-                                        timelyTopics: topics
-                                    )
-                            )
+                                try req.renderer()
+                                    .render(
+                                        CreatorTemplates.Dashboard.self,
+                                        with: .init(
+                                            user: user,
+                                            tasks: tasks,
+                                            timelyTopics: topics
+                                        )
+                                )
 
-                    }
-            }
+                        }
+                }
         }
     }
 

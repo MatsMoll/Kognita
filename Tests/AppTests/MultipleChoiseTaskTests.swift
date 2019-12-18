@@ -14,6 +14,10 @@ import KognitaCoreTestable
 
 class MultipleChoiseTaskTests: VaporTestCase {
 
+    var uri: String {
+        return "api/tasks/multiple-choise"
+    }
+
     // GET /subjects/:id/topics/:id/multiple-choises
     
     func testGetAllTasks() throws {
@@ -86,10 +90,6 @@ class MultipleChoiseTaskTests: VaporTestCase {
 
         XCTAssert(databaseTask          != nil,             "The Task instance was deleted")
         XCTAssert(databaseMultiple      != nil,             "The MultipleChoiseTask instance was deleted")
-    }
-    
-    var uri: String {
-        return "api/tasks/multiple-choise"
     }
     
     static let allTests = [

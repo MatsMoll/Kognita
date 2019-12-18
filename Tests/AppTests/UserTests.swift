@@ -7,7 +7,7 @@ import KognitaCoreTestable
 
 class UserTests: VaporTestCase {
     
-    private let path = "api/users"
+    private let uri = "api/users"
     
     
     func testLoginSuccess() throws {
@@ -16,7 +16,7 @@ class UserTests: VaporTestCase {
 
         var headers = standardHeaders
         headers.add(name: .authorization, value: "Basic dGVzdEAxLmNvbTpwYXNzd29yZA==")
-        let response = try app.sendRequest(to: path + "/login", method: .POST, headers: headers)
+        let response = try app.sendRequest(to: uri + "/login", method: .POST, headers: headers)
         XCTAssert(response.http.status == .ok, "This should not return an error")
 
         let token = try response.content.syncDecode(UserToken.self)
@@ -29,7 +29,7 @@ class UserTests: VaporTestCase {
 
         var headers = standardHeaders
         headers.add(name: .authorization, value: "Basic dGVzdEAxLmNvbTpwYXNzd29y")
-        let response = try app.sendRequest(to: path + "/login", method: .POST, headers: headers)
+        let response = try app.sendRequest(to: uri + "/login", method: .POST, headers: headers)
 
         XCTAssert(response.http.status == .unauthorized, "This should not return an error")
     }
@@ -40,7 +40,7 @@ class UserTests: VaporTestCase {
         _ = try User.create(on: conn)
 
         let newUser = User.Create.Data(name: "Mats", email: "test@3.com", password: "password", verifyPassword: "password", acceptedTermsInput: "on")
-        let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
+        let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .ok, "This should not return an error code: \(response.http.status)")
 
         let user = try response.content.syncDecode(User.Create.Response.self)
@@ -52,13 +52,13 @@ class UserTests: VaporTestCase {
 
         let user = try User.create(on: conn)
         let newUser = User.Create.Data(name: "Mats", email: user.email, password: "password", verifyPassword: "password", acceptedTermsInput: "on")
-        let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
+        let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .internalServerError, "This should return an error code, returned: \(response.http.status)")
     }
     
     func testCreateUserPasswordMismatch() throws {
         let newUser = User.Create.Data(name: "Mats", email: "test@3.com", password: "password1", verifyPassword: "not matching", acceptedTermsInput: "on")
-        let response = try app.sendRequest(to: path, method: .POST, headers: standardHeaders, body: newUser)
+        let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
 
         response.has(statusCode: .internalServerError)
         XCTAssert(response.http.status == .internalServerError, "This should return an error code: \(response.http.status)")

@@ -5,6 +5,7 @@ import HTMLKit
 import HTMLKitVapor
 import KognitaCore
 import KognitaViews
+import KognitaAPI
 import Mailgun
 
 /// Called before your application initializes.
@@ -13,8 +14,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register providers first
     try services.register(FluentPostgreSQLProvider())
     try services.register(AuthenticationProvider())
-    let connectionConfig = DatabaseConnectionPoolConfig(maxConnections: 3)
-    services.register(connectionConfig)
 
     // Sets the templating framework and Web Sessions
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
@@ -36,8 +35,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         // Catches errors and converts to HTTP responses for users
         middlewares.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>.self)
     }
-    /// In order to upload big files
-    services.register(NIOServerConfig.default(maxBodySize: 20_000_000))
+    
     services.register(middlewares)
     services.register { _ in
         HTMLKitErrorMiddleware(
@@ -46,70 +44,11 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         )
     }
 
-    setupDatabase(for: env, in: &services)
+    let templates = try setupTemplates()
+    services.register(templates)
+    services.register(templates, as: ResetPasswordMailRenderable.self)
 
-    let migrations = DatabaseMigrations.migrationConfig(enviroment: env)
-    services.register(migrations)
-
-    // Needs to be after addMigrations(), because it relies on the tables created there
-    if env == .testing {
-        // Register the commands (used to reset the database)
-        var commandConfig = CommandConfig()
-        commandConfig.useFluentCommands()
-        services.register(commandConfig)
-    }
-    try services.register(setupTemplates())
-    setupMailgun(in: &services)
-}
-
-private func setupMailgun(in services: inout Services) {
-    guard let mailgunKey = Environment.get("MAILGUN_KEY"),
-        let mailgunDomain = Environment.get("MAILGUN_DOMAIN") else {
-            print("Mailgun is NOT activated")
-            return
-    }
-    let mailgun = Mailgun(apiKey: mailgunKey, domain: mailgunDomain, region: .eu)
-    services.register(mailgun, as: Mailgun.self)
-}
-
-private func setupDatabase(for enviroment: Environment, in services: inout Services) {
-
-    // Configure a PostgreSQL database
-    let databaseConfig: PostgreSQLDatabaseConfig!
-
-    let hostname = Environment.get("DATABASE_HOSTNAME") ?? "localhost"
-    let username = Environment.get("DATABASE_USER") ?? "postgres"
-
-    if let url = Environment.get("DATABASE_URL") {  // Heroku
-        guard let psqlConfig = PostgreSQLDatabaseConfig(url: url, transport: .unverifiedTLS) else {
-            fatalError("Failed to create PostgreSQL Config")
-        }
-        databaseConfig = psqlConfig
-    } else {                                        // Localy testing
-        var databaseName = "local"
-        if let customName = Environment.get("DATABASE_DB") {
-            databaseName = customName
-        } else if enviroment == .testing {
-            databaseName = "testing"
-        }
-        let databasePort = 5432
-        let password = Environment.get("DATABASE_PASSWORD") ?? nil
-        databaseConfig = PostgreSQLDatabaseConfig(
-            hostname: hostname,
-            port: databasePort,
-            username: username,
-            database: databaseName,
-            password: password
-        )
-    }
-
-    let postgres = PostgreSQLDatabase(config: databaseConfig)
-
-    // Register the configured PostgreSQL database to the database config.
-    var databases = DatabasesConfig()
-    databases.enableLogging(on: .psql)
-    databases.add(database: postgres, as: .psql)
-    services.register(databases)
+    KognitaAPI.setupApi(with: env, in: &services)
 }
 
 private func registerRouter(in services: inout Services) throws {
@@ -173,4 +112,16 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: Subject.Templates.ContentOverview())
 //    try renderer.add(template: CreatorInformationPage())
     return renderer
+}
+
+extension HTMLRenderer: ResetPasswordMailRenderable {
+    public func render(with token: User.ResetPassword.Token.Create.Response, for user: User) throws -> String {
+        try render(
+                raw: User.Templates.ResetPassword.Mail.self,
+                with: .init(
+                    user: user,
+                    changeUrl: "https://uni.kognita.no/reset-password?token=\(token.token)"
+                )
+        )
+    }
 }
