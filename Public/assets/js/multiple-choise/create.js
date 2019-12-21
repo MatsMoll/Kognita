@@ -31,6 +31,7 @@ $("#create-multiple-choise").summernote({
         ['para', ['style']],
       ]
 })
+$("#create-multiple-choise").summernote("code", "");
 
 function createMultipleChoise() {
 
@@ -55,7 +56,7 @@ function createMultipleChoise() {
             }
         })
         .then(function (json) {
-            window.location.href = "/tasks/multiple-choise/" + json.task.id;
+            window.location.href = "/creator/subjects/" + subjectID() + "/overview"
         })
         .catch(function (error) {
             presentErrorMessage(error.message);
@@ -73,9 +74,19 @@ function addChoise() {
     var table = $("#create-multiple-choises");
     table.append('<tr id="choise-' + numberOfChoises + '"><td>' + choise + '</td><td><input type="checkbox" id="switch' + numberOfChoises + '" data-switch="bool"/><label for="switch' + numberOfChoises + '" data-on-label="Ja" data-off-label="Nei"></label></td><td><button  type="button" class="btn btn-danger btn-rounded" onclick="deleteChoise(' + numberOfChoises + ');"><i class="mdi mdi-delete"></i></button></td></tr>');
     numberOfChoises += 1;
-    $("#create-multiple-choise").val(null);
+    $("#create-multiple-choise").summernote("code", "");
 }
 
 function deleteChoise(choiseID) {
     $("#choise-" + choiseID).remove();
+}
+
+
+function subjectID() {
+    let path = window.location.pathname;
+    let splitURI = "subjects/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/task/")
+    ));
 }

@@ -45,7 +45,7 @@ function createFlashCard() {
             }
         })
         .then(function (json) {
-            window.location.href = "/tasks/flash-card/" + json.id;
+            window.location.href = "/creator/subjects/" + subjectID() + "/overview"
         })
         .catch(function (error) {
             presentErrorMessage(error.message);
@@ -53,4 +53,13 @@ function createFlashCard() {
     } catch(error) {
         presentErrorMessage(error.message);
     }
+}
+
+function subjectID() {
+    let path = window.location.pathname;
+    let splitURI = "subjects/"
+    return parseInt(path.substring(
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/task/")
+    ));
 }
