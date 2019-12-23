@@ -41,7 +41,7 @@ class FlashCardTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository
+                try Topic.DatabaseRepository
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
@@ -70,11 +70,11 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardTask.Repository
+                FlashCardTask.DatabaseRepository
                     .content(for: flashCard, on: req)
                     .flatMap { content in
 
-                        try Topic.Repository
+                        try Topic.DatabaseRepository
                             .getTopicResponses(in: content.subject, conn: req)
                             .map { topics in
 
@@ -103,7 +103,7 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardTask.Repository
+                FlashCardTask.DatabaseRepository
                     .content(for: flashCard, on: req)
                     .map { preview in
 

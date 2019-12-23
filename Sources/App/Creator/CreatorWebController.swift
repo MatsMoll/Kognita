@@ -37,12 +37,12 @@ final class CreatorWebController: RouteCollection {
         return req.databaseConnection(to: .psql)
             .flatMap { conn in
 
-                try Topic.Repository
+                try Topic.DatabaseRepository
                     .timelyTopics(on: conn)
                     .flatMap { topics in
 
                         try Task.Repository
-                            .getTasks(where: \Task.creatorId == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
+                            .getTasks(where: \Task.creatorID == user.requireID(), maxAmount: 20, withSoftDeleted: true, conn: conn)
                             .map { tasks in
 
                                 try req.renderer()
@@ -100,7 +100,7 @@ final class CreatorWebController: RouteCollection {
             .next(Topic.self)
             .flatMap { topic in
 
-                Subject.Repository
+                Subject.DatabaseRepository
                     .getSubjectWith(id: topic.subjectId, on: req)
                     .flatMap { subject in
 
@@ -127,7 +127,7 @@ final class CreatorWebController: RouteCollection {
 extension TaskContent: CreatorTaskContentable {
     public var deletedAt: Date? { return task.deletedAt }
 
-    public var creatorName: String? { return creator?.name }
+    public var creatorName: String? { return creator?.username }
 
     public var subjectName: String { return subject.name }
 

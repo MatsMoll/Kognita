@@ -22,7 +22,8 @@ final class PracticeSessionWebController: RouteCollection {
 
     func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        try PracticeSessionController.getCurrentTask(on: req)
+        try PracticeSession.DefaultAPIController
+            .getCurrentTask(on: req)
             .flatMap { currentTask in
 
                 try currentTask.render(for: req)
@@ -30,10 +31,10 @@ final class PracticeSessionWebController: RouteCollection {
         }
         .catchFlatMap { error in
             switch error {
-            case PracticeSessionController.Errors
+            case PracticeSession.DefaultAPIController.Errors
                 .unableToFindTask(let session, let user):
 
-                    return try PracticeSession.Repository
+                    return try PracticeSession.DatabaseRepository
                         .end(session, for: user, on: req)
                         .map { _ in
                             try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
@@ -53,7 +54,8 @@ final class PracticeSessionWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try PracticeSessionController.getSessionResult(req)
+        return try PracticeSession.DefaultAPIController
+            .getSessionResult(req)
             .map { results in
 
                 try req.renderer()
@@ -74,7 +76,8 @@ final class PracticeSessionWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try PracticeSessionController.getSessions(req)
+        return try PracticeSession.DefaultAPIController
+            .get(sessions: req)
             .map { sessions in
 
                 try req.renderer()
@@ -90,7 +93,8 @@ final class PracticeSessionWebController: RouteCollection {
 
     func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        try PracticeSessionController.getSolutions(on: req)
+        try PracticeSession.DefaultAPIController
+            .get(solutions: req)
             .map { solutions in
                 try req.renderer()
                     .render(
@@ -102,7 +106,8 @@ final class PracticeSessionWebController: RouteCollection {
 
     func endSession(on req: Request) throws -> EventLoopFuture<Response> {
 
-        try PracticeSessionController.endSession(req)
+        try PracticeSession.DefaultAPIController
+            .end(session: req)
             .map { session in
                 req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result")
         }
@@ -127,10 +132,10 @@ extension TaskType: RenderTaskPracticing {
     }
 
     var renderableTask: RenderTaskPracticing {
-        switch (multipleChoise, numberInputTask) {
-        case (.some(let multiple),   _              ):  return multiple
-        case (_,                    .some(let input)):  return input
-        default:                                        return FlashCardTask(taskId: task.id)
+        if let multiple = multipleChoise {
+            return multiple
+        } else {
+            return FlashCardTask(taskId: task.id ?? 0)
         }
     }
 }

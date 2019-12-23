@@ -13,15 +13,15 @@ extension MultipleChoiseTask: RenderTaskPracticing {
 
     func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        return try MultipleChoiseTask.Repository
+        return try MultipleChoiseTask.DatabaseRepository
             .content(for: self, on: req)
             .flatMap { preview, content in
 
-                try PracticeSession.Repository
+                try PracticeSession.DatabaseRepository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResultRepository
+                        try TaskResult.DatabaseRepository
                             .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .map { lastResult in
 

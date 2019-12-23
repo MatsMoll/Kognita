@@ -9,15 +9,15 @@ import Vapor
 import KognitaCore
 import KognitaViews
 
-class SubtopicWebController : RouteCollection {
+class SubtopicWebController: RouteCollection {
 
     func boot(router: Router) throws {
-        router.get(
-            "creator/subjects", Subject.parameter, "subtopics/create",
-            use: create)
-        router.get(
-            "creator/subjects", Subject.parameter, "subtopics", Subtopic.parameter, "edit",
-            use: edit)
+
+        let creatorSubjects = router.grouped("creator/subjects", Subject.parameter, "subtopics")
+
+        creatorSubjects.get("create", use: create)
+        creatorSubjects.get(Subtopic.parameter, "edit", use: edit)
+
         router.get("creator/subtopic-select-subject", use: selectSubject)
     }
 
@@ -34,7 +34,7 @@ class SubtopicWebController : RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository
+                try Topic.DatabaseRepository
                     .getTopics(in: subject, conn: req)
                     .map { topics in
 
@@ -62,7 +62,7 @@ class SubtopicWebController : RouteCollection {
                 .next(Subtopic.self)
                 .flatMap { subtopic in
 
-                    try Topic.Repository
+                    try Topic.DatabaseRepository
                         .getTopics(in: subject, conn: req)
                         .map { topics in
 
