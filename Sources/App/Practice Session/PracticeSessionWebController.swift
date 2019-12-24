@@ -13,11 +13,14 @@ import KognitaAPI
 final class PracticeSessionWebController: RouteCollection {
 
     func boot(router: Router) {
-        router.get("practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter, use: renderCurrentTask)
-        router.get("practice-sessions/", PracticeSession.parameter, "tasks", Int.parameter, "solutions", use: getSolutions)
-        router.get("practice-sessions/", PracticeSession.parameter, "result", use: getSessionResult)
-        router.get("practice-sessions/history", use: getSessions)
-        router.post("practice-sessions/", PracticeSession.parameter, "end", use: endSession)
+        let sessionInstance = router.grouped("practice-sessions/", PracticeSession.parameter)
+
+        router.get("practice-sessions/history",                     use: getSessions)
+
+        sessionInstance.get("tasks", Int.parameter,                 use: renderCurrentTask)
+        sessionInstance.get("tasks", Int.parameter, "solutions",    use: getSolutions)
+        sessionInstance.get("result",                               use: getSessionResult)
+        sessionInstance.post("end",                                 use: endSession)
     }
 
     func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
