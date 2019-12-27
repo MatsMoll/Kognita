@@ -25,6 +25,7 @@ function startPracticeSession(topicIds, subjectId) {
         }
     })
     .then(function (json) {
-        window.location.href = json["redirectionUrl"];
+        let sessionID = json["id"];
+        window.location.href = "/practice-sessions/" + sessionID + "/tasks/1";
     })
 }

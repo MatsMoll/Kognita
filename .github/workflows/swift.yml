@@ -1,6 +1,16 @@
 name: Swift
 
-on: [push]
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - master
+      - develop
+      - rc/*
+      - 1.*
 
 jobs:
   bionic-job:
@@ -39,8 +49,8 @@ jobs:
     - name: Release new version
       run: |
         apt-get -qq update && apt-get install -y jq curl
+        bash ./CI/install-finch.sh
         bash ./CI/release-version.sh
-        git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git HEAD:master
       if: github.ref == 'refs/heads/master'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

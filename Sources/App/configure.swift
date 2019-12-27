@@ -1,8 +1,7 @@
 import Authentication
 import FluentPostgreSQL
 import Vapor
-import HTMLKit
-import HTMLKitVapor
+import HTMLKit_Vapor_3_Provider
 import KognitaCore
 import KognitaViews
 import KognitaAPI
@@ -89,7 +88,6 @@ func setupTemplates() throws -> HTMLRenderer {
 //    // Task Template
     try renderer.add(view: FlashCardTask.Templates.Execute())
     try renderer.add(view: MultipleChoiseTask.Templates.Execute())
-    try renderer.add(view: NumberInputTask.Templates.Execute())
     try renderer.add(view: TaskSolutionsTemplate())
 //
 //    // Create Content
@@ -100,7 +98,6 @@ func setupTemplates() throws -> HTMLRenderer {
 //    // Create Task Templates
     try renderer.add(view: FlashCardTask.Templates.Create())
     try renderer.add(view: MultipleChoiseTask.Templates.Create())
-    try renderer.add(view: NumberInputTask.Templates.Create())
 //
 //    // Practice Session
     try renderer.add(view: PracticeSession.Templates.History())

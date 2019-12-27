@@ -1,7 +1,7 @@
 let subjectId = parseInt(window.location.pathname.split("/")[2]);
 if (subjectId > 0) {
     var xhr = new XMLHttpRequest();
-    var url = "/api/practice-session/histogram?subjectId=" + subjectId;
+    var url = "/api/practice-sessions/histogram?subjectId=" + subjectId;
     xhr.open("GET", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {

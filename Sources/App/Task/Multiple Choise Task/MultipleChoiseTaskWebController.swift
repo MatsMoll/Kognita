@@ -42,7 +42,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTask.Repository
+                try MultipleChoiseTask.DatabaseRepository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
@@ -75,7 +75,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.Repository
+                try Topic.DatabaseRepository
                     .getTopicResponses(in: subject, conn: req)
                     .map { topics in
 
@@ -105,11 +105,11 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTask.Repository
+                try MultipleChoiseTask.DatabaseRepository
                     .content(for: multiple, on: req)
                     .flatMap { preview, content in
 
-                        try Topic.Repository
+                        try Topic.DatabaseRepository
                             .getTopicResponses(in: preview.subject, conn: req)
                             .map { topics in
 

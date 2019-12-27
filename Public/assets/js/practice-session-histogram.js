@@ -1,5 +1,5 @@
 var xhr = new XMLHttpRequest();
-var url = "/api/practice-session/histogram?numberOfWeeks=7";
+var url = "/api/practice-sessions/histogram?numberOfWeeks=7";
 xhr.open("GET", url, true);
 xhr.setRequestHeader("Content-Type", "application/json");
 xhr.onreadystatechange = function () {

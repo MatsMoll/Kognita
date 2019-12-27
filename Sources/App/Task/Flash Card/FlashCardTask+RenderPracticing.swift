@@ -13,15 +13,15 @@ extension FlashCardTask: RenderTaskPracticing {
 
     func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
         
-        return FlashCardTask.Repository
+        return FlashCardTask.DatabaseRepository
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try PracticeSession.Repository
+                try PracticeSession.DatabaseRepository
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResultRepository
+                        try TaskResult.DatabaseRepository
                             .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .map { lastResult in
 

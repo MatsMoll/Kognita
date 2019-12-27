@@ -39,25 +39,25 @@ class UserTests: VaporTestCase {
 
         _ = try User.create(on: conn)
 
-        let newUser = User.Create.Data(name: "Mats", email: "test@3.com", password: "password", verifyPassword: "password", acceptedTermsInput: "on")
+        let newUser = User.Create.Data(username: "Mats", email: "test@3.com", password: "password", verifyPassword: "password", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .ok, "This should not return an error code: \(response.http.status)")
 
         let user = try response.content.syncDecode(User.Create.Response.self)
-        XCTAssert(user.name == newUser.name, "The name is different: \(user.name)")
+        XCTAssert(user.username == newUser.username, "The name is different: \(user.username)")
         XCTAssert(user.email == newUser.email, "The email is different: \(user.email)")
     }
     
     func testCreateUserExistingEmail() throws {
 
         let user = try User.create(on: conn)
-        let newUser = User.Create.Data(name: "Mats", email: user.email, password: "password", verifyPassword: "password", acceptedTermsInput: "on")
+        let newUser = User.Create.Data(username: "Mats", email: user.email, password: "password", verifyPassword: "password", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
         XCTAssert(response.http.status == .internalServerError, "This should return an error code, returned: \(response.http.status)")
     }
     
     func testCreateUserPasswordMismatch() throws {
-        let newUser = User.Create.Data(name: "Mats", email: "test@3.com", password: "password1", verifyPassword: "not matching", acceptedTermsInput: "on")
+        let newUser = User.Create.Data(username: "Mats", email: "test@3.com", password: "password1", verifyPassword: "not matching", acceptedTermsInput: "on")
         let response = try app.sendRequest(to: uri, method: .POST, headers: standardHeaders, body: newUser)
 
         response.has(statusCode: .internalServerError)

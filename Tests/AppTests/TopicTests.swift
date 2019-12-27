@@ -22,7 +22,7 @@ class TopicTests: VaporTestCase {
 
         let user                = try User.create(on: conn)
         let topic               = try Topic.create(on: conn)
-        _                       = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _                       = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
         let otherTopic          = try Topic.create(on: conn)
 
         let uri                 = "api/subjects/\(topic.subjectId)/topics"
@@ -41,7 +41,7 @@ class TopicTests: VaporTestCase {
     func testGetTopicsWhenNotLoggedInError() throws {
 
         let topic       = try Topic.create(on: conn)
-        _               = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _               = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
         _               = try Topic.create(on: conn)
 
         let response    = try app.sendRequest(to: path, method: .GET, headers: standardHeaders)
@@ -58,7 +58,7 @@ class TopicTests: VaporTestCase {
 
         let user            = try User.create(on: conn)
         let topic           = try Topic.create(on: conn)
-        _                   = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _                   = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
 
         let uri             = try path + "\(topic.requireID())"
         let response        = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders, loggedInUser: user)
@@ -75,7 +75,7 @@ class TopicTests: VaporTestCase {
     func testGetTopicWithIdWhenNotLoggedInError() throws {
 
         let topic           = try Topic.create(on: conn)
-        _                   = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _                   = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
 
         let uri             = try path + "\(topic.requireID())"
         let response        = try app.sendRequest(to: uri, method: .GET, headers: standardHeaders)
@@ -89,7 +89,7 @@ class TopicTests: VaporTestCase {
     func testDeleteingTopic() throws {
         let user            = try User.create(on: conn)
         let topic           = try Topic.create(creator: user, on: conn)
-        _                   = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _                   = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
 
         let uri             = try path + "\(topic.requireID())"
         let response        = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders, loggedInUser: user)
@@ -114,7 +114,7 @@ class TopicTests: VaporTestCase {
     
     func testDeleteingTopicWhenNotLoggedInError() throws {
         let topic           = try Topic.create(on: conn)
-        _                   = try Topic.create(chapter: 2, creatorId: topic.creatorId, subjectId: topic.subjectId, on: conn)
+        _                   = try Topic.create(chapter: 2, subjectId: topic.subjectId, on: conn)
 
         let uri             = try path + "\(topic.requireID())"
         let response        = try app.sendRequest(to: uri, method: .DELETE, headers: standardHeaders)

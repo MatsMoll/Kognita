@@ -6,7 +6,9 @@ var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/vapor/vapor.git", from: "3.3.1"),
 
     // Encodes Form requests
-    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0")
+    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
+
+    .package(url: "https://github.com/MatsMoll/htmlkit-vapor-3-provider.git", from: "1.0.0"),
 ]
 
 
@@ -38,7 +40,8 @@ let package = Package(
             "KognitaViews",
             "KognitaAPI",
             "Vapor",
-            "URLEncodedForm"
+            "URLEncodedForm",
+            "HTMLKit-Vapor-3-Provider",
         ]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App", "KognitaCoreTestable"])

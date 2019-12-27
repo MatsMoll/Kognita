@@ -1,0 +1,50 @@
+contributors:
+  contributor_list:
+  - emails:
+    - mem@mollestad.no
+    - mats@mollestad.no
+    handle: MatsMoll
+  contributor_handle_prefix: '@'
+format:
+  delimiters:
+    input:
+      left: '['
+      right: ']'
+    output:
+      left: '|'
+      right: '|'
+  format_string: ' - << tags >> << message >> - << commit_type_hyperlink >> - << contributor_handle >>'
+  header: null
+  section_infos:
+  - format_string: ' - << tags >> << message >> - << commit_type_hyperlink >> - << contributor_handle >>'
+    capitalizes_message: false
+    excluded: false
+    tags:
+    - '*'
+    title: Features
+  - format_string: ' - << tags >> << message >> - << commit_type_hyperlink >> - << contributor_handle >>'
+    capitalizes_message: false
+    excluded: false
+    tags:
+    - bug fix
+    - bug
+    - bugfix
+    - fix
+    title: Bug Fixes
+  - format_string: ' - << tags >> << message >> - << commit_type_hyperlink >> - << contributor_handle >>'
+    capitalizes_message: false
+    excluded: false
+    tags:
+    - restructuring
+    - clean-up
+    - refactoring
+    title: Refactoring
+  - format_string: ' - << tags >> << message >> - << commit_type_hyperlink >> - << contributor_handle >>'
+    capitalizes_message: false
+    excluded: false
+    tags:
+    - tooling
+    - infrastructure
+    - ci
+    - github
+    title: Infrastructure

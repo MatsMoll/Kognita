@@ -51,7 +51,8 @@ final class UserWebController: RouteCollection {
             .decode(User.Create.Data.self)
             .flatMap { createUser in
 
-                try UserController.create(req)
+                try User.DefaultAPIController
+                    .create(req)
                     .flatMap { newUser in
 
                         User.authenticate(
@@ -63,7 +64,7 @@ final class UserWebController: RouteCollection {
                             .map { user in
 
                                 guard let user = user else {
-                                    throw User.Repository.Errors.unauthorized
+                                    throw User.DatabaseRepository.Errors.unauthorized
                                 }
                                 try req.authenticate(user)
                                 return req.redirect(to: "/subjects")
@@ -72,7 +73,7 @@ final class UserWebController: RouteCollection {
             }.catchFlatMap({ (error) in
                 print("Error: ", error)
                 switch error {
-                case is User.Repository.Errors:
+                case is User.DatabaseRepository.Errors:
                     return try req.renderer()
                         .render(User.Templates.Signup.self, with: .init(errorMessage: error.localizedDescription))
                         .encode(for: req)
@@ -130,7 +131,8 @@ final class UserWebController: RouteCollection {
                 User.Templates.ResetPassword.Start.self,
                 with: .init(errorMessage: "Du skal snart få en email med en link for å gjenopprette passordet ditt")
         )
-        return try UserController.startResetPassword(on: req)
+        return try User.DefaultAPIController
+            .startResetPassword(on: req)
             .transform(to: successPage)
     }
 
@@ -161,7 +163,8 @@ final class UserWebController: RouteCollection {
     }
 
     func resetPassword(req: Request) throws -> Future<Response> {
-        return try UserController.resetPassword(on: req)
+        return try User.DefaultAPIController
+            .resetPassword(on: req)
             .transform(to: req.redirect(to: "/login"))
     }
 }

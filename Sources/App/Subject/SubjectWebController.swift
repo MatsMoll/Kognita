@@ -24,31 +24,31 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try SubjectController.getAll(req).flatMap { subjects in
-            req.databaseConnection(to: .psql)
-                .flatMap { conn in
+        return try Subject.DefaultAPIController
+            .retriveAll(on: req)
+            .flatMap { subjects in
 
-                    try TaskResultRepository
-                        .getAllResultsContent(for: user, with: conn)
-                        .flatMap { response in
+//                try TaskResult.DatabaseRepository
+//                    .getAllResults(for: user.requireID(), with: req)
+//                    .flatMap { response in
 
-                            try PracticeSession.Repository
-                                .getLatestUnfinnishedSessionPath(for: user, on: conn)
-                                .map { ongoingSessionPath in
+                        try PracticeSession.DatabaseRepository
+                            .getLatestUnfinnishedSessionPath(for: user, on: req)
+                            .map { ongoingSessionPath in
 
-                                    try req.renderer()
-                                        .render(
-                                            Subject.Templates.ListOverview.self,
-                                            with: .init(
-                                                user: user,
-                                                cards: subjects,
-                                                revisitTasks: response,
-                                                ongoingSessionPath: ongoingSessionPath
-                                            )
-                                    )
-                            }
-                    }
-            }
+                                try req.renderer()
+                                   .render(
+                                       Subject.Templates.ListOverview.self,
+                                       with: .init(
+                                           user: user,
+                                           cards: subjects,
+                                           revisitTasks: [],
+                                           ongoingSessionPath: ongoingSessionPath
+                                       )
+                               )
+
+                        }
+//                }
         }
     }
 
@@ -57,7 +57,8 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try SubjectController.getDetails(req)
+        return try Subject.DefaultAPIController
+            .getDetails(req)
             .map { details in
 
                 try req.renderer()
