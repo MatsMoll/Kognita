@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-git clone https://github.com/namolnad/Finch.git
+git clone https://github.com/MatsMoll/Finch.git
 cd Finch
-git checkout 0.2.0
-echo "Installing Finch"
+git checkout bugfix/empty-commit-on-branch-change
 make install
-echo "Installed Finch"
 cd ..
 rm -rf Finch

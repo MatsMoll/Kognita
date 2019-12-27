@@ -1,8 +1,7 @@
 import Authentication
 import FluentPostgreSQL
 import Vapor
-import HTMLKit
-import HTMLKitVapor
+import HTMLKit_Vapor_3_Provider
 import KognitaCore
 import KognitaViews
 import KognitaAPI

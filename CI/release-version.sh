@@ -68,7 +68,7 @@ function generate_new_release_data {
     NEXT_VERSION="$MAJOR_VERSION.$MINOR_VERSION.$BUILD_VERSION"
 
     git tag $NEXT_VERSION
-    CHANGE_LOG="$(finch compare --release-manager="mem@mollestad.no" --project-dir="." --config="./CI/finch-config.yml" --no-fetch)"
+    CHANGE_LOG="$(finch compare --release-manager="mem@mollestad.no" --project-dir="." --config="./CI/finch-config.yml" --no-fetch --use-newline-char)"
 
     cat << EOF > new_release_data
 {
@@ -103,7 +103,9 @@ function skip_if_norelease_set {
 
 function create_new_release {
     if [ -z "$DRYRUN" ]; then
+        cat new_release_data
         curl --silent --header "Authorization: token ${GITHUB_TOKEN}" \
+             --header "Content-Type: application/json" \
              --url "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" \
              --request POST \
              --data @new_release_data
