@@ -8,7 +8,6 @@ import KognitaAPI
 
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
-    try KognitaAPI.setupApi(for: router.grouped("api"))
     try setupWeb(for: router)
 }
 
@@ -34,4 +33,6 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: FlashCardTaskWebController())
     try redirectMiddle.register(collection: SubtopicWebController())
     try redirectMiddle.register(collection: PracticeSessionWebController())
+    try redirectMiddle.register(collection: SubjectTestWebController<SubjectTestAPIController<SubjectTest.DatabaseRepository>>())
+    try redirectMiddle.register(collection: TestSessionWebController())
 }

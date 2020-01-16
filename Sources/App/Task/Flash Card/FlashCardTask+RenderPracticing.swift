@@ -11,7 +11,7 @@ import KognitaViews
 
 extension FlashCardTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
         
         return FlashCardTask.DatabaseRepository
             .content(for: self, on: req)
