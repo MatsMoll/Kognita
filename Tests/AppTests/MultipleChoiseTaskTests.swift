@@ -9,8 +9,10 @@ import Vapor
 @testable import App
 import XCTest
 import FluentPostgreSQL
-import KognitaCore
+@testable import KognitaCore
 import KognitaCoreTestable
+import KognitaViews
+import HTMLKit
 
 class MultipleChoiseTaskTests: VaporTestCase {
 

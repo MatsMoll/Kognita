@@ -1,7 +1,7 @@
 import Authentication
 import FluentPostgreSQL
 import Vapor
-import HTMLKit_Vapor_3_Provider
+import HTMLKitVaporProvider
 import KognitaCore
 import KognitaViews
 import KognitaAPI
@@ -65,6 +65,10 @@ func setupTemplates() throws -> HTMLRenderer {
 
     // Starter
     try renderer.add(view: Pages.Landing())
+
+    // Legal
+    try renderer.add(view: Pages.PrivacyPolicy())
+    try renderer.add(view: Pages.TermsOfUsage())
 
     // Error Pages
     try renderer.add(view: Pages.ServerError())

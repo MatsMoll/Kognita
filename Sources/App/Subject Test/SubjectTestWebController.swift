@@ -26,7 +26,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
     static func enter(on req: Request) throws -> EventLoopFuture<Response> {
         try API.enter(on: req)
             .map { session in
-                try req.redirect(to: "test-sessions/\(session.requireID())")
+                try req.redirect(to: "/test-sessions/\(session.requireID())")
         }
     }
 
