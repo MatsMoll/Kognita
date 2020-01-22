@@ -68,7 +68,7 @@ func setupTemplates() throws -> HTMLRenderer {
 
     // Legal
     try renderer.add(view: Pages.PrivacyPolicy())
-    try renderer.add(view: Pages.TermsOfUsage())
+    try renderer.add(view: Pages.TermsOfService())
 
     // Error Pages
     try renderer.add(view: Pages.ServerError())
@@ -88,6 +88,11 @@ func setupTemplates() throws -> HTMLRenderer {
 
     try renderer.add(view: SubjectTest.Templates.Modify())
     try renderer.add(view: SubjectTest.Templates.List())
+    try renderer.add(view: SubjectTest.Templates.Monitor())
+    try renderer.add(view: SubjectTest.Templates.StatusSection())
+
+    try renderer.add(view: TestSession.Templates.Overview())
+    try renderer.add(view: TestSession.Templates.Results())
 
 //    // Task Overview
 //    try renderer.add(template: TaskOverviewListTemplate())
@@ -112,8 +117,6 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: PracticeSession.Templates.Result())
 
 //    // Creator pages
-    try renderer.add(view: CreatorTemplates.Dashboard())
-    try renderer.add(view: CreatorTemplates.TopicDetails())
     try renderer.add(view: Subject.Templates.ContentOverview())
 //    try renderer.add(template: CreatorInformationPage())
     return renderer

@@ -7,6 +7,8 @@ protocol SubjectTestWebControlling: RouteCollection {
     static func createForm(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     static func editForm(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     static func listAll(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    static func monitor(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    static func status(on req: Request) throws -> EventLoopFuture<HTTPResponse>
 }
 
 extension SubjectTestWebControlling {
@@ -16,8 +18,12 @@ extension SubjectTestWebControlling {
         router.get("subjects", Subject.parameter, "subject-tests",          use: Self.listAll(on: ))
 
         let testInstance = router.grouped("subject-tests", SubjectTest.parameter)
+
         testInstance.post("enter", use: Self.enter(on: ))
+
         testInstance.get("edit", use: Self.editForm(on: ))
+        testInstance.get("monitor", use: Self.monitor(on: ))
+        testInstance.get("status", use: Self.status(on: ))
     }
 }
 
@@ -27,6 +33,15 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
         try API.enter(on: req)
             .map { session in
                 try req.redirect(to: "/test-sessions/\(session.requireID())")
+        }
+        .catchMap { error in
+            switch error {
+            case SubjectTest.DatabaseRepository.Errors
+                .alreadyEntered(sessionID: let sessionID):
+                    return req.redirect(to: "/test-sessions/\(sessionID)")
+            default:
+                throw error
+            }
         }
     }
 
@@ -102,6 +117,38 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                             user: user,
                             list: list
                         )
+                )
+        }
+    }
+
+    static func monitor(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        return try req.parameters
+            .next(SubjectTest.self)
+            .map { test in
+
+                try req.renderer()
+                    .render(
+                        SubjectTest.Templates.Monitor.self,
+                        with: SubjectTest.Templates.Monitor.Context(
+                            user: user,
+                            test: test
+                        )
+                )
+        }
+    }
+
+    static func status(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        return try API.userCompletionStatus(on: req)
+            .map { status in
+
+                try req.renderer()
+                    .render(
+                        SubjectTest.Templates.StatusSection.self,
+                        with: status
                 )
         }
     }

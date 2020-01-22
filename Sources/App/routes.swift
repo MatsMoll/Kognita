@@ -26,8 +26,8 @@ private func setupUserWeb(for router: Router) throws {
     router.get("/privacy-policy") { req in
         try req.renderer().render(view: Pages.PrivacyPolicy.self)
     }
-    router.get("/terms-of-usage") { req in
-        try req.renderer().render(view: Pages.TermsOfUsage.self)
+    router.get("/terms-of-service") { req in
+        try req.renderer().render(view: Pages.TermsOfService.self)
     }
 
     try sessionMiddle.register(collection: UserWebController())

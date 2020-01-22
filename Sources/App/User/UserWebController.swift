@@ -124,7 +124,7 @@ final class UserWebController: RouteCollection {
         )
     }
 
-    func startResetPassword(on req: Request) throws -> Future<HTTPResponse> {
+    func startResetPassword(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let successPage = try req.renderer()
             .render(
@@ -162,7 +162,7 @@ final class UserWebController: RouteCollection {
         }
     }
 
-    func resetPassword(req: Request) throws -> Future<Response> {
+    func resetPassword(req: Request) throws -> EventLoopFuture<Response> {
         return try User.DefaultAPIController
             .resetPassword(on: req)
             .transform(to: req.redirect(to: "/login"))
