@@ -90,6 +90,7 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: SubjectTest.Templates.List())
     try renderer.add(view: SubjectTest.Templates.Monitor())
     try renderer.add(view: SubjectTest.Templates.StatusSection())
+    try renderer.add(view: SubjectTest.Templates.Results())
 
     try renderer.add(view: TestSession.Templates.Overview())
     try renderer.add(view: TestSession.Templates.Results())

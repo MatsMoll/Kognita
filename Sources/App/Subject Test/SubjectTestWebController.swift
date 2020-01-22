@@ -9,6 +9,8 @@ protocol SubjectTestWebControlling: RouteCollection {
     static func listAll(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     static func monitor(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     static func status(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    static func end(on req: Request) throws -> EventLoopFuture<Response>
+    static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse>
 }
 
 extension SubjectTestWebControlling {
@@ -21,9 +23,12 @@ extension SubjectTestWebControlling {
 
         testInstance.post("enter", use: Self.enter(on: ))
 
-        testInstance.get("edit", use: Self.editForm(on: ))
+        testInstance.get("edit",    use: Self.editForm(on: ))
         testInstance.get("monitor", use: Self.monitor(on: ))
-        testInstance.get("status", use: Self.status(on: ))
+        testInstance.get("status",  use: Self.status(on: ))
+        testInstance.get("results", use: Self.results(on: ))
+
+        testInstance.post("end",    use: Self.end(on: ))
     }
 }
 
@@ -149,6 +154,32 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                     .render(
                         SubjectTest.Templates.StatusSection.self,
                         with: status
+                )
+        }
+    }
+
+    static func end(on req: Request) throws -> EventLoopFuture<Response> {
+
+        try API.end(req: req)
+            .map { _ in
+                req.redirect(to: "results")
+        }
+    }
+
+    static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        return try API.results(on: req)
+            .map { results in
+
+                try req.renderer()
+                    .render(
+                        SubjectTest.Templates.Results.self,
+                        with: SubjectTest.Templates.Results.Context(
+                            user: user,
+                            results: results
+                        )
                 )
         }
     }
