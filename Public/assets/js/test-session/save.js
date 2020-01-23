@@ -1,12 +1,6 @@
 
-function navigateTo(nextTaskID) {
-    
+function saveChoise() {
     let testID = testSessionID();
-
-    if (isNaN(testID)) {
-        throw Error("Oi! En feil oppstod, men dette er ikke din feil");
-    }
-
     let url = "/api/test-sessions/" + testID + "/save";
 
     try {
@@ -20,13 +14,10 @@ function navigateTo(nextTaskID) {
         })
         .then(function (response) {
             if (response.ok) {
-                window.location.href = nextTaskID;
+                return
             } else {
                 throw new Error(response.statusText);
             }
-        })
-        .then(function (json) {
-            handleSuccess(json);
         })
         .catch(function (error) {
             $("#submitButton").attr("disabled", false);
@@ -35,11 +26,10 @@ function navigateTo(nextTaskID) {
             $("#error-div").removeClass("d-none");
         });
     } catch (error) {
-        console.log(error);
         if (error.name == "MissingDataError") {
-            window.location.href = nextTaskID;
+            return
         }
-    }
+    }   
 }
 
 function testSessionID() {
@@ -50,3 +40,7 @@ function testSessionID() {
         path.lastIndexOf("/tasks/")
     ));
 }
+
+$('input[name="choiseInput"]').click(function () {
+    saveChoise();
+});
