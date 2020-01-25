@@ -1,4 +1,26 @@
 
+Number.prototype.toMinuteString = function() {
+    var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((this % (1000 * 60)) / 1000);
+    if (minutes < 10) { minutes = "0" + minutes; }
+    if (seconds < 10) { seconds = "0" + seconds; }
+    return minutes + ":" + seconds;
+}
+
+function updateTimer() {
+    let endsAt = new Date($("#ends-at").val());
+    let now = new Date();
+    let millisecondsLeft = endsAt - now;
+    if (millisecondsLeft < 2 * 60 * 1000) {
+        $("#time-left-badge").removeClass("badge-primary");
+        $("#time-left-badge").addClass("badge-danger");
+    }
+    $("#time-left").html(millisecondsLeft.toMinuteString());
+}
+
+updateTimer();
+let timer = setInterval(updateTimer, 1000); // Each 1 seconds
+
 function saveChoise() {
     let testID = testSessionID();
     let url = "/api/test-sessions/" + testID + "/save";

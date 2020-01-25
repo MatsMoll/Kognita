@@ -8,7 +8,7 @@ var dependencies: [Package.Dependency] = [
     // Encodes Form requests
     .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
 
-    .package(url: "https://github.com/MatsMoll/htmlkit-vapor-3-provider.git", .exact("1.0.0-beta.3")),
+    .package(url: "https://github.com/MatsMoll/htmlkit-vapor-3-provider.git", from: "1.0.0-beta.3"),
 ]
 
 
@@ -23,9 +23,9 @@ dependencies.append(contentsOf: [
 )
 #else
 dependencies.append(contentsOf: [
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: "1.0.0"),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "1.0.0"),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", from: "1.0.0"),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
     ]
 )
 #endif

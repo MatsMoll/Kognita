@@ -39,15 +39,12 @@ function createSubject() {
     })
     .then(function (response) {
         if (response.ok) {
-            return response.json();
+            window.location.href = "/subjects";
         } else if (response.status == 400) {
             throw new Error("Sjekk at all nødvendig info er fylt ut");
         } else {
             throw new Error(response.statusText);
         }
-    })
-    .then(function (json) {
-        window.location.href = "/subjects";
     })
     .catch(function (error) {
         $("#submitButton").attr("disabled", false);
