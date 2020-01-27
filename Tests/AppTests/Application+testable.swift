@@ -65,7 +65,7 @@ extension Application {
             tokenHeaders.basicAuthorization = credentials
             
             let tokenResponse = try self.sendRequest(to: "/api/users/login", method: HTTPMethod.POST, headers: tokenHeaders)
-            let token = try tokenResponse.content.syncDecode(UserToken.self)
+            let token = try tokenResponse.content.syncDecode(User.Login.Token.self)
             headers.add(name: .authorization, value: "Bearer \(token.bearerToken)")
         }
         

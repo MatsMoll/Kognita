@@ -20,7 +20,7 @@ protocol RenderTaskPracticing {
     ///
     /// - Returns:
     ///     A renderd `View` of the task
-    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse>
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse>
 }
 
 

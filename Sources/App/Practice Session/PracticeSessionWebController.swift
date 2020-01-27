@@ -13,7 +13,7 @@ import KognitaAPI
 final class PracticeSessionWebController: RouteCollection {
 
     func boot(router: Router) {
-        let sessionInstance = router.grouped("practice-sessions/", PracticeSession.parameter)
+        let sessionInstance = router.grouped("practice-sessions/", TaskSession.PracticeParameter.parameter)
 
         router.get("practice-sessions/history",                     use: getSessions)
 
@@ -68,7 +68,7 @@ final class PracticeSessionWebController: RouteCollection {
                             user: user,
                             tasks: results,
                             progress: 0,
-                            timeUsed: results.map { $0.result.timeUsed }.reduce(0, +)
+                            timeUsed: results.map { $0.result.timeUsed ?? 0 }.reduce(0, +)
                         )
                 )
         }
@@ -128,7 +128,7 @@ struct PracticeSessionEndResponse: Content {
 
 extension TaskType: RenderTaskPracticing {
 
-    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         return try renderableTask
             .render(in: session, index: index, for: user, on: req)

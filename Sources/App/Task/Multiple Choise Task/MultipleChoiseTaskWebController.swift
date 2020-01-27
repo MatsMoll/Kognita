@@ -52,7 +52,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                 with: .init(
                                     multiple: content,
                                     taskContent: preview,
-                                    user: user,
+                                    user: user.content(),
                                     currentTaskIndex: nil
                                 )
                             )
@@ -65,30 +65,31 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
-
         let query = try req.query.decode(CreateTaskURLQuery.self)
 
         return try req.parameters
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopicResponses(in: subject, conn: req)
-                    .map { topics in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
-                        try req.renderer()
-                            .render(
-                                MultipleChoiseTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    topics: topics,
-                                    selectedTopicId: query.topicId
+                        try Topic.DatabaseRepository
+                            .getTopicResponses(in: subject, conn: req)
+                            .map { topics in
+
+                                try req.renderer()
+                                    .render(
+                                        MultipleChoiseTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            subject: subject,
+                                            topics: topics,
+                                            selectedTopicId: query.topicId
+                                        )
                                 )
-                        )
+                        }
                 }
         }
     }
@@ -97,33 +98,33 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
-
         return try req.parameters
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try MultipleChoiseTask.DatabaseRepository
-                    .content(for: multiple, on: req)
-                    .flatMap { preview, content in
+                try User.DatabaseRepository.isModerator(user: user, taskID: multiple.requireID(), on: req)
+                    .flatMap {
 
-                        try Topic.DatabaseRepository
-                            .getTopicResponses(in: preview.subject, conn: req)
-                            .map { topics in
+                        try MultipleChoiseTask.DatabaseRepository
+                            .content(for: multiple, on: req)
+                            .flatMap { preview, content in
 
-                                try req.renderer()
-                                    .render(
-                                        MultipleChoiseTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: preview.subject,
-                                            topics: topics,
-                                            taskInfo: preview.task,
-                                            multipleTaskInfo: content
+                                try Topic.DatabaseRepository
+                                    .getTopicResponses(in: preview.subject, conn: req)
+                                    .map { topics in
+
+                                        try req.renderer()
+                                            .render(
+                                                MultipleChoiseTask.Templates.Create.self,
+                                                with: .init(
+                                                    user: user,
+                                                    subject: preview.subject,
+                                                    topics: topics,
+                                                    taskInfo: preview.task,
+                                                    multipleTaskInfo: content
+                                                )
                                         )
-                                )
+                                }
                         }
                 }
         }

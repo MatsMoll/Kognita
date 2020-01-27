@@ -25,30 +25,17 @@ final class SubjectWebController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
 
         return try Subject.DefaultAPIController
-            .retriveAll(on: req)
-            .flatMap { subjects in
+            .getListContent(req)
+            .map { listContent in
 
-//                try TaskResult.DatabaseRepository
-//                    .getAllResults(for: user.requireID(), with: req)
-//                    .flatMap { response in
-
-                        try PracticeSession.DatabaseRepository
-                            .getLatestUnfinnishedSessionPath(for: user, on: req)
-                            .map { ongoingSessionPath in
-
-                                try req.renderer()
-                                   .render(
-                                       Subject.Templates.ListOverview.self,
-                                       with: .init(
-                                           user: user,
-                                           cards: subjects,
-                                           revisitTasks: [],
-                                           ongoingSessionPath: ongoingSessionPath
-                                       )
-                               )
-
-                        }
-//                }
+                try req.renderer()
+                    .render(
+                        Subject.Templates.ListOverview.self,
+                        with: .init(
+                            user: user,
+                            list: listContent
+                        )
+                )
         }
     }
 
@@ -76,7 +63,7 @@ final class SubjectWebController: RouteCollection {
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
         
-        guard user.isCreator else {
+        guard user.isAdmin else {
             throw Abort(.forbidden)
         }
 

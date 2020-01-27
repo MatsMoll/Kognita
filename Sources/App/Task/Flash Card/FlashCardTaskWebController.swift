@@ -28,12 +28,9 @@ class FlashCardTaskWebController: RouteCollection {
             use: getInstance)
     }
 
-    func createTask(on req: Request) throws -> Future<HTTPResponse> {
+    func createTask(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
 
         let query = try req.query.decode(CreateTaskURLQuery.self)
 
@@ -41,30 +38,31 @@ class FlashCardTaskWebController: RouteCollection {
             .next(Subject.self)
             .flatMap { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopicResponses(in: subject, conn: req)
-                    .map { topics in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Create.self,
-                            with: .init(
-                                user: user,
-                                subject: subject,
-                                topics: topics,
-                                selectedTopicId: query.topicId
-                            )
-                        )
+                        try Topic.DatabaseRepository
+                            .getTopicResponses(in: subject, conn: req)
+                            .map { topics in
+
+                                try req.renderer().render(
+                                    FlashCardTask.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        subject: subject,
+                                        topics: topics,
+                                        selectedTopicId: query.topicId
+                                    )
+                                )
+                        }
                 }
         }
     }
 
-    func editTask(_ req: Request) throws -> Future<HTTPResponse> {
+    func editTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
 
         return try req.parameters
             .next(FlashCardTask.self)
@@ -95,7 +93,7 @@ class FlashCardTaskWebController: RouteCollection {
     }
 
 
-    func getInstance(_ req: Request) throws -> Future<HTTPResponse> {
+    func getInstance(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -111,7 +109,7 @@ class FlashCardTaskWebController: RouteCollection {
                             FlashCardTask.Templates.Execute.self,
                             with: .init(
                                 taskPreview: preview,
-                                user: user,
+                                user: user.content(),
                                 currentTaskIndex: nil,
                                 numberOfTasks: 1
                             )

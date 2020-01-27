@@ -45,11 +45,11 @@
     "register.title" : "Registrer deg gratis",
     "register.subtitle" : "Opprettelse av bruker tar mindre enn et minutt",
 
-    "register.name.title" : "Fullt navn",
-    "register.name.placeholder" : "Skriv inn navnet ditt",
+    "register.username.title" : "Brukernavn",
+    "register.username.placeholder" : "KognitaBruker",
 
     "register.mail.title" : "Mail",
-    "register.mail.placeholder" : "Skriv inn mailadressen din",
+    "register.mail.placeholder" : "kognita@stud.ntnu.no",
 
     "register.password.title" : "Passord",
     "register.password.placeholder" : "Skriv inn passordet ditt",

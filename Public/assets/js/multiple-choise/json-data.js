@@ -18,7 +18,7 @@ function jsonData() {
     var examPaperYear = parseInt($("#create-multiple-exam-year").val());
     var question = $("#create-multiple-question").val();
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
-    var isExaminable = $("#create-multiple-examinable").prop("checked");
+    var isTestable = $("#create-multiple-testable").prop("checked");
     var solution = null;
     if (!$('#create-multiple-solution').summernote("isEmpty")) {
         solution = $("#create-multiple-solution").summernote("code");
@@ -38,7 +38,7 @@ function jsonData() {
     }
 
     return JSON.stringify({
-        "isExaminable" : isExaminable,
+        "isTestable" : isTestable,
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
         "subtopicId" : subtopicId,

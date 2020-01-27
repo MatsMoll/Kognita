@@ -19,7 +19,7 @@ class UserTests: VaporTestCase {
         let response = try app.sendRequest(to: uri + "/login", method: .POST, headers: headers)
         XCTAssert(response.http.status == .ok, "This should not return an error")
 
-        let token = try response.content.syncDecode(UserToken.self)
+        let token = try response.content.syncDecode(User.Login.Token.self)
         XCTAssert(token.userID == user.id, "The user id is not equal to the logged in user")
     }
     

@@ -1,7 +1,7 @@
 import Authentication
 import FluentPostgreSQL
 import Vapor
-import HTMLKit_Vapor_3_Provider
+import HTMLKitVaporProvider
 import KognitaCore
 import KognitaViews
 import KognitaAPI
@@ -11,8 +11,7 @@ import Mailgun
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
 
     // Register providers first
-    try services.register(FluentPostgreSQLProvider())
-    try services.register(AuthenticationProvider())
+    try services.register(KognitaAPIProvider(env: env))
 
     // Sets the templating framework and Web Sessions
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
@@ -36,6 +35,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     }
     
     services.register(middlewares)
+    services.register(APIControllerCollection.defaultControllers)
     services.register { _ in
         HTMLKitErrorMiddleware(
             notFoundPage: Pages.NotFoundError.self,
@@ -46,8 +46,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     let templates = try setupTemplates()
     services.register(templates)
     services.register(templates, as: ResetPasswordMailRenderable.self)
-
-    KognitaAPI.setupApi(with: env, in: &services)
 }
 
 private func registerRouter(in services: inout Services) throws {
@@ -63,8 +61,14 @@ func setupTemplates() throws -> HTMLRenderer {
     let path = DirectoryConfig.detect().workDir + "Resources/Localization"
     try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
 
+    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
+
     // Starter
     try renderer.add(view: Pages.Landing())
+
+    // Legal
+    try renderer.add(view: Pages.PrivacyPolicy())
+    try renderer.add(view: Pages.TermsOfService())
 
     // Error Pages
     try renderer.add(view: Pages.ServerError())
@@ -82,6 +86,15 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: Subject.Templates.Details())
     try renderer.add(view: Subject.Templates.SelectRedirect())
 
+    try renderer.add(view: SubjectTest.Templates.Modify())
+    try renderer.add(view: SubjectTest.Templates.List())
+    try renderer.add(view: SubjectTest.Templates.Monitor())
+    try renderer.add(view: SubjectTest.Templates.StatusSection())
+    try renderer.add(view: SubjectTest.Templates.Results())
+
+    try renderer.add(view: TestSession.Templates.Overview())
+    try renderer.add(view: TestSession.Templates.Results())
+
 //    // Task Overview
 //    try renderer.add(template: TaskOverviewListTemplate())
 
@@ -89,6 +102,7 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: FlashCardTask.Templates.Execute())
     try renderer.add(view: MultipleChoiseTask.Templates.Execute())
     try renderer.add(view: TaskSolutionsTemplate())
+    try renderer.add(view: MultipleChoiseTaskTestMode())
 //
 //    // Create Content
     try renderer.add(view: Subject.Templates.Create())
@@ -104,8 +118,6 @@ func setupTemplates() throws -> HTMLRenderer {
     try renderer.add(view: PracticeSession.Templates.Result())
 
 //    // Creator pages
-    try renderer.add(view: CreatorTemplates.Dashboard())
-    try renderer.add(view: CreatorTemplates.TopicDetails())
     try renderer.add(view: Subject.Templates.ContentOverview())
 //    try renderer.add(template: CreatorInformationPage())
     return renderer
