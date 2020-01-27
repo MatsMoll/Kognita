@@ -29,7 +29,6 @@ final class UserWebController: RouteCollection {
         router.post("signup",                           use: create)
         router.post("start-reset-password",             use: startResetPassword)
         router.post("reset-password",                   use: resetPassword)
-        router.post("users", User.parameter, "verify",  use: verify(on: ))
     }
 
     func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
