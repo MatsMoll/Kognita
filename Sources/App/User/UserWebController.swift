@@ -17,16 +17,18 @@ final class UserWebController: RouteCollection {
 
     func boot(router: Router) {
 
-        router.get("signup",                use: signupForm)
-        router.get("login",                 use: loginForm)
-        router.get("start-reset-password",  use: startResetPasswordForm)
-        router.get("reset-password",        use: resetPasswordForm)
+        router.get("signup",                            use: signupForm)
+        router.get("login",                             use: loginForm)
+        router.get("start-reset-password",              use: startResetPasswordForm)
+        router.get("reset-password",                    use: resetPasswordForm)
+        router.get("users", "verified",                 use: verified(on: ))
+        router.get("users", User.parameter, "verify",   use: verify(on: ))
 
-        router.post("login",                use: cookieLogin)
-        router.post("logout",               use: logout)
-        router.post("signup",               use: create)
-        router.post("start-reset-password", use: startResetPassword)
-        router.post("reset-password",       use: resetPassword)
+        router.post("login",                            use: cookieLogin)
+        router.post("logout",                           use: logout)
+        router.post("signup",                           use: create)
+        router.post("start-reset-password",             use: startResetPassword)
+        router.post("reset-password",                   use: resetPassword)
     }
 
     func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
@@ -166,6 +168,19 @@ final class UserWebController: RouteCollection {
         return try User.DefaultAPIController
             .resetPassword(on: req)
             .transform(to: req.redirect(to: "/login"))
+    }
+
+    func verify(on req: Request) throws -> EventLoopFuture<Response> {
+        try User.DefaultAPIController
+            .verify(on: req)
+            .map { _ in
+                req.redirect(to: "/users/verified")
+        }
+    }
+
+    func verified(on req: Request) throws -> HTTPResponse {
+        try req.renderer()
+            .render(User.Templates.VerifiedConfirmation.self)
     }
 }
 
