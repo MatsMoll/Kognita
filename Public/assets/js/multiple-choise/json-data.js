@@ -3,10 +3,10 @@ function jsonData() {
 
     var choises = [];
 
-    $("#create-multiple-choises").children().each(function() {
+    $("input[name=choiseInput]").each(function() {
         choises.push({
-            "choise" : $(this).children(":nth-child(1)").html(),
-            "isCorrect" : $(this).find("input[type=checkbox]").prop("checked"),
+            "choise" : $("label[for=" + this.id + "]").html(),
+            "isCorrect" : this.checked,
         });
     })
 

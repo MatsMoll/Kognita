@@ -50,8 +50,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     renderer.timeZone = TimeZone(identifier: "CET") ?? .current
 
     services.register(renderer)
-    services.register(renderer, as: ResetPasswordMailRenderable.self)
-    services.register(renderer, as: VerifyEmailRenderable.self)
+    services.register(ResetPasswordMailRenderer(renderer: renderer), as: ResetPasswordMailRenderable.self)
+    services.register(VerifyEmailRenderer(renderer: renderer), as: VerifyEmailRenderable.self)
 }
 
 private func registerRouter(in services: inout Services) throws {
@@ -60,21 +60,25 @@ private func registerRouter(in services: inout Services) throws {
     services.register(router, as: Router.self)
 }
 
-extension HTMLRenderer: ResetPasswordMailRenderable {
-    public func render(with token: User.ResetPassword.Token.Create.Response, for user: User) throws -> String {
-        try render(
+struct ResetPasswordMailRenderer: ResetPasswordMailRenderable {
+    let renderer: HTMLRenderer
+
+    public func render(with token: User.ResetPassword.Token.Data, for user: User) throws -> String {
+        try renderer.render(
                 raw: User.Templates.ResetPassword.Mail.self,
                 with: .init(
                     user: user,
-                    changeUrl: "https://uni.kognita.no/reset-password?token=\(token.token)"
+                    token: token
                 )
         )
     }
 }
 
-extension HTMLRenderer: VerifyEmailRenderable {
-    public func render(with content: User.VerifyEmail.EmailContent, on container: Container) throws -> EventLoopFuture<String> {
-        let html = try render(
+struct VerifyEmailRenderer: VerifyEmailRenderable {
+    let renderer: HTMLRenderer
+
+    func render(with content: User.VerifyEmail.EmailContent, on container: Container) throws -> EventLoopFuture<String> {
+        let html = try renderer.render(
             raw: User.Templates.VerifyMail.self,
             with: User.Templates.VerifyMail.Context(
                 token: content

@@ -1,48 +1,7 @@
-$("#create-multiple-description").summernote({
-    minHeight : 200,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-solution").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-choise").summernote({
-    toolbar: [
-        // [groupName, [list of button]]
-        ['insert', ['picture', 'math']],
-        ['para', ['style']],
-      ]
-})
 
 function editMultipleChoise() {
 
-    var path = window.location.pathname;
-    var subjectURI = "multiple-choise/";
-
-    var taskId = parseInt(path.substring(
-        path.indexOf(subjectURI) + subjectURI.length, 
-        path.lastIndexOf("/edit")
-    ));
-
-    let url = "/api/tasks/multiple-choise/" + taskId;
+    let url = "/api/tasks/multiple-choise/" + taskID();
 
     try {
         fetch(url, {
@@ -73,17 +32,12 @@ function editMultipleChoise() {
     }
 }
 
-var numberOfChoises = 0;
+function taskID() {
+    let path = window.location.pathname;
+    let subjectURI = "multiple-choise/";
 
-function addChoise() {
-    if ($('#create-multiple-choise').summernote("isEmpty")) { return; }
-    var choise = $('#create-multiple-choise').summernote("code");
-    var table = $("#create-multiple-choises");
-    table.append('<tr id="choise-' + numberOfChoises + '"><td>' + choise + '</td><td><input type="checkbox" id="switch' + numberOfChoises + '" data-switch="bool"/><label for="switch' + numberOfChoises + '" data-on-label="Ja" data-off-label="Nei"></label></td><td><button  type="button" class="btn btn-danger btn-rounded" onclick="deleteChoise(' + numberOfChoises + ');"><i class="mdi mdi-delete"></i></button></td></tr>');
-    numberOfChoises += 1;
-    $("#create-multiple-choise").val(null);
-}
-
-function deleteChoise(choiseID) {
-    $("#choise-" + choiseID).remove();
+    return parseInt(path.substring(
+        path.indexOf(subjectURI) + subjectURI.length, 
+        path.lastIndexOf("/edit")
+    ));
 }
