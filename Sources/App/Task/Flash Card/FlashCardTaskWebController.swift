@@ -32,8 +32,6 @@ class FlashCardTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        let query = try req.query.decode(CreateTaskURLQuery.self)
-
         return try req.parameters
             .next(Subject.self)
             .flatMap { subject in
@@ -50,9 +48,7 @@ class FlashCardTaskWebController: RouteCollection {
                                     FlashCardTask.Templates.Create.self,
                                     with: .init(
                                         user: user,
-                                        subject: subject,
-                                        topics: topics,
-                                        selectedTopicId: query.topicId
+                                        content: .init(subject: subject, topics: topics)
                                     )
                                 )
                         }
@@ -68,26 +64,18 @@ class FlashCardTaskWebController: RouteCollection {
             .next(FlashCardTask.self)
             .flatMap { flashCard in
 
-                FlashCardTask.DatabaseRepository
-                    .content(for: flashCard, on: req)
-                    .flatMap { content in
+                try FlashCardTask.DatabaseRepository
+                    .modifyContent(forID: flashCard.requireID(), on: req)
+                    .map { content in
 
-                        try Topic.DatabaseRepository
-                            .getTopicResponses(in: content.subject, conn: req)
-                            .map { topics in
-
-                                try req.renderer()
-                                    .render(
-                                        FlashCardTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: content.subject,
-                                            topics: topics,
-                                            content: content.task,
-                                            selectedTopicId: content.topic.id
-                                        )
+                        try req.renderer()
+                            .render(
+                                FlashCardTask.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    content: content
                                 )
-                        }
+                        )
                 }
         }
     }

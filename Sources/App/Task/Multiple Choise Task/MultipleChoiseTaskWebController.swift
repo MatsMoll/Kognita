@@ -34,7 +34,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             use: getInstance)
     }
 
-    func getInstance(on req: Request) throws -> Future<HTTPResponse> {
+    func getInstance(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -61,7 +61,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         }
     }
 
-    func createTask(_ req: Request) throws -> Future<HTTPResponse> {
+    func createTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -84,9 +84,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                         MultipleChoiseTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
-                                            subject: subject,
-                                            topics: topics,
-                                            selectedTopicId: query.topicId
+                                            content: .init(subject: subject, topics: topics)
                                         )
                                 )
                         }
@@ -94,7 +92,7 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         }
     }
 
-    func editTask(_ req: Request) throws -> Future<HTTPResponse> {
+    func editTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
@@ -102,29 +100,22 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
 
-                try User.DatabaseRepository.isModerator(user: user, taskID: multiple.requireID(), on: req)
-                    .flatMap {
+                try User.DatabaseRepository
+                    .isModerator(user: user, taskID: multiple.requireID(), on: req)
+                    .flatMap { _ in
 
                         try MultipleChoiseTask.DatabaseRepository
-                            .content(for: multiple, on: req)
-                            .flatMap { preview, content in
+                            .modifyContent(forID: multiple.requireID(), on: req)
+                            .map { content in
 
-                                try Topic.DatabaseRepository
-                                    .getTopicResponses(in: preview.subject, conn: req)
-                                    .map { topics in
-
-                                        try req.renderer()
-                                            .render(
-                                                MultipleChoiseTask.Templates.Create.self,
-                                                with: .init(
-                                                    user: user,
-                                                    subject: preview.subject,
-                                                    topics: topics,
-                                                    taskInfo: preview.task,
-                                                    multipleTaskInfo: content
-                                                )
+                                try req.renderer()
+                                    .render(
+                                        MultipleChoiseTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            content: content
                                         )
-                                }
+                                )
                         }
                 }
         }

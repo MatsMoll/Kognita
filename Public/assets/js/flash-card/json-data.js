@@ -23,7 +23,7 @@ function jsonData() {
     }
 
     return JSON.stringify({
-        "isExaminable" : false,
+        "isTestable" : false,
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
         "subtopicId" : subtopicId,
