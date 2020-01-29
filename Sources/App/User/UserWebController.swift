@@ -72,17 +72,23 @@ final class UserWebController: RouteCollection {
                                 return req.redirect(to: "/subjects")
                         }
                 }
-            }.catchFlatMap({ (error) in
-                print("Error: ", error)
-                switch error {
-                case is User.DatabaseRepository.Errors:
-                    return try req.renderer()
-                        .render(User.Templates.Signup.self, with: .init(errorMessage: error.localizedDescription))
-                        .encode(for: req)
-                default:
-                    throw error
-                }
-            })
+                .catchFlatMap({ (error) in
+                    switch error {
+                    case is User.DatabaseRepository.Errors:
+                        return try req.renderer()
+                            .render(
+                                User.Templates.Signup.self,
+                                with: .init(
+                                    errorMessage: error.localizedDescription,
+                                    submittedForm: createUser
+                                )
+                            )
+                            .encode(for: req)
+                    default:
+                        throw error
+                    }
+                })
+            }
     }
 
     func cookieLogin(_ req: Request) throws -> EventLoopFuture<Response> {
@@ -122,7 +128,7 @@ final class UserWebController: RouteCollection {
         return try req.renderer()
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init(errorMessage: nil)
+                with: .init()
         )
     }
 
@@ -131,7 +137,7 @@ final class UserWebController: RouteCollection {
         let successPage = try req.renderer()
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init(errorMessage: "Du skal snart få en email med en link for å gjenopprette passordet ditt")
+                with: .init(state: .success)
         )
         return try User.DefaultAPIController
             .startResetPassword(on: req)
