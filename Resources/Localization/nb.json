@@ -3,7 +3,7 @@
     "menu.history" : "Øvingshistorikk",
     "menu.create" : "Lag innhold",
     "menu.login" : "Logg inn",
-    "menu.register" : "Register",
+    "menu.register" : "Registrer",
     "menu.logout" : "Logg ut",
 
 
@@ -64,6 +64,13 @@
     "register.already.user.description" : "Har du allerede en bruker?",
     "register.already.user.link" : "Logg inn",
 
+    "reset.password.title" : "Gjenopprett passord",
+    "reset.password.subtitle" : "Gjenopprett passordet ditt ved å fylle inn eposten din under",
+    "reset.password.button" : "Gjenopprett passord",
+
+    "verify.email.title" : "Verifiser eposten din",
+    "verify.email.subtitle" : "Verifiser eposten din og få tilgang til Kognita",
+    "verify.email.button" : "Verifiser nå",
 
     "subjects.title" : "Fagoversikt",
 

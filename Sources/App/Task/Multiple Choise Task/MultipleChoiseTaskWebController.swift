@@ -12,8 +12,8 @@ import KognitaViews
 
 final class MultipleChoiseTaskWebController: RouteCollection {
 
-    struct CreateTaskURLQuery: Content {
-        let topicId: Int?
+    struct EditTaskURLQuery: Content {
+        let wasUpdated: Bool?
     }
 
     static let shared = MultipleChoiseTaskWebController()
@@ -65,8 +65,6 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        let query = try req.query.decode(CreateTaskURLQuery.self)
-
         return try req.parameters
             .next(Subject.self)
             .flatMap { subject in
@@ -96,6 +94,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
+        let query = try req.query.decode(EditTaskURLQuery.self)
+
         return try req.parameters
             .next(MultipleChoiseTask.self)
             .flatMap { multiple in
@@ -113,7 +113,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                         MultipleChoiseTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
-                                            content: content
+                                            content: content,
+                                            wasUpdated: query.wasUpdated ?? false
                                         )
                                 )
                         }

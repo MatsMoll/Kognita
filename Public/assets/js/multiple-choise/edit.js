@@ -22,7 +22,7 @@ function editMultipleChoise() {
             }
         })
         .then(function (json) {
-            window.location.href = "/tasks/multiple-choise/" + json.task.id;
+            window.location.href = "../" + json.id + "/edit?wasUpdated=true";
         })
         .catch(function (error) {
             presentErrorMessage(error.message);

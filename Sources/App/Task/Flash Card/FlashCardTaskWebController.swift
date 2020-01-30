@@ -11,8 +11,8 @@ import KognitaViews
 
 class FlashCardTaskWebController: RouteCollection {
 
-    struct CreateTaskURLQuery: Content {
-        let topicId: Int?
+    struct EditTaskURLQuery: Content {
+        let wasUpdated: Bool?
     }
 
     func boot(router: Router) throws {
@@ -60,6 +60,8 @@ class FlashCardTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
+        let query = try req.query.decode(EditTaskURLQuery.self)
+
         return try req.parameters
             .next(FlashCardTask.self)
             .flatMap { flashCard in
@@ -73,7 +75,8 @@ class FlashCardTaskWebController: RouteCollection {
                                 FlashCardTask.Templates.Create.self,
                                 with: .init(
                                     user: user,
-                                    content: content
+                                    content: content,
+                                    wasUpdated: query.wasUpdated ?? false
                                 )
                         )
                 }
