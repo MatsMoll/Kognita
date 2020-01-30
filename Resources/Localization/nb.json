@@ -68,6 +68,10 @@
     "reset.password.subtitle" : "Gjenopprett passordet ditt ved å fylle inn eposten din under",
     "reset.password.button" : "Gjenopprett passord",
 
+    "verify.email.title" : "Verifiser eposten din",
+    "verify.email.subtitle" : "Verifiser eposten din og få tilgang til Kognita",
+    "verify.email.button" : "Verifiser nå",
+
     "subjects.title" : "Fag oversikt",
 
     "subjects.repeat.title" : "Repetering",

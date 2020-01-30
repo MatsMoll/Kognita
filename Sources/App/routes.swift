@@ -34,7 +34,6 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: SubjectWebController())
     try redirectMiddle.register(collection: TopicWebController())
     try redirectMiddle.register(collection: MultipleChoiseTaskWebController())
-//    try redirectMiddle.register(collection: NumberInputTaskWebController())
     try redirectMiddle.register(collection: CreatorWebController())
     try redirectMiddle.register(collection: FlashCardTaskWebController())
     try redirectMiddle.register(collection: SubtopicWebController())
