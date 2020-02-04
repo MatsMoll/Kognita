@@ -36,8 +36,8 @@ function revealSolution() {
     }
 }
 
-function nextTask() {
-    submitPerformance(function() {
+function nextTask(score) {
+    submitPerformance(score, function() {
         location.href = $("#next-task").val();
     })
 }
@@ -46,13 +46,13 @@ function submitAndEndSession() {
     if ($("#solution").hasClass("d-none")) {
         endSession();
     } else {
-        submitPerformance(function() { 
+        submitPerformance(2, function() { 
             endSession(); 
         });
     }
 }
 
-function submitPerformance(handleSuccess) {
+function submitPerformance(score, handleSuccess) {
 
     if (isSubmiting == false) {
         handleSuccess();
@@ -62,7 +62,7 @@ function submitPerformance(handleSuccess) {
     var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
-    let knowledge = parseFloat($("#knowledge-slider").val());
+    let knowledge = parseFloat(score);
 
     if (knowledge == null) {
         return
@@ -118,6 +118,9 @@ function fetchSolutions(taskIndex, practiceSessionID) {
         $("#solution").html(html);
         $("#solution").fadeIn();
         $("#solution").removeClass("d-none");
+        $(".solutions").each(function () {
+            this.innerHTML = renderMarkdown(this.innerHTML);
+        });
     })
     .catch(function (error) {
         $("#submitButton").attr("disabled", false);
@@ -167,3 +170,9 @@ function taskIndex() {
         path.length
     ));
 }
+
+function endSession() {
+    $("#end-session-form").submit();
+}
+
+$("#task-description").html(renderMarkdown($("#task-description").html()));
