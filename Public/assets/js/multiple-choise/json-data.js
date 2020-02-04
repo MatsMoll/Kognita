@@ -10,18 +10,18 @@ function jsonData() {
         });
     })
 
-    var description = null;
-    if (!$('#create-multiple-description').summernote("isEmpty")) {
-        description = $("#create-multiple-description").summernote("code");
+    var description = descriptionEditor.value();
+    if (description.length < 1) {
+        description = null;
     }
     var examPaperSemester = $("#create-multiple-exam-semester").val();
     var examPaperYear = parseInt($("#create-multiple-exam-year").val());
     var question = $("#create-multiple-question").val();
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
     var isTestable = $("#create-multiple-testable").prop("checked");
-    var solution = null;
-    if (!$('#create-multiple-solution').summernote("isEmpty")) {
-        solution = $("#create-multiple-solution").summernote("code");
+    var solution = solutionEditor.value();
+    if (solution.length < 1) {
+        solution = null;
     }
 
     if (isNaN(subtopicId) || subtopicId < 1) {

@@ -1,47 +1,16 @@
-$("#create-multiple-description").summernote({
-    minHeight : 200,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-solution").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-choise").summernote({
-    toolbar: [
-        // [groupName, [list of button]]
-        ['insert', ['picture', 'math']],
-        ['para', ['style']],
-      ]
-})
-$("#create-multiple-choise").summernote("code", "");
+let descriptionEditor = editorForID("create-multiple-description");
+let solutionEditor = editorForID("create-multiple-solution");
+let choiseEditor = editorForID("create-multiple-choise"); 
 
 var numberOfChoises = 1;
 
 function addChoise() {
-    if ($('#create-multiple-choise').summernote("isEmpty")) { return; }
-    var choise = $('#create-multiple-choise').summernote("code");
+    var choise = choiseEditor.value();
+    if (choise.length == 0) { return; }
     var table = $("#create-multiple-choises");
     table.append('<div id="choise--' + numberOfChoises + '" class="card shadow-none border mb-1"><div class="card-body"><div class="p-2 text-secondary"><div class="custom-control custom-radio"><input name="choiseInput" class="custom-control-input" id="' + numberOfChoises + '" type="radio"><label class="custom-control-label" for="' + numberOfChoises + '">' + choise + '</label><button type="button" onclick="deleteChoise(-' + numberOfChoises + ');" class="btn btn-danger btn-rounded float-right"><i class="mdi mdi-delete"></i></button></div></div></div></div>');
     numberOfChoises += 1;
-    $("#create-multiple-choise").summernote("code", "");
+    choiseEditor.value("");
 }
 
 function deleteChoise(choiseID) {
