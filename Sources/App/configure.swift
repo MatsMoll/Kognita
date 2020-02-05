@@ -26,6 +26,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Serves files from `Public/` directory
     middlewares.use(FileMiddleware.self)
 
+    KognitaAPI.configMiddleware(config: &middlewares)
+
     if env != .production {
         // Catches errors and converts to HTTP responses for developers
         middlewares.use(ErrorMiddleware.self)
