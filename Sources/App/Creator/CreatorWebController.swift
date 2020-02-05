@@ -20,8 +20,8 @@ final class CreatorWebController: RouteCollection {
     func subjectOverview(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
                 try User.DatabaseRepository

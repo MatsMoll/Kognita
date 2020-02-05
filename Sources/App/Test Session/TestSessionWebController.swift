@@ -31,8 +31,8 @@ class TestSessionWebController: TestSessionWebControlling {
 
     func redirectToTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        return try req.parameters
-            .next(TaskSession.TestParameter.self)
+        return req.parameters
+            .model(TaskSession.TestParameter.self, on: req)
             .flatMap { session in
 
                 try SubjectTest.DatabaseRepository
@@ -47,11 +47,11 @@ class TestSessionWebController: TestSessionWebControlling {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(TaskSession.TestParameter.self)
+        return req.parameters
+            .model(TaskSession.TestParameter.self, on: req)
             .flatMap { session in
 
-                let taskID = try req.parameters.next(Int.self)
+                let taskID = try req.parameters.first(Int.self, on: req)
 
                 return try SubjectTest.DatabaseRepository
                     .taskWith(id: taskID, in: session, for: user, on: req)

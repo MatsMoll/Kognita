@@ -80,8 +80,8 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .map { subject in
 
                 return try req.renderer()
