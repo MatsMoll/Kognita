@@ -66,3 +66,12 @@ function testSessionID() {
 $('input[name="choiseInput"]').click(function () {
     saveChoise();
 });
+
+$("#task-description").each(function () {
+    this.innerHTML = renderMarkdown(this.innerHTML);
+})
+$("input[name='choiseInput']").each(function () {
+    $("label[for='" + $(this).attr("id") + "']").each(function (){
+        this.innerHTML = renderMarkdown(this.innerHTML);
+    });
+});
