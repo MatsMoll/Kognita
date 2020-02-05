@@ -32,8 +32,8 @@ class FlashCardTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
                 try User.DatabaseRepository
@@ -62,8 +62,8 @@ class FlashCardTaskWebController: RouteCollection {
 
         let query = try req.query.decode(EditTaskURLQuery.self)
 
-        return try req.parameters
-            .next(FlashCardTask.self)
+        return req.parameters
+            .model(FlashCardTask.self, on: req)
             .flatMap { flashCard in
 
                 try FlashCardTask.DatabaseRepository
@@ -88,8 +88,8 @@ class FlashCardTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(FlashCardTask.self)
+        return req.parameters
+            .model(FlashCardTask.self, on: req)
             .flatMap { flashCard in
 
                 FlashCardTask.DatabaseRepository

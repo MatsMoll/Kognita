@@ -25,7 +25,7 @@ class SubtopicWebController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
 
         return try req.parameters
-            .next(Subject.self)
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
                 try User.DatabaseRepository
@@ -53,16 +53,16 @@ class SubtopicWebController: RouteCollection {
 
        let user = try req.requireAuthenticated(User.self)
 
-       return try req.parameters
-           .next(Subject.self)
+       return req.parameters
+            .model(Subject.self, on: req)
            .flatMap { subject in
 
                 try User.DatabaseRepository
                     .isModerator(user: user, subjectID: subject.requireID(), on: req)
                     .flatMap {
 
-                        try req.parameters
-                            .next(Subtopic.self)
+                        req.parameters
+                            .model(Subtopic.self, on: req)
                             .flatMap { subtopic in
 
                                 try Topic.DatabaseRepository

@@ -38,8 +38,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(MultipleChoiseTask.self)
+        return req.parameters
+            .model(MultipleChoiseTask.self, on: req)
             .flatMap { multiple in
 
                 try MultipleChoiseTask.DatabaseRepository
@@ -65,8 +65,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
                 try User.DatabaseRepository
@@ -96,8 +96,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
 
         let query = try req.query.decode(EditTaskURLQuery.self)
 
-        return try req.parameters
-            .next(MultipleChoiseTask.self)
+        return req.parameters
+            .model(MultipleChoiseTask.self, on: req)
             .flatMap { multiple in
 
                 try User.DatabaseRepository

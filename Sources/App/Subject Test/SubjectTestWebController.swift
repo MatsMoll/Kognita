@@ -54,8 +54,8 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
                 try User.DatabaseRepository
@@ -130,8 +130,8 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(SubjectTest.self)
+        return req.parameters
+            .model(SubjectTest.self, on: req)
             .map { test in
 
                 try req.renderer()
