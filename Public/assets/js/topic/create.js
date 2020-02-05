@@ -1,15 +1,3 @@
-$("#create-topic-description").summernote({
-    minHeight: 200,
-    placeholder: "Skriv beskrivelse her",
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['insert', ['picture', 'link', 'hr']],
-        ['misc', ['undo', 'redo', 'help']]
-      ]
-});
 
 function createTopic() {
     
@@ -34,7 +22,7 @@ function createTopic() {
             }
         })
         .then(function (json) {
-            window.location.href = "/creator/dashboard"
+            window.location.href = "/subjects"
         })
         .catch(function (error) {
             presentErrorMessage(error.message);
@@ -65,10 +53,6 @@ function jsonData() {
     ));
 
     let name = $("#create-topic-name").val();
-    var description = null;
-    if (!$('#create-topic-description').summernote("isEmpty")) {
-        description = $("#create-topic-description").summernote("code");
-    }
     let chapter = parseInt($("#create-topic-chapter").val());
 
     if (isNaN(subjectId) || subjectId < 1) {
@@ -80,14 +64,10 @@ function jsonData() {
     if (name.length <= 1) {
         throw Error("Du må skrive inn et navn på temaet");
     }
-    if (description.length <= 1) {
-        throw Error("Du må skrive inn en beskrivelse");
-    }
 
     return JSON.stringify({
         "subjectId"     : subjectId,
         "name"          : name,
-        "description"   : description,
         "chapter"       : chapter
     });
 }
