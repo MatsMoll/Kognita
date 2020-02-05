@@ -1,23 +1,12 @@
-$("#create-subject-description").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['insert', ['link', 'hr']],
-        ['misc', ['undo', 'redo', 'help']]
-      ]
-});
-
+let descriptionEditor = editorForID("create-subject-description"); 
 
 function createSubject() {
     var url = "/api/subjects";
 
     var name = $("#create-subject-name").val();
-    var description = null;
-    if (!$('#create-subject-description').summernote("isEmpty")) {
-        description = $("#create-subject-description").summernote("code");
+    var description = descriptionEditor.value();
+    if (descriptionEditor.lenght < 1) {
+        description = null;
     }
     var category = $("#create-subject-category").val();
     var colorClass = $('input[name=color-class]:checked').attr('id');
