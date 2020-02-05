@@ -11,7 +11,7 @@ function openTest(id) {
     })
     .then(function (response) {
         if (response.ok) {
-            window.location.href = "/subjects";
+            window.location.href = "/subject-tests/" + id + "/monitor";
         } else if (response.status == 400) {
             throw new Error("Sjekk at all nødvendig info er fylt ut");
         } else {
