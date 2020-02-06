@@ -13,6 +13,11 @@ import KognitaAPI
 
 final class SubjectWebController: RouteCollection {
 
+    private struct ListAllQuery: Codable {
+        let incorrectPassword: Bool
+    }
+
+
     func boot(router: Router) {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
@@ -23,6 +28,7 @@ final class SubjectWebController: RouteCollection {
     func listAll(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
+        let query = try? req.query.decode(ListAllQuery.self)
 
         return try Subject.DefaultAPIController
             .getListContent(req)
@@ -33,7 +39,8 @@ final class SubjectWebController: RouteCollection {
                         Subject.Templates.ListOverview.self,
                         with: .init(
                             user: user,
-                            list: listContent
+                            list: listContent,
+                            wasIncorrectPassword: query?.incorrectPassword ?? false
                         )
                 )
         }

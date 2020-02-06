@@ -1,5 +1,6 @@
 // swift-tools-version:5.1
 import PackageDescription
+import Foundation
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
@@ -14,22 +15,29 @@ var dependencies: [Package.Dependency] = [
 
 // Kognita Core
 
-#if os(macOS) // Local development
-dependencies.append(contentsOf: [
-        .package(path: "../KognitaAPI"),
-        .package(path: "../KognitaCore"),
-        .package(path: "../KognitaViews"),
-    ]
-)
-#else
-dependencies.append(contentsOf: [
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
-    ]
-)
-#endif
-
+switch ProcessInfo.processInfo.environment["BUILD_TYPE"] {
+case "LOCAL":
+    dependencies.append(contentsOf: [
+            .package(path: "../KognitaAPI"),
+            .package(path: "../KognitaCore"),
+            .package(path: "../KognitaViews"),
+        ]
+    )
+case "DEV":
+    dependencies.append(contentsOf: [
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
+        ]
+    )
+default:
+    dependencies.append(contentsOf: [
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: "2.0.0"),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: "2.0.0"),
+        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", from: "2.0.0"),
+        ]
+    )
+}
 
 let package = Package(
     name: "Kognita",
