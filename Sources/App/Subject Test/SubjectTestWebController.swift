@@ -44,6 +44,9 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
             case SubjectTest.DatabaseRepository.Errors
                 .alreadyEntered(sessionID: let sessionID):
                     return req.redirect(to: "/test-sessions/\(sessionID)")
+            case SubjectTest.DatabaseRepository.Errors
+                .incorrectPassword:
+                    return req.redirect(to: "/subjects?incorrectPassword=true")
             default:
                 throw error
             }
