@@ -15,7 +15,6 @@ var dependencies: [Package.Dependency] = [
 
 // Kognita Core
 
-print(ProcessInfo.processInfo.environment["BUILD_TYPE"] ?? "BUILD_TYPE not set")
 switch ProcessInfo.processInfo.environment["BUILD_TYPE"] {
 case "LOCAL":
     dependencies.append(contentsOf: [

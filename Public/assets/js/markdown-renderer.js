@@ -7,7 +7,8 @@ function renderKatex(plainText) {
         leftovers = leftovers.substring(index + 2, leftovers.length);
         let endIndex = leftovers.indexOf("$$");
         if (endIndex != -1) {
-            output += katex.renderToString(leftovers.substring(0, endIndex));
+            let katexSubstring = new DOMParser().parseFromString(leftovers.substring(0, endIndex), "text/html").documentElement.textContent;
+            output += katex.renderToString(katexSubstring);
             leftovers = leftovers.substring(endIndex + 2, leftovers.length);
         } else {
             output += "$$";
@@ -18,9 +19,7 @@ function renderKatex(plainText) {
 }
 
 function renderMarkdown(markdown) {
-    console.log(markdown);
     if (markdown.startsWith("<") == false) {
-        console.log(renderKatex(markdown));
         return marked(renderKatex(markdown));
     } else {
         return markdown;
