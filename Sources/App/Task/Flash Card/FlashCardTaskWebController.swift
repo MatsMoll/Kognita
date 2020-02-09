@@ -22,10 +22,6 @@ class FlashCardTaskWebController: RouteCollection {
         router.get(
             "creator/tasks/flash-card", FlashCardTask.parameter, "edit",
             use: editTask)
-
-        router.get(
-            "tasks/flash-card", FlashCardTask.parameter,
-            use: getInstance)
     }
 
     func createTask(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
@@ -78,32 +74,6 @@ class FlashCardTaskWebController: RouteCollection {
                                     content: content,
                                     wasUpdated: query.wasUpdated ?? false
                                 )
-                        )
-                }
-        }
-    }
-
-
-    func getInstance(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return req.parameters
-            .model(FlashCardTask.self, on: req)
-            .flatMap { flashCard in
-
-                FlashCardTask.DatabaseRepository
-                    .content(for: flashCard, on: req)
-                    .map { preview in
-
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Execute.self,
-                            with: .init(
-                                taskPreview: preview,
-                                user: user.content(),
-                                currentTaskIndex: nil,
-                                numberOfTasks: 1
-                            )
                         )
                 }
         }
