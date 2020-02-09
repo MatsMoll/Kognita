@@ -17,16 +17,18 @@ final class UserWebController: RouteCollection {
 
     func boot(router: Router) {
 
-        router.get("signup",                use: signupForm)
-        router.get("login",                 use: loginForm)
-        router.get("start-reset-password",  use: startResetPasswordForm)
-        router.get("reset-password",        use: resetPasswordForm)
+        router.get("signup",                            use: signupForm)
+        router.get("login",                             use: loginForm)
+        router.get("start-reset-password",              use: startResetPasswordForm)
+        router.get("reset-password",                    use: resetPasswordForm)
+        router.get("users", "verified",                 use: verified(on: ))
+        router.get("users", User.parameter, "verify",   use: verify(on: ))
 
-        router.post("login",                use: cookieLogin)
-        router.post("logout",               use: logout)
-        router.post("signup",               use: create)
-        router.post("start-reset-password", use: startResetPassword)
-        router.post("reset-password",       use: resetPassword)
+        router.post("login",                            use: cookieLogin)
+        router.post("logout",                           use: logout)
+        router.post("signup",                           use: create)
+        router.post("start-reset-password",             use: startResetPassword)
+        router.post("reset-password",                   use: resetPassword)
     }
 
     func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
@@ -70,17 +72,23 @@ final class UserWebController: RouteCollection {
                                 return req.redirect(to: "/subjects")
                         }
                 }
-            }.catchFlatMap({ (error) in
-                print("Error: ", error)
-                switch error {
-                case is User.DatabaseRepository.Errors:
-                    return try req.renderer()
-                        .render(User.Templates.Signup.self, with: .init(errorMessage: error.localizedDescription))
-                        .encode(for: req)
-                default:
-                    throw error
-                }
-            })
+                .catchFlatMap({ (error) in
+                    switch error {
+                    case is User.DatabaseRepository.Errors:
+                        return try req.renderer()
+                            .render(
+                                User.Templates.Signup.self,
+                                with: .init(
+                                    errorMessage: error.localizedDescription,
+                                    submittedForm: createUser
+                                )
+                            )
+                            .encode(for: req)
+                    default:
+                        throw error
+                    }
+                })
+            }
     }
 
     func cookieLogin(_ req: Request) throws -> EventLoopFuture<Response> {
@@ -120,16 +128,16 @@ final class UserWebController: RouteCollection {
         return try req.renderer()
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init(errorMessage: nil)
+                with: .init()
         )
     }
 
-    func startResetPassword(on req: Request) throws -> Future<HTTPResponse> {
+    func startResetPassword(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let successPage = try req.renderer()
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init(errorMessage: "Du skal snart få en email med en link for å gjenopprette passordet ditt")
+                with: .init(state: .success)
         )
         return try User.DefaultAPIController
             .startResetPassword(on: req)
@@ -162,10 +170,23 @@ final class UserWebController: RouteCollection {
         }
     }
 
-    func resetPassword(req: Request) throws -> Future<Response> {
+    func resetPassword(req: Request) throws -> EventLoopFuture<Response> {
         return try User.DefaultAPIController
             .resetPassword(on: req)
             .transform(to: req.redirect(to: "/login"))
+    }
+
+    func verify(on req: Request) throws -> EventLoopFuture<Response> {
+        try User.DefaultAPIController
+            .verify(on: req)
+            .map { _ in
+                req.redirect(to: "/users/verified")
+        }
+    }
+
+    func verified(on req: Request) throws -> HTTPResponse {
+        try req.renderer()
+            .render(User.Templates.VerifiedConfirmation.self)
     }
 }
 

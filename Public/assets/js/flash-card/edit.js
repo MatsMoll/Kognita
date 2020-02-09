@@ -1,28 +1,3 @@
-$("#card-description").summernote({
-    minHeight : 200,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#card-solution").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
 
 function editFlashCard() {
 

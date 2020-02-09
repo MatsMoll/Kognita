@@ -1,37 +1,3 @@
-$("#create-multiple-description").summernote({
-    minHeight : 200,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-solution").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'style']],
-        ['insert', ['picture', 'link', 'video', 'table', 'hr', 'math']],
-        ['misc', ['undo', 'redo', 'fullscreen', 'help']]
-      ]
-});
-
-$("#create-multiple-choise").summernote({
-    toolbar: [
-        // [groupName, [list of button]]
-        ['insert', ['picture', 'math']],
-        ['para', ['style']],
-      ]
-})
-$("#create-multiple-choise").summernote("code", "");
 
 function createMultipleChoise() {
 
@@ -65,22 +31,6 @@ function createMultipleChoise() {
         presentErrorMessage(error.message);
     }
 }
-
-var numberOfChoises = 0;
-
-function addChoise() {
-    if ($('#create-multiple-choise').summernote("isEmpty")) { return; }
-    var choise = $('#create-multiple-choise').summernote("code");
-    var table = $("#create-multiple-choises");
-    table.append('<tr id="choise-' + numberOfChoises + '"><td>' + choise + '</td><td><input type="checkbox" id="switch' + numberOfChoises + '" data-switch="bool"/><label for="switch' + numberOfChoises + '" data-on-label="Ja" data-off-label="Nei"></label></td><td><button  type="button" class="btn btn-danger btn-rounded" onclick="deleteChoise(' + numberOfChoises + ');"><i class="mdi mdi-delete"></i></button></td></tr>');
-    numberOfChoises += 1;
-    $("#create-multiple-choise").summernote("code", "");
-}
-
-function deleteChoise(choiseID) {
-    $("#choise-" + choiseID).remove();
-}
-
 
 function subjectID() {
     let path = window.location.pathname;

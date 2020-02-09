@@ -47,6 +47,10 @@ xhr.onreadystatechange = function () {
                         reverse: !0,
                         gridLines: {
                             color: "rgba(0,0,0,0.05)"
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Uke'
                         }
                     }],
                     yAxes: [{
@@ -61,6 +65,10 @@ xhr.onreadystatechange = function () {
                         gridLines: {
                             color: "rgba(0,0,0,0)",
                             fontColor: "#fff"
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Oppgaver'
                         }
                     }]
                 }

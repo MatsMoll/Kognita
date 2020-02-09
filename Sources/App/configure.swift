@@ -1,7 +1,7 @@
 import Authentication
 import FluentPostgreSQL
 import Vapor
-import HTMLKit_Vapor_3_Provider
+import HTMLKitVaporProvider
 import KognitaCore
 import KognitaViews
 import KognitaAPI
@@ -11,8 +11,7 @@ import Mailgun
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
 
     // Register providers first
-    try services.register(FluentPostgreSQLProvider())
-    try services.register(AuthenticationProvider())
+    try services.register(KognitaAPIProvider(env: env))
 
     // Sets the templating framework and Web Sessions
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
@@ -27,6 +26,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Serves files from `Public/` directory
     middlewares.use(FileMiddleware.self)
 
+    KognitaAPI.configMiddleware(config: &middlewares)
+
     if env != .production {
         // Catches errors and converts to HTTP responses for developers
         middlewares.use(ErrorMiddleware.self)
@@ -36,6 +37,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     }
     
     services.register(middlewares)
+    services.register(APIControllerCollection.defaultControllers)
     services.register { _ in
         HTMLKitErrorMiddleware(
             notFoundPage: Pages.NotFoundError.self,
@@ -43,11 +45,15 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         )
     }
 
-    let templates = try setupTemplates()
-    services.register(templates)
-    services.register(templates, as: ResetPasswordMailRenderable.self)
+    let renderer = try KognitaViews.renderer(env: env)
 
-    KognitaAPI.setupApi(with: env, in: &services)
+    let path = DirectoryConfig.detect().workDir + "Resources/Localization"
+    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
+    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
+
+    services.register(renderer)
+    services.register(ResetPasswordMailRenderer(renderer: renderer), as: ResetPasswordMailRenderable.self)
+    services.register(VerifyEmailRenderer(renderer: renderer), as: VerifyEmailRenderable.self)
 }
 
 private func registerRouter(in services: inout Services) throws {
@@ -56,69 +62,30 @@ private func registerRouter(in services: inout Services) throws {
     services.register(router, as: Router.self)
 }
 
-func setupTemplates() throws -> HTMLRenderer {
+struct ResetPasswordMailRenderer: ResetPasswordMailRenderable {
+    let renderer: HTMLRenderer
 
-    let renderer = HTMLRenderer()
-
-    let path = DirectoryConfig.detect().workDir + "Resources/Localization"
-    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
-
-    // Starter
-    try renderer.add(view: Pages.Landing())
-
-    // Error Pages
-    try renderer.add(view: Pages.ServerError())
-    try renderer.add(view: Pages.NotFoundError())
-
-    // Auth
-    try renderer.add(view: LoginPage())
-    try renderer.add(view: User.Templates.Signup())
-    try renderer.add(view: User.Templates.ResetPassword.Start())
-    try renderer.add(view: User.Templates.ResetPassword.Mail())
-    try renderer.add(view: User.Templates.ResetPassword.Reset())
-
-    // Main User pages
-    try renderer.add(view: Subject.Templates.ListOverview())
-    try renderer.add(view: Subject.Templates.Details())
-    try renderer.add(view: Subject.Templates.SelectRedirect())
-
-//    // Task Overview
-//    try renderer.add(template: TaskOverviewListTemplate())
-
-//    // Task Template
-    try renderer.add(view: FlashCardTask.Templates.Execute())
-    try renderer.add(view: MultipleChoiseTask.Templates.Execute())
-    try renderer.add(view: TaskSolutionsTemplate())
-//
-//    // Create Content
-    try renderer.add(view: Subject.Templates.Create())
-    try renderer.add(view: Topic.Templates.Create())
-    try renderer.add(view: Subtopic.Templates.Create())
-//
-//    // Create Task Templates
-    try renderer.add(view: FlashCardTask.Templates.Create())
-    try renderer.add(view: MultipleChoiseTask.Templates.Create())
-//
-//    // Practice Session
-    try renderer.add(view: PracticeSession.Templates.History())
-    try renderer.add(view: PracticeSession.Templates.Result())
-
-//    // Creator pages
-    try renderer.add(view: CreatorTemplates.Dashboard())
-    try renderer.add(view: CreatorTemplates.TopicDetails())
-    try renderer.add(view: Subject.Templates.ContentOverview())
-//    try renderer.add(template: CreatorInformationPage())
-    return renderer
-}
-
-extension HTMLRenderer: ResetPasswordMailRenderable {
-    public func render(with token: User.ResetPassword.Token.Create.Response, for user: User) throws -> String {
-        try render(
+    public func render(with token: User.ResetPassword.Token.Data, for user: User) throws -> String {
+        try renderer.render(
                 raw: User.Templates.ResetPassword.Mail.self,
                 with: .init(
                     user: user,
-                    changeUrl: "https://uni.kognita.no/reset-password?token=\(token.token)"
+                    token: token
                 )
         )
+    }
+}
+
+struct VerifyEmailRenderer: VerifyEmailRenderable {
+    let renderer: HTMLRenderer
+
+    func render(with content: User.VerifyEmail.EmailContent, on container: Container) throws -> EventLoopFuture<String> {
+        let html = try renderer.render(
+            raw: User.Templates.VerifyMail.self,
+            with: User.Templates.VerifyMail.Context(
+                token: content
+            )
+        )
+        return container.future(html)
     }
 }

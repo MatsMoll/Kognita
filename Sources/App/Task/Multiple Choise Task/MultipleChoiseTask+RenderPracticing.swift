@@ -11,7 +11,7 @@ import KognitaViews
 
 extension MultipleChoiseTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSession, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         return try MultipleChoiseTask.DatabaseRepository
             .content(for: self, on: req)
@@ -34,8 +34,8 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                                             user: user,
                                             currentTaskIndex: index,
                                             session: session,
-                                            practiceProsess: progress,
-                                            lastResult: lastResult?.content
+                                            lastResult: lastResult?.content,
+                                            practiceProgress: progress
                                         )
                                 )
                         }

@@ -3,25 +3,25 @@ function jsonData() {
 
     var choises = [];
 
-    $("#create-multiple-choises").children().each(function() {
+    $("input[name=choiseInput]").each(function() {
         choises.push({
-            "choise" : $(this).children(":nth-child(1)").html(),
-            "isCorrect" : $(this).find("input[type=checkbox]").prop("checked"),
+            "choise" : $("label[for=" + this.id + "]").html(),
+            "isCorrect" : this.checked,
         });
     })
 
-    var description = null;
-    if (!$('#create-multiple-description').summernote("isEmpty")) {
-        description = $("#create-multiple-description").summernote("code");
+    var description = descriptionEditor.value();
+    if (description.length < 1) {
+        description = null;
     }
     var examPaperSemester = $("#create-multiple-exam-semester").val();
     var examPaperYear = parseInt($("#create-multiple-exam-year").val());
     var question = $("#create-multiple-question").val();
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
-    var isExaminable = $("#create-multiple-examinable").prop("checked");
-    var solution = null;
-    if (!$('#create-multiple-solution').summernote("isEmpty")) {
-        solution = $("#create-multiple-solution").summernote("code");
+    var isTestable = $("#create-multiple-testable").prop("checked");
+    var solution = solutionEditor.value();
+    if (solution.length < 1) {
+        solution = null;
     }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
@@ -38,7 +38,7 @@ function jsonData() {
     }
 
     return JSON.stringify({
-        "isExaminable" : isExaminable,
+        "isTestable" : isTestable,
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
         "subtopicId" : subtopicId,

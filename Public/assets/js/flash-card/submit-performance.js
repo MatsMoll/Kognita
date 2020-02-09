@@ -4,21 +4,26 @@ var startDate = new Date();
 var now = new Date();
 
 var timer = setInterval(updateTimer, 1000);
-var isSubmiting = false;
+var hasSubmitted = false;
 
-if (window.location.pathname.includes("session") == false) {
-    $("#nextButton").removeClass("d-none");
+function navigateTo(index) {
+    if (hasSubmitted) {
+        location.href = index
+    } else {
+        location.href = "#knowledge-card";
+        $("#knowledge-card").addClass("bg-primary text-white")
+        $("#knowledge-card").shake();
+    }
 }
 
 function revealSolution() {
     submitedAnswer = $("#flash-card-answer").val();
-    $("#flash-card-answer").removeClass("is-invalid");
-    isSubmiting = true;
     clearInterval(timer);
-    presentControlls();
+    presentControllsAndKnowledge();
 
     if ($("#solution").hasClass("d-none")) {
         now = new Date();
+        $("#nextButton").removeClass("d-none");
         var goalValue = parseFloat($("#goal-value").text());
         var porgressBarValue = parseFloat($("#goal-progress-bar").attr("aria-valuenow"))
         var currentCompleted = porgressBarValue / 100 * goalValue;
@@ -36,8 +41,8 @@ function revealSolution() {
     }
 }
 
-function nextTask() {
-    submitPerformance(function() {
+function nextTask(score) {
+    submitPerformance(score, function() {
         location.href = $("#next-task").val();
     })
 }
@@ -46,23 +51,24 @@ function submitAndEndSession() {
     if ($("#solution").hasClass("d-none")) {
         endSession();
     } else {
-        submitPerformance(function() { 
+        submitPerformance(2, function() { 
             endSession(); 
         });
     }
 }
 
-function submitPerformance(handleSuccess) {
+function submitPerformance(score, handleSuccess) {
 
-    if (isSubmiting == false) {
+    if (hasSubmitted) {
         handleSuccess();
         return
     }
+    hasSubmitted = true;
 
     var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
-    let knowledge = parseFloat($("#knowledge-slider").val());
+    let knowledge = parseFloat(score);
 
     if (knowledge == null) {
         return
@@ -118,6 +124,9 @@ function fetchSolutions(taskIndex, practiceSessionID) {
         $("#solution").html(html);
         $("#solution").fadeIn();
         $("#solution").removeClass("d-none");
+        $(".solutions").each(function () {
+            this.innerHTML = renderMarkdown(this.innerHTML);
+        });
     })
     .catch(function (error) {
         $("#submitButton").attr("disabled", false);
@@ -130,9 +139,15 @@ function fetchSolutions(taskIndex, practiceSessionID) {
 function presentControlls() {
     $("#flash-card-answer").prop('readonly', true)
     $("#submitButton").prop('disabled', true)
-    $("#knowledge-card").fadeIn();
-    $("#knowledge-card").removeClass("d-none");
+    $("#nextButton").removeClass("d-none");
     fetchSolutions(taskIndex(), sessionID());
+    hasSubmitted = true;
+}
+
+function presentControllsAndKnowledge() {
+    presentControlls()
+    hasSubmitted = false;
+    $("#knowledge-card").removeClass("d-none");
 }
 
 
@@ -167,3 +182,9 @@ function taskIndex() {
         path.length
     ));
 }
+
+function endSession() {
+    $("#end-session-form").submit();
+}
+
+$("#task-description").html(renderMarkdown($("#task-description").html()));

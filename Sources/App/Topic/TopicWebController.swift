@@ -22,22 +22,23 @@ final class TopicWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
+        return req.parameters
+            .model(Subject.self, on: req)
+            .flatMap { subject in
 
-        return try req.parameters
-            .next(Subject.self)
-            .map { subject in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .map {
 
-                try req.renderer()
-                    .render(
-                        Topic.Templates.Create.self,
-                        with: .init(
-                            user: user,
-                            subject: subject
+                        try req.renderer()
+                            .render(
+                                Topic.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    subject: subject
+                                )
                         )
-                )
+                }
         }
     }
 
@@ -45,27 +46,28 @@ final class TopicWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
+        return req.parameters
+            .model(Subject.self, on: req)
+            .flatMap { subject in
 
-        return try req.parameters
-            .next(Subject.self)
-            .flatMap { (subject) in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
-                try req.parameters
-                    .next(Topic.self)
-                    .map { topic in
+                        req.parameters
+                            .model(Topic.self, on: req)
+                            .map { topic in
 
-                        try req.renderer()
-                            .render(
-                                Topic.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    topicInfo: topic
+                                try req.renderer()
+                                    .render(
+                                        Topic.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            subject: subject,
+                                            topicInfo: topic
+                                        )
                                 )
-                        )
+                        }
                 }
         }
     }

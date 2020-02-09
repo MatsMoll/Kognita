@@ -11,8 +11,8 @@ import KognitaViews
 
 class FlashCardTaskWebController: RouteCollection {
 
-    struct CreateTaskURLQuery: Content {
-        let topicId: Int?
+    struct EditTaskURLQuery: Content {
+        let wasUpdated: Bool?
     }
 
     func boot(router: Router) throws {
@@ -22,99 +22,58 @@ class FlashCardTaskWebController: RouteCollection {
         router.get(
             "creator/tasks/flash-card", FlashCardTask.parameter, "edit",
             use: editTask)
-
-        router.get(
-            "tasks/flash-card", FlashCardTask.parameter,
-            use: getInstance)
     }
 
-    func createTask(on req: Request) throws -> Future<HTTPResponse> {
+    func createTask(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
 
-        let query = try req.query.decode(CreateTaskURLQuery.self)
-
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopicResponses(in: subject, conn: req)
-                    .map { topics in
-
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Create.self,
-                            with: .init(
-                                user: user,
-                                subject: subject,
-                                topics: topics,
-                                selectedTopicId: query.topicId
-                            )
-                        )
-                }
-        }
-    }
-
-    func editTask(_ req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
-
-        return try req.parameters
-            .next(FlashCardTask.self)
-            .flatMap { flashCard in
-
-                FlashCardTask.DatabaseRepository
-                    .content(for: flashCard, on: req)
-                    .flatMap { content in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
                         try Topic.DatabaseRepository
-                            .getTopicResponses(in: content.subject, conn: req)
+                            .getTopicResponses(in: subject, conn: req)
                             .map { topics in
 
-                                try req.renderer()
-                                    .render(
-                                        FlashCardTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: content.subject,
-                                            topics: topics,
-                                            content: content.task,
-                                            selectedTopicId: content.topic.id
-                                        )
+                                try req.renderer().render(
+                                    FlashCardTask.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        content: .init(subject: subject, topics: topics)
+                                    )
                                 )
                         }
                 }
         }
     }
 
-
-    func getInstance(_ req: Request) throws -> Future<HTTPResponse> {
+    func editTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(FlashCardTask.self)
+        let query = try req.query.decode(EditTaskURLQuery.self)
+
+        return req.parameters
+            .model(FlashCardTask.self, on: req)
             .flatMap { flashCard in
 
-                FlashCardTask.DatabaseRepository
-                    .content(for: flashCard, on: req)
-                    .map { preview in
+                try FlashCardTask.DatabaseRepository
+                    .modifyContent(forID: flashCard.requireID(), on: req)
+                    .map { content in
 
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Execute.self,
-                            with: .init(
-                                taskPreview: preview,
-                                user: user,
-                                currentTaskIndex: nil,
-                                numberOfTasks: 1
-                            )
+                        try req.renderer()
+                            .render(
+                                FlashCardTask.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    content: content,
+                                    wasUpdated: query.wasUpdated ?? false
+                                )
                         )
                 }
         }

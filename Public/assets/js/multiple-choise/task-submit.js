@@ -6,6 +6,10 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+function navigateTo(index) {
+    location.href = index;
+}
+
 function submitChoises() {
     $("#submitButton").attr("disabled", true);
 
@@ -122,6 +126,9 @@ function fetchSolutions(taskIndex, practiceSessionID) {
         $("#solution").html(html);
         $("#solution").fadeIn();
         $("#solution").removeClass("d-none");
+        $(".solutions").each(function () {
+            this.innerHTML = renderMarkdown(this.innerHTML);
+        });
     })
     .catch(function (error) {
         $("#submitButton").attr("disabled", false);
@@ -156,3 +163,12 @@ function taskIndex() {
         path.length
     ));
 }
+
+$("input[name='choiseInput']").each(function () {
+    $("label[for='" + $(this).attr("id") + "']").each(function (){
+        this.innerHTML = renderMarkdown(this.innerHTML);
+    });
+});
+$("#task-description").each(function () {
+    this.innerHTML = renderMarkdown(this.innerHTML);
+})

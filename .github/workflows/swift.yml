@@ -34,6 +34,16 @@ jobs:
     steps:
     - uses: actions/checkout@v1.2.0
     - name: Run unit tests
+      if: github.ref != 'refs/heads/master'
+      env:
+        BUILD_TYPE: DEV
+      run: |
+        apt-get -qq update && apt-get install -y \
+          libssl-dev zlib1g-dev \
+          && rm -r /var/lib/apt/lists/*
+        swift test
+    - name: Run unit tests master
+      if: github.ref == 'refs/heads/master'
       run: |
         apt-get -qq update && apt-get install -y \
           libssl-dev zlib1g-dev \

@@ -17,91 +17,70 @@ class SubtopicWebController: RouteCollection {
 
         creatorSubjects.get("create", use: create)
         creatorSubjects.get(Subtopic.parameter, "edit", use: edit)
-
-        router.get("creator/subtopic-select-subject", use: selectSubject)
     }
 
 
-    func create(on req: Request) throws -> Future<HTTPResponse> {
+    func create(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-        
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
 
         return try req.parameters
-            .next(Subject.self)
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopics(in: subject, conn: req)
-                    .map { topics in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
-                        try req.renderer().render(
-                            Subtopic.Templates.Create.self,
-                            with: .init(
-                                user: user,
-                                subject: subject,
-                                topics: topics
-                            )
-                        )
+                        try Topic.DatabaseRepository
+                            .getTopics(in: subject, conn: req)
+                            .map { topics in
+
+                                try req.renderer().render(
+                                    Subtopic.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        subject: subject,
+                                        topics: topics
+                                    )
+                                )
+                        }
                 }
         }
     }
 
-    func edit(on req: Request) throws -> Future<HTTPResponse> {
+    func edit(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
        let user = try req.requireAuthenticated(User.self)
 
-       return try req.parameters
-           .next(Subject.self)
+       return req.parameters
+            .model(Subject.self, on: req)
            .flatMap { subject in
 
-            try req.parameters
-                .next(Subtopic.self)
-                .flatMap { subtopic in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
-                    try Topic.DatabaseRepository
-                        .getTopics(in: subject, conn: req)
-                        .map { topics in
+                        req.parameters
+                            .model(Subtopic.self, on: req)
+                            .flatMap { subtopic in
 
-                            try req.renderer().render(
-                                Subtopic.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    topics: topics,
-                                    subtopicInfo: subtopic
-                                )
-                            )
-                    }
-            }
-        }
-    }
+                                try Topic.DatabaseRepository
+                                    .getTopics(in: subject, conn: req)
+                                    .map { topics in
 
-    func selectSubject(on req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        guard user.isCreator else {
-            throw Abort(.unauthorized)
-        }
-
-        return Subject.query(on: req)
-            .all()
-            .map { subjects in
-                
-                try req.renderer()
-                    .render(
-                        Subject.Templates.SelectRedirect.self,
-                        with: .init(
-                            user: user,
-                            subjects: subjects,
-                            redirectPathStart: "subjects/",
-                            redirectPathEnd: "/subtopics/create"
-                        )
-                )
+                                        try req.renderer().render(
+                                            Subtopic.Templates.Create.self,
+                                            with: .init(
+                                                user: user,
+                                                subject: subject,
+                                                topics: topics,
+                                                subtopicInfo: subtopic
+                                            )
+                                        )
+                                }
+                        }
+                }
         }
     }
 }

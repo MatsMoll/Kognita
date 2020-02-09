@@ -3,7 +3,7 @@
     "menu.history" : "Øvingshistorikk",
     "menu.create" : "Lag innhold",
     "menu.login" : "Logg inn",
-    "menu.register" : "Register",
+    "menu.register" : "Registrer",
     "menu.logout" : "Logg ut",
 
 
@@ -43,13 +43,13 @@
 
     "register.tab.title" : "Registrering | Kognita",
     "register.title" : "Registrer deg gratis",
-    "register.subtitle" : "Opprettelse av bruker tar mindre enn et minutt",
+    "register.subtitle" : "Opprettelse av bruker tar mindre enn ett minutt",
 
-    "register.name.title" : "Fullt navn",
-    "register.name.placeholder" : "Skriv inn navnet ditt",
+    "register.username.title" : "Brukernavn",
+    "register.username.placeholder" : "KognitaBruker",
 
     "register.mail.title" : "Mail",
-    "register.mail.placeholder" : "Skriv inn mailadressen din",
+    "register.mail.placeholder" : "kognita@stud.ntnu.no",
 
     "register.password.title" : "Passord",
     "register.password.placeholder" : "Skriv inn passordet ditt",
@@ -64,8 +64,15 @@
     "register.already.user.description" : "Har du allerede en bruker?",
     "register.already.user.link" : "Logg inn",
 
+    "reset.password.title" : "Gjenopprett passord",
+    "reset.password.subtitle" : "Gjenopprett passordet ditt ved å fylle inn eposten din under",
+    "reset.password.button" : "Gjenopprett passord",
 
-    "subjects.title" : "Fag oversikt",
+    "verify.email.title" : "Verifiser eposten din",
+    "verify.email.subtitle" : "Verifiser eposten din og få tilgang til Kognita",
+    "verify.email.button" : "Verifiser nå",
+
+    "subjects.title" : "Fagoversikt",
 
     "subjects.repeat.title" : "Repetering",
     "subjects.repeat.description" : "Sett av ti minutter for å repetere noen oppgaver.\n\nDisse oppgavene vil automatisk settes opp til repetisjon avhengig av hvor bra du kan fagstoffet. Her er noen oppgaver vi anbefaler å øve på innen <b>%{revisitDate}</b>. Hvorfor ikke gjennomføre repetisjonen med en gang?",
@@ -73,7 +80,7 @@
 
     "subjects.list.title" : "Innhold",
     "subjects.subject.card.button" : "Utforsk",
-    "subjects.no.content" : "Det er ingen fag enda",
+    "subjects.no.content" : "Det er ingen fag ennå",
 
 
     "subject.session.start" : "Start øvingen",
@@ -84,7 +91,7 @@
     "subject.session.topics.select" : "Velg...",
  
     "subject.topics.title" : "Temaer",
-    "subject.topics.none" : "Det finnes ingen temaer enda",
+    "subject.topics.none" : "Det finnes ingen temaer ennå",
     "subject.topic.card.button" : "Utforsk tema",
     "subject.topic.card.progress.title" : "Fullførte oppgaver",
 
@@ -138,7 +145,7 @@
     "history.summary.date" : "Dato",
     "history.summary.goal" : "Øvingsmål",
     "history.summary.duration" : "Varighet (min)",
-    "history.summary.none" : "Du har ikke utført noen oppgaver enda",
+    "history.summary.none" : "Du har ikke utført noen oppgaver ennå",
 
 
     "creator.dashboard.title" : "Dashbord",

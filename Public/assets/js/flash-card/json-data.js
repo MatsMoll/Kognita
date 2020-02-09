@@ -2,14 +2,14 @@ function jsonData() {
     var subtopicId = parseInt($("#card-topic-id").val());
     var examPaperSemester = $("#card-exam-semester").val();
     var examPaperYear = parseInt($("#card-exam-year").val());
-    var description = null;
-    if (!$('#card-description').summernote("isEmpty")) {
-        description = $("#card-description").summernote("code");
+    var descriptionValue = description.value();
+    if (description.length == 0) {
+        descriptionValue = null;
     }
     var question = $("#card-question").val();
-    var solution = null;
-    if (!$('#card-solution').summernote("isEmpty")) {
-        solution = $("#card-solution").summernote("code");
+    var solutionValue = solution.value();
+    if (solutionValue.length == 0) {
+        solutionValue = null;
     }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
@@ -23,12 +23,12 @@ function jsonData() {
     }
 
     return JSON.stringify({
-        "isExaminable" : false,
+        "isTestable" : false,
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
         "subtopicId" : subtopicId,
-        "description" : description,
+        "description" : descriptionValue,
         "question" : question,
-        "solution" : solution
+        "solution" : solutionValue
     });
 }

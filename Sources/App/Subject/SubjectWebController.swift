@@ -13,6 +13,11 @@ import KognitaAPI
 
 final class SubjectWebController: RouteCollection {
 
+    private struct ListAllQuery: Codable {
+        let incorrectPassword: Bool
+    }
+
+
     func boot(router: Router) {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
@@ -23,32 +28,21 @@ final class SubjectWebController: RouteCollection {
     func listAll(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
+        let query = try? req.query.decode(ListAllQuery.self)
 
         return try Subject.DefaultAPIController
-            .retriveAll(on: req)
-            .flatMap { subjects in
+            .getListContent(req)
+            .map { listContent in
 
-//                try TaskResult.DatabaseRepository
-//                    .getAllResults(for: user.requireID(), with: req)
-//                    .flatMap { response in
-
-                        try PracticeSession.DatabaseRepository
-                            .getLatestUnfinnishedSessionPath(for: user, on: req)
-                            .map { ongoingSessionPath in
-
-                                try req.renderer()
-                                   .render(
-                                       Subject.Templates.ListOverview.self,
-                                       with: .init(
-                                           user: user,
-                                           cards: subjects,
-                                           revisitTasks: [],
-                                           ongoingSessionPath: ongoingSessionPath
-                                       )
-                               )
-
-                        }
-//                }
+                try req.renderer()
+                    .render(
+                        Subject.Templates.ListOverview.self,
+                        with: .init(
+                            user: user,
+                            list: listContent,
+                            wasIncorrectPassword: query?.incorrectPassword ?? false
+                        )
+                )
         }
     }
 
@@ -76,7 +70,7 @@ final class SubjectWebController: RouteCollection {
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
         
-        guard user.isCreator else {
+        guard user.isAdmin else {
             throw Abort(.forbidden)
         }
 
@@ -93,8 +87,8 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .map { subject in
 
                 return try req.renderer()

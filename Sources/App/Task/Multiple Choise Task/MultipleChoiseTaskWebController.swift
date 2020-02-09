@@ -12,8 +12,8 @@ import KognitaViews
 
 final class MultipleChoiseTaskWebController: RouteCollection {
 
-    struct CreateTaskURLQuery: Content {
-        let topicId: Int?
+    struct EditTaskURLQuery: Content {
+        let wasUpdated: Bool?
     }
 
     static let shared = MultipleChoiseTaskWebController()
@@ -26,91 +26,22 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         router.get(
             "creator/tasks/multiple-choise", MultipleChoiseTask.parameter, "edit",
             use: editTask)
-//        router.get(
-//            "topics", Topic.parameter, "tasks/multiple-choise",
-//            use: getInstanceInTopic)
-        router.get(
-            "tasks/multiple-choise", MultipleChoiseTask.parameter,
-            use: getInstance)
     }
 
-    func getInstance(on req: Request) throws -> Future<HTTPResponse> {
+    func createTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
-            .next(MultipleChoiseTask.self)
-            .flatMap { multiple in
-
-                try MultipleChoiseTask.DatabaseRepository
-                    .content(for: multiple, on: req)
-                    .flatMap { preview, content in
-
-                        return req.future().map {
-                            try req.renderer().render(
-                                MultipleChoiseTask.Templates.Execute.self,
-                                with: .init(
-                                    multiple: content,
-                                    taskContent: preview,
-                                    user: user,
-                                    currentTaskIndex: nil
-                                )
-                            )
-                        }
-                }
-        }
-    }
-
-    func createTask(_ req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
-
-        let query = try req.query.decode(CreateTaskURLQuery.self)
-
-        return try req.parameters
-            .next(Subject.self)
+        return req.parameters
+            .model(Subject.self, on: req)
             .flatMap { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopicResponses(in: subject, conn: req)
-                    .map { topics in
-
-                        try req.renderer()
-                            .render(
-                                MultipleChoiseTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    topics: topics,
-                                    selectedTopicId: query.topicId
-                                )
-                        )
-                }
-        }
-    }
-
-    func editTask(_ req: Request) throws -> Future<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        guard user.isCreator else {
-            throw Abort(.forbidden)
-        }
-
-        return try req.parameters
-            .next(MultipleChoiseTask.self)
-            .flatMap { multiple in
-
-                try MultipleChoiseTask.DatabaseRepository
-                    .content(for: multiple, on: req)
-                    .flatMap { preview, content in
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                    .flatMap {
 
                         try Topic.DatabaseRepository
-                            .getTopicResponses(in: preview.subject, conn: req)
+                            .getTopicResponses(in: subject, conn: req)
                             .map { topics in
 
                                 try req.renderer()
@@ -118,10 +49,39 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                         MultipleChoiseTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
-                                            subject: preview.subject,
-                                            topics: topics,
-                                            taskInfo: preview.task,
-                                            multipleTaskInfo: content
+                                            content: .init(subject: subject, topics: topics)
+                                        )
+                                )
+                        }
+                }
+        }
+    }
+
+    func editTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        let query = try req.query.decode(EditTaskURLQuery.self)
+
+        return req.parameters
+            .model(MultipleChoiseTask.self, on: req)
+            .flatMap { multiple in
+
+                try User.DatabaseRepository
+                    .isModerator(user: user, taskID: multiple.requireID(), on: req)
+                    .flatMap { _ in
+
+                        try MultipleChoiseTask.DatabaseRepository
+                            .modifyContent(forID: multiple.requireID(), on: req)
+                            .map { content in
+
+                                try req.renderer()
+                                    .render(
+                                        MultipleChoiseTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            content: content,
+                                            wasUpdated: query.wasUpdated ?? false
                                         )
                                 )
                         }
