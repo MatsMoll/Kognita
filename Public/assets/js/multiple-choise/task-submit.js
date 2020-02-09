@@ -6,6 +6,10 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+function navigateTo(index) {
+    location.href = index;
+}
+
 function submitChoises() {
     $("#submitButton").attr("disabled", true);
 

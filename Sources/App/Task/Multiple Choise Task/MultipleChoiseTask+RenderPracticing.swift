@@ -34,8 +34,8 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                                             user: user,
                                             currentTaskIndex: index,
                                             session: session,
-                                            practiceProsess: progress,
-                                            lastResult: lastResult?.content
+                                            lastResult: lastResult?.content,
+                                            practiceProgress: progress
                                         )
                                 )
                         }

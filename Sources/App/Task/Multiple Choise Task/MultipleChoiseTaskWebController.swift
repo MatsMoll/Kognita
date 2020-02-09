@@ -26,39 +26,6 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         router.get(
             "creator/tasks/multiple-choise", MultipleChoiseTask.parameter, "edit",
             use: editTask)
-//        router.get(
-//            "topics", Topic.parameter, "tasks/multiple-choise",
-//            use: getInstanceInTopic)
-        router.get(
-            "tasks/multiple-choise", MultipleChoiseTask.parameter,
-            use: getInstance)
-    }
-
-    func getInstance(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return req.parameters
-            .model(MultipleChoiseTask.self, on: req)
-            .flatMap { multiple in
-
-                try MultipleChoiseTask.DatabaseRepository
-                    .content(for: multiple, on: req)
-                    .flatMap { preview, content in
-
-                        return req.future().map {
-                            try req.renderer().render(
-                                MultipleChoiseTask.Templates.Execute.self,
-                                with: .init(
-                                    multiple: content,
-                                    taskContent: preview,
-                                    user: user.content(),
-                                    currentTaskIndex: nil
-                                )
-                            )
-                        }
-                }
-        }
     }
 
     func createTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
