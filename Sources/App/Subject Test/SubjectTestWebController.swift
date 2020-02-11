@@ -43,10 +43,10 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
             switch error {
             case SubjectTest.DatabaseRepository.Errors
                 .alreadyEntered(sessionID: let sessionID):
-                    return req.redirect(to: "/test-sessions/\(sessionID)")
+                return req.redirect(to: "/test-sessions/\(sessionID)")
             case SubjectTest.DatabaseRepository.Errors
                 .incorrectPassword:
-                    return req.redirect(to: "/subjects?incorrectPassword=true")
+                return req.redirect(to: "/subjects?incorrectPassword=true")
             default:
                 throw error
             }
@@ -94,19 +94,19 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                     .flatMap {
 
                         Task.Repository
-                               .examTasks(subjectID: test.subjectID, on: req)
-                               .map { tasks in
+                            .examTasks(subjectID: test.subjectID, on: req)
+                            .map { tasks in
 
-                                   try req.renderer()
-                                       .render(
-                                           SubjectTest.Templates.Modify.self,
-                                           with: SubjectTest.Templates.Modify.Context(
-                                               user: user,
-                                               tasks: tasks,
-                                               test: test
-                                           )
-                                   )
-                           }
+                                try req.renderer()
+                                    .render(
+                                        SubjectTest.Templates.Modify.self,
+                                        with: SubjectTest.Templates.Modify.Context(
+                                            user: user,
+                                            tasks: tasks,
+                                            test: test
+                                        )
+                                )
+                        }
                 }
         }
     }
@@ -133,18 +133,26 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
         let user = try req.requireAuthenticated(User.self)
 
+
         return req.parameters
             .model(SubjectTest.self, on: req)
-            .map { test in
+            .flatMap { test in
 
-                try req.renderer()
-                    .render(
-                        SubjectTest.Templates.Monitor.self,
-                        with: SubjectTest.Templates.Monitor.Context(
-                            user: user,
-                            test: test
+
+                try User.DatabaseRepository
+                    .isModerator(user: user, subjectID: test.subjectID, on: req)
+                    .map {
+
+                        try req.renderer()
+                            .render(
+                                SubjectTest.Templates.Monitor.self,
+                                with: SubjectTest.Templates.Monitor.Context(
+                                    user: user,
+                                    test: test
+                                )
                         )
-                )
+                        
+                }
         }
     }
 
