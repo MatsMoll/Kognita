@@ -11,9 +11,13 @@ function updateTimer() {
     let endsAt = new Date($("#ends-at").val());
     let now = new Date();
     let millisecondsLeft = endsAt - now;
+    console.log(millisecondsLeft);
     if (millisecondsLeft < 2 * 60 * 1000) {
         $("#time-left-badge").removeClass("badge-primary");
         $("#time-left-badge").addClass("badge-danger");
+    } 
+    if (millisecondsLeft < 0) {
+        clearInterval(timer)
     }
     $("#time-left").html(millisecondsLeft.toMinuteString());
 }
