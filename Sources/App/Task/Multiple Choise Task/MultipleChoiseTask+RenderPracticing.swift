@@ -26,7 +26,25 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                             .flatMap { lastResult in
 
                                 if lastResult != nil {
-                                    TaskResult.
+                                    return try TaskSessionAnswer.DatabaseRepository
+                                        .multipleChoiseAnswers(in: session.requireID(), taskID: content.task.requireID(), on: req)
+                                        .map { selectedChoises in
+
+                                            try req.renderer()
+                                                .render(
+                                                    MultipleChoiseTask.Templates.Execute.self,
+                                                    with: .init(
+                                                        multiple: content,
+                                                        taskContent: preview,
+                                                        user: user,
+                                                        currentTaskIndex: index,
+                                                        session: session,
+                                                        lastResult: lastResult?.content,
+                                                        practiceProgress: progress,
+                                                        selectedChoises: selectedChoises.map { $0.choiseID }
+                                                    )
+                                            )
+                                    }
                                 } else {
                                     return req.future().map {
                                         try req.renderer()
