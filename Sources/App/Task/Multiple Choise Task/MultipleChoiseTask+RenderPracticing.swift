@@ -23,21 +23,27 @@ extension MultipleChoiseTask: RenderTaskPracticing {
 
                         try TaskResult.DatabaseRepository
                             .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
-                            .map { lastResult in
+                            .flatMap { lastResult in
 
-                                try req.renderer()
-                                    .render(
-                                        MultipleChoiseTask.Templates.Execute.self,
-                                        with: .init(
-                                            multiple: content,
-                                            taskContent: preview,
-                                            user: user,
-                                            currentTaskIndex: index,
-                                            session: session,
-                                            lastResult: lastResult?.content,
-                                            practiceProgress: progress
+                                if lastResult != nil {
+                                    TaskResult.
+                                } else {
+                                    return req.future().map {
+                                        try req.renderer()
+                                            .render(
+                                                MultipleChoiseTask.Templates.Execute.self,
+                                                with: .init(
+                                                    multiple: content,
+                                                    taskContent: preview,
+                                                    user: user,
+                                                    currentTaskIndex: index,
+                                                    session: session,
+                                                    lastResult: lastResult?.content,
+                                                    practiceProgress: progress
+                                                )
                                         )
-                                )
+                                    }
+                                }
                         }
                 }
         }
