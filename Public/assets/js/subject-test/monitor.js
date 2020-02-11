@@ -37,9 +37,7 @@ function updateTimer() {
     let endsAt = new Date($("#ends-at").val());
     let now = new Date();
     let millisecondsLeft = endsAt - now;
-    console.log(endsAt);
-    console.log(now);
-    console.log(millisecondsLeft);
+
     if (millisecondsLeft < 2 * 60 * 1000) {
         $("#time-left-badge").removeClass("badge-primary");
         $("#time-left-badge").addClass("badge-danger");
