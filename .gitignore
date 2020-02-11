@@ -11,3 +11,4 @@ DerivedData/
 coverage.html
 .DS_Store
 Package.resolved
+.swiftpm/

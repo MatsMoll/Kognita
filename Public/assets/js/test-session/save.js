@@ -14,6 +14,9 @@ function updateTimer() {
     if (millisecondsLeft < 2 * 60 * 1000) {
         $("#time-left-badge").removeClass("badge-primary");
         $("#time-left-badge").addClass("badge-danger");
+    } 
+    if (millisecondsLeft < 0) {
+        clearInterval(timer)
     }
     $("#time-left").html(millisecondsLeft.toMinuteString());
 }
