@@ -17,27 +17,32 @@ extension FlashCardTask: RenderTaskPracticing {
             .content(for: self, on: req)
             .flatMap { preview in
 
-                try PracticeSession.DatabaseRepository
-                    .goalProgress(in: session, on: req)
-                    .flatMap { progress in
+                try TaskSessionAnswer.DatabaseRepository
+                    .flashCardAnswers(in: session.requireID(), taskID: preview.task.requireID(), on: req)
+                    .flatMap { answer in
 
-                        try TaskResult.DatabaseRepository
-                            .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
-                            .map { lastResult in
+                        try PracticeSession.DatabaseRepository
+                            .goalProgress(in: session, on: req)
+                            .flatMap { progress in
 
-                                try req.renderer()
-                                    .render(
-                                        FlashCardTask.Templates.Execute.self,
-                                        with: .init(
-                                            taskPreview: preview,
-                                            user: user,
-                                            currentTaskIndex: index,
-                                            practiceProgress: progress,
-                                            session: session,
-                                            lastResult: lastResult?.content,
-                                            numberOfTasks: 0
+                                try TaskResult.DatabaseRepository
+                                    .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
+                                    .map { lastResult in
+
+                                        try req.renderer()
+                                            .render(
+                                                FlashCardTask.Templates.Execute.self,
+                                                with: .init(
+                                                    taskPreview: preview,
+                                                    user: user,
+                                                    currentTaskIndex: index,
+                                                    practiceProgress: progress,
+                                                    session: session,
+                                                    lastResult: lastResult?.content,
+                                                    prevAnswer: answer
+                                                )
                                         )
-                                )
+                                }
                         }
                 }
         }
