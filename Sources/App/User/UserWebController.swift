@@ -200,6 +200,10 @@ final class UserWebController: RouteCollection {
             .transform(to: req.redirect(to: "/login"))
     }
 
+    func editPassword(req: Request) throws -> Void {
+
+    }
+
     func verify(on req: Request) throws -> EventLoopFuture<Response> {
         try User.DefaultAPIController
             .verify(on: req)
