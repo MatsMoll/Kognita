@@ -175,12 +175,18 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
             .map { _ in
                 req.redirect(to: "results")
         }
+        .catchMap { error in
+            switch error {
+            case SubjectTest.DatabaseRepository.Errors.alreadyEnded: return req.redirect(to: "results")
+            default: throw error
+            }
+        }
     }
 
     static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-
+        
         return try API.results(on: req)
             .map { results in
 

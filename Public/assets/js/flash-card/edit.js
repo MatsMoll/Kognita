@@ -28,7 +28,7 @@ function editFlashCard() {
             }
         })
         .then(function (json) {
-            window.location.href = "/tasks/flash-card/" + json.id;
+            window.location.href = "/creator/tasks/flash-card/" + json.id + "/edit?wasUpdated=true";
         })
         .catch(function (error) {
             presentErrorMessage(error.message);
