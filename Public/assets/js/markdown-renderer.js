@@ -25,3 +25,7 @@ function renderMarkdown(markdown) {
         return markdown;
     }
 }
+
+$(".render-markdown").each(function () {
+    this.innerHTML = renderMarkdown(this.innerHTML);
+});
