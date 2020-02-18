@@ -5,6 +5,7 @@ function jsonData() {
     let password = $("#create-test-password").val();
     let tasks = $("#create-test-tasks").val().map(value => parseInt(value));
     let subjectID = parseSubjectID();
+    let isTeamBasedLearning = $("#create-is-tbl").prop("checked");
 
     // Need the .split in order to make it work with the server
     let scheduledAt = new Date($("#create-test-scheduled-at").val());
@@ -25,6 +26,9 @@ function jsonData() {
     if (password.length < 1) {
         throw Error("Du må skrive inn et passord");
     }
+    if (isTeamBasedLearning == null) {
+        throw Error("Ups! Det oppstod et problem, men dette er ikke din feil. Prøv å last inn siden på nytt eller kontakt oss");
+    }
 
     let data = JSON.stringify({
         "title" : title,
@@ -32,7 +36,8 @@ function jsonData() {
         "tasks" : tasks,
         "subjectID" : subjectID,
         "password" : password,
-        "scheduledAt" : scheduledAtISO
+        "scheduledAt" : scheduledAtISO,
+        "isTeamBasedLearning" : isTeamBasedLearning
     });
 
     return data;

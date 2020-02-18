@@ -79,18 +79,26 @@ final class PracticeSessionWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try PracticeSession.DefaultAPIController
-            .get(sessions: req)
-            .map { sessions in
+        return try PracticeSession.DatabaseRepository
+            .getSessions(for: user, on: req)
+            .flatMap { practiceSessions in
 
-                try req.renderer()
-                    .render(
-                        PracticeSession.Templates.History.self,
-                        with: .init(
-                            user: user,
-                            sessions: sessions
+                try TestSession.DatabaseRepository
+                    .getSessions(for: user, on: req)
+                    .map { testSessions in
+
+                        try req.renderer()
+                            .render(
+                                PracticeSession.Templates.History.self,
+                                with: .init(
+                                    user: user,
+                                    sessions: .init(
+                                        testSessions: testSessions,
+                                        practiceSessions: practiceSessions
+                                    )
+                                )
                         )
-                )
+                }
         }
     }
 

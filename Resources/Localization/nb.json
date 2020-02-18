@@ -1,6 +1,6 @@
 {
     "menu.overview" : "Oversikt over fag",
-    "menu.history" : "Øvingshistorikk",
+    "menu.history" : "Historikk",
     "menu.create" : "Lag innhold",
     "menu.login" : "Logg inn",
     "menu.register" : "Registrer",
@@ -118,10 +118,10 @@
         "other" : "%{daysUntilRevisit} dager"
     },
 
-    "result.path.history" : "Øvingshistorikk",
+    "result.path.history" : "Historikk",
     "result.path.current" : "Resultat",
 
-    "result.histogram.title" : "Nylig øvingsaktivitet",
+    "result.histogram.title" : "Nylig aktivitet",
 
     "result.summary.task.amount" : "Antall oppgaver",
     "result.summary.goal" : "Mål",
@@ -139,9 +139,9 @@
     "result.summary.contents.repeat" : "<variabel?>",
 
 
-    "history.title" : "Øvingshistorikk",
-    "history.path.title" : "Øvingshistorikk",
-    "history.histogram.title" : "Nylig øvingshistorikk",
+    "history.title" : "Historikk",
+    "history.path.title" : "Historikk",
+    "history.histogram.title" : "Nylig aktivitet",
     "history.summary.date" : "Dato",
     "history.summary.goal" : "Øvingsmål",
     "history.summary.duration" : "Varighet (min)",
