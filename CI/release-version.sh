@@ -53,11 +53,15 @@ function generate_new_release_data {
     MINOR_VERSION=${VERSION_BITS[1]:-0}
     BUILD_VERSION=${VERSION_BITS[2]:-(-1)}
 
-    if [[ "true" == $(pr_has_label "release:major") ]]; then
+    LAST_COMMIT=$(git log -1 --pretty=%B)
+    MAJOR_PREFIX="[Major]"
+    MINOR_PREFIX="[Minor]"
+
+    if [[ $LAST_COMMIT == "$MAJOR_PREFIX"* ]]; then
         MAJOR_VERSION=$((MAJOR_VERSION+1))
         MINOR_VERSION=0
         BUILD_VERSION=0
-    elif [[ "true" == $(pr_has_label "release:minor") ]]; then
+    elif [[ $LAST_COMMIT == "$MINOR_VERSION"* ]]; then
         MINOR_VERSION=$((MINOR_VERSION+1))
         BUILD_VERSION=0
     else
