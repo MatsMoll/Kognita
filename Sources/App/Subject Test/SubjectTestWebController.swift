@@ -63,7 +63,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
                 try User.DatabaseRepository
                     .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap {
+                    .flatMap { _ in
 
                         try Task.Repository
                             .examTasks(subjectID: subject.requireID(), on: req)
@@ -73,6 +73,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                                     .render(
                                         SubjectTest.Templates.Modify.self,
                                         with: SubjectTest.Templates.Modify.Context(
+                                            subjectID: subject.requireID(),
                                             user: user,
                                             tasks: tasks
                                         )
@@ -101,6 +102,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                                     .render(
                                         SubjectTest.Templates.Modify.self,
                                         with: SubjectTest.Templates.Modify.Context(
+                                            subjectID: test.subjectID,
                                             user: user,
                                             tasks: tasks,
                                             test: test
