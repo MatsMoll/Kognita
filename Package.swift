@@ -24,10 +24,13 @@ case "LOCAL":
         ]
     )
 case "DEV":
+    let coreBranch     = ProcessInfo.processInfo.environment["KOGNITA_CORE"]   ?? "develop"
+    let pagesBranch    = ProcessInfo.processInfo.environment["KOGNITA_PAGES"]  ?? "develop"
+    let apiBranch      = ProcessInfo.processInfo.environment["KOGNITA_API"]    ?? "develop"
     dependencies.append(contentsOf: [
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore",       .branch(coreBranch)),
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages",      .branch(pagesBranch)),
+            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api",  .branch(apiBranch)),
         ]
     )
 default:
