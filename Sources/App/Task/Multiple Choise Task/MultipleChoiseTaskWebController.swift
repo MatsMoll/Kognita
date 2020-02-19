@@ -16,6 +16,10 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         let wasUpdated: Bool?
     }
 
+    struct CreateTaskURLQuery: Content {
+        let isTestable: Bool?
+    }
+
     static let shared = MultipleChoiseTaskWebController()
 
     func boot(router: Router) {
@@ -31,6 +35,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
     func createTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
+
+        let query = try req.query.decode(CreateTaskURLQuery.self)
 
         return req.parameters
             .model(Subject.self, on: req)
@@ -49,7 +55,8 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                         MultipleChoiseTask.Templates.Create.self,
                                         with: .init(
                                             user: user,
-                                            content: .init(subject: subject, topics: topics)
+                                            content: .init(subject: subject, topics: topics),
+                                            isTestable: query.isTestable ?? false
                                         )
                                 )
                         }

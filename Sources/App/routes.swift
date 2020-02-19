@@ -20,9 +20,14 @@ private func setupUserWeb(for router: Router) throws {
     let sessionMiddle = router.grouped(User.authSessionsMiddleware())
     let redirectMiddle = sessionMiddle.grouped(RedirectMiddleware<User>(path: "/login"))
 
-    router.get("/") { req in
-        try req.renderer().render(view: Pages.Landing.self)
+    sessionMiddle.get("/") { req -> EventLoopFuture<Response> in
+        if try req.authenticated(User.self) != nil {
+            return req.future(req.redirect(to: "/subjects"))
+        }
+        return try req.renderer().render(view: Pages.Landing.self)
+            .encode(for: req)
     }
+
     router.get("/privacy-policy") { req in
         try req.renderer().render(view: Pages.PrivacyPolicy.self)
     }
