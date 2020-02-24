@@ -42,24 +42,19 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .model(Subject.self, on: req)
             .flatMap { subject in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap {
+                try Topic.DatabaseRepository
+                    .getTopicResponses(in: subject, conn: req)
+                    .map { topics in
 
-                        try Topic.DatabaseRepository
-                            .getTopicResponses(in: subject, conn: req)
-                            .map { topics in
-
-                                try req.renderer()
-                                    .render(
-                                        MultipleChoiseTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            content: .init(subject: subject, topics: topics),
-                                            isTestable: query.isTestable ?? false
-                                        )
+                        try req.renderer()
+                            .render(
+                                MultipleChoiseTask.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    content: .init(subject: subject, topics: topics),
+                                    isTestable: query.isTestable ?? false
                                 )
-                        }
+                        )
                 }
         }
     }
@@ -74,14 +69,12 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .model(MultipleChoiseTask.self, on: req)
             .flatMap { multiple in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, taskID: multiple.requireID(), on: req)
-                    .flatMap { _ in
+                try MultipleChoiseTask.DatabaseRepository
+                    .modifyContent(forID: multiple.requireID(), on: req)
+                    .flatMap { content in
 
-                        try MultipleChoiseTask.DatabaseRepository
-                            .modifyContent(forID: multiple.requireID(), on: req)
-                            .map { content in
-
+                        if content.task?.creatorID == user.id {
+                            return req.future().map {
                                 try req.renderer()
                                     .render(
                                         MultipleChoiseTask.Templates.Create.self,
@@ -91,6 +84,22 @@ final class MultipleChoiseTaskWebController: RouteCollection {
                                             wasUpdated: query.wasUpdated ?? false
                                         )
                                 )
+                            }
+                        } else {
+                            return try User.DatabaseRepository
+                                .isModerator(user: user, taskID: multiple.requireID(), on: req)
+                                .map { _ in
+
+                                    try req.renderer()
+                                        .render(
+                                            MultipleChoiseTask.Templates.Create.self,
+                                            with: .init(
+                                                user: user,
+                                                content: content,
+                                                wasUpdated: query.wasUpdated ?? false
+                                            )
+                                    )
+                            }
                         }
                 }
         }

@@ -24,7 +24,7 @@ class SubtopicWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return try req.parameters
+        return req.parameters
             .model(Subject.self, on: req)
             .flatMap { subject in
 

@@ -32,22 +32,17 @@ class FlashCardTaskWebController: RouteCollection {
             .model(Subject.self, on: req)
             .flatMap { subject in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap {
+                try Topic.DatabaseRepository
+                    .getTopicResponses(in: subject, conn: req)
+                    .map { topics in
 
-                        try Topic.DatabaseRepository
-                            .getTopicResponses(in: subject, conn: req)
-                            .map { topics in
-
-                                try req.renderer().render(
-                                    FlashCardTask.Templates.Create.self,
-                                    with: .init(
-                                        user: user,
-                                        content: .init(subject: subject, topics: topics)
-                                    )
-                                )
-                        }
+                        try req.renderer().render(
+                            FlashCardTask.Templates.Create.self,
+                            with: .init(
+                                user: user,
+                                content: .init(subject: subject, topics: topics)
+                            )
+                        )
                 }
         }
     }
@@ -64,17 +59,36 @@ class FlashCardTaskWebController: RouteCollection {
 
                 try FlashCardTask.DatabaseRepository
                     .modifyContent(forID: flashCard.requireID(), on: req)
-                    .map { content in
+                    .flatMap { content in
 
-                        try req.renderer()
-                            .render(
-                                FlashCardTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    content: content,
-                                    wasUpdated: query.wasUpdated ?? false
+                        if content.task?.creatorID == user.id {
+                            return req.future().map {
+                                try req.renderer()
+                                    .render(
+                                        FlashCardTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            content: content,
+                                            wasUpdated: query.wasUpdated ?? false
+                                        )
                                 )
-                        )
+                            }
+                        } else {
+                            return try User.DatabaseRepository
+                                .isModerator(user: user, taskID: flashCard.requireID(), on: req)
+                                .map {
+
+                                    try req.renderer()
+                                        .render(
+                                            FlashCardTask.Templates.Create.self,
+                                            with: .init(
+                                                user: user,
+                                                content: content,
+                                                wasUpdated: query.wasUpdated ?? false
+                                            )
+                                    )
+                            }
+                        }
                 }
         }
     }
