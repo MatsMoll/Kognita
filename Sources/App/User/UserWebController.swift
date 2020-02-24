@@ -78,7 +78,7 @@ final class UserWebController: RouteCollection {
             .flatMap { createUser in
 
                 try User.DefaultAPIController
-                    .create(req)
+                    .create(on: req)
                     .flatMap { newUser in
 
                         User.authenticate(
