@@ -27,21 +27,27 @@ extension FlashCardTask: RenderTaskPracticing {
 
                                 try TaskResult.DatabaseRepository
                                     .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
-                                    .map { lastResult in
+                                    .flatMap { lastResult in
 
-                                        try req.renderer()
-                                            .render(
-                                                FlashCardTask.Templates.Execute.self,
-                                                with: .init(
-                                                    taskPreview: preview,
-                                                    user: user,
-                                                    currentTaskIndex: index,
-                                                    practiceProgress: progress,
-                                                    session: session,
-                                                    lastResult: lastResult?.content,
-                                                    prevAnswer: answer
+                                        try TaskDiscussion.DatabaseRepository
+                                            .getDiscussions(in: preview.task.requireID(), on: req)
+                                            .map { discussions in
+
+                                                try req.renderer()
+                                                    .render(
+                                                        FlashCardTask.Templates.Execute.self,
+                                                        with: .init(
+                                                            taskPreview: preview,
+                                                            user: user,
+                                                            currentTaskIndex: index,
+                                                            practiceProgress: progress,
+                                                            session: session,
+                                                            lastResult: lastResult?.content,
+                                                            prevAnswer: answer,
+                                                            discussions: discussions
+                                                        )
                                                 )
-                                        )
+                                        }
                                 }
                         }
                 }
