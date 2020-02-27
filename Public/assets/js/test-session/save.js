@@ -24,32 +24,60 @@ function updateTimer() {
 updateTimer();
 let timer = setInterval(updateTimer, 1000); // Each 1 seconds
 
+var hasSaved = true;
+
+function timeout(ms, promise) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            reject(new Error("timeout"))
+        }, ms)
+        promise.then(resolve, reject)
+    })
+}
+
 function saveChoise() {
     let testID = testSessionID();
     let url = "/api/test-sessions/" + testID + "/save";
 
     try {
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "Accept": "application/json, text/plain, */*",
-                "Content-Type" : "application/json"
-            },
-            body: jsonData()
+        if (hasSaved) {
+            $("#save-status").html("Lagrer");
+            $("#save-status-spinner").attr("class", "spinner-grow spinner-grow-sm");
+            $("#save-status-badge").removeClass("badge-success");
+            $("#save-status-badge").addClass("badge-danger");
+            $("#save-status-icon").addClass("d-none");
+        } else {
+            $("#save-status").html("Lagrer - Sjekk internett koblingen din");
+        }
+        hasSaved = false;
+        timeout(5000,
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json, text/plain, */*",
+                    "Content-Type" : "application/json"
+                },
+                body: jsonData()
+            })
+            .then(function (response) {
+                if (response.ok) {
+                    if (hasSaved == false) {
+                        $("#save-status-badge").removeClass("badge-danger");
+                        $("#save-status-badge").addClass("badge-success");
+                        $("#save-status-spinner").attr("class", "d-none");
+                        $("#save-status-icon").removeClass("d-none");
+                        $("#save-status").html("Lagret");
+                    }
+                    hasSaved = true;
+                    return
+                } else {
+                    saveChoise();
+                    throw new Error(response.statusText);
+                }
+            })
+        ).catch(function() {
+            saveChoise();
         })
-        .then(function (response) {
-            if (response.ok) {
-                return
-            } else {
-                throw new Error(response.statusText);
-            }
-        })
-        .catch(function (error) {
-            $("#submitButton").attr("disabled", false);
-            $("#error-massage").text(error.message);
-            $("#error-div").fadeIn();
-            $("#error-div").removeClass("d-none");
-        });
     } catch (error) {
         if (error.name == "MissingDataError") {
             return
