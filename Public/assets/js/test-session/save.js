@@ -1,22 +1,31 @@
 
 Number.prototype.toMinuteString = function() {
+    let hours = Math.floor((this / (1000 * 60 * 60)))
     var minutes = Math.floor((this % (1000 * 60 * 60)) / (1000 * 60));
     var seconds = Math.floor((this % (1000 * 60)) / 1000);
     if (minutes < 10) { minutes = "0" + minutes; }
     if (seconds < 10) { seconds = "0" + seconds; }
-    return minutes + ":" + seconds;
+    if (hours > 0) {
+        return hours + ":" + minutes + ":" + seconds;
+    } else {
+        return minutes + ":" + seconds;
+    }
 }
+
+let renderedAt = new Date($("#rendered-at").val());
+let timeDiff = new Date() - renderedAt;
 
 function updateTimer() {
     let endsAt = new Date($("#ends-at").val());
     let now = new Date();
-    let millisecondsLeft = endsAt - now;
+    let millisecondsLeft = endsAt - now - timeDiff;
     if (millisecondsLeft < 2 * 60 * 1000) {
         $("#time-left-badge").removeClass("badge-primary");
         $("#time-left-badge").addClass("badge-danger");
     } 
     if (millisecondsLeft < 0) {
         clearInterval(timer)
+        window.location.href="overview";
     }
     $("#time-left").html(millisecondsLeft.toMinuteString());
 }
@@ -25,6 +34,7 @@ updateTimer();
 let timer = setInterval(updateTimer, 1000); // Each 1 seconds
 
 var hasSaved = true;
+var errorCount = 0;
 
 function timeout(ms, promise) {
     return new Promise(function(resolve, reject) {
@@ -61,6 +71,7 @@ function saveChoise() {
             })
             .then(function (response) {
                 if (response.ok) {
+                    errorCount = 0;
                     if (hasSaved == false) {
                         $("#save-status-badge").removeClass("badge-danger");
                         $("#save-status-badge").addClass("badge-success");
@@ -71,7 +82,10 @@ function saveChoise() {
                     hasSaved = true;
                     return
                 } else {
-                    saveChoise();
+                    errorCount += 1;
+                    if (errorCount < 10) {
+                        saveChoise();
+                    }
                     throw new Error(response.statusText);
                 }
             })
