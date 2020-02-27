@@ -54,7 +54,7 @@ function saveChoise() {
             $("#save-status").html("Lagrer");
             $("#save-status-spinner").attr("class", "spinner-grow spinner-grow-sm");
             $("#save-status-badge").removeClass("badge-success");
-            $("#save-status-badge").addClass("badge-danger");
+            $("#save-status-badge").addClass("badge-warning");
             $("#save-status-icon").addClass("d-none");
         } else {
             $("#save-status").html("Lagrer - Sjekk internett koblingen din");
@@ -73,7 +73,7 @@ function saveChoise() {
                 if (response.ok) {
                     errorCount = 0;
                     if (hasSaved == false) {
-                        $("#save-status-badge").removeClass("badge-danger");
+                        $("#save-status-badge").removeClass("badge-warning");
                         $("#save-status-badge").addClass("badge-success");
                         $("#save-status-spinner").attr("class", "d-none");
                         $("#save-status-icon").removeClass("d-none");
