@@ -109,7 +109,7 @@ final class PracticeSessionWebController: RouteCollection {
             .map { solutions in
                 try req.renderer()
                     .render(
-                        TaskSolutionsTemplate.self,
+                        TaskSolution.Templates.List.self,
                         with: solutions
                 )
         }
