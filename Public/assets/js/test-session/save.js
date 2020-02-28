@@ -18,7 +18,7 @@ let timeDiff = new Date() - renderedAt;
 function updateTimer() {
     let endsAt = new Date($("#ends-at").val());
     let now = new Date();
-    let millisecondsLeft = endsAt - now - timeDiff;
+    let millisecondsLeft = endsAt - now + timeDiff;
     if (millisecondsLeft < 2 * 60 * 1000) {
         $("#time-left-badge").removeClass("badge-primary");
         $("#time-left-badge").addClass("badge-danger");
@@ -83,7 +83,7 @@ function saveChoise() {
                     return
                 } else {
                     errorCount += 1;
-                    if (errorCount < 10) {
+                    if (errorCount < 5) {
                         saveChoise();
                     }
                     throw new Error(response.statusText);
