@@ -14,6 +14,8 @@ function createDiscussion() {
         "taskID" : taskID
     });
 
+    $("#create-discussion-question").val("");
+
     fetch(url, {
         method: "POST",
         headers: {

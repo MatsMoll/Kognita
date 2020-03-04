@@ -10,11 +10,11 @@ function createResponse() {
         "discussionID" : discussionID
     });
 
-    console.log(response)
-
     if (response.lenght < 1) {
         return
     }
+
+    $("#create-discussion-response").val("");
 
     fetch(url, {
         method: "POST",
