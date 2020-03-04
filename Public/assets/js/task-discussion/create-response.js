@@ -1,18 +1,20 @@
-function refreshPage(){
-    window.location.reload();
-} 
+function createResponse() {
 
-function createDiscussion() {
-
-    var url = "/api/task-discussion";
+    var url = "/api/task-discussion-response";
     
-    let description = $("#create-discussion-question").val();
-    let taskID = parseInt($("#task-id").val());
+    let response = $("#create-discussion-response").val();
+    let discussionID = parseInt($("#disc-id").val());
 
     var data = JSON.stringify({
-        "description": description,
-        "taskID" : taskID
+        "response": response,
+        "discussionID" : discussionID
     });
+
+    console.log(response)
+
+    if (response.lenght < 1) {
+        return
+    }
 
     fetch(url, {
         method: "POST",
@@ -35,6 +37,4 @@ function createDiscussion() {
         $("#error-div").fadeIn();
         $("#error-div").removeClass("d-none");
     });
-
-    refreshPage()
 }

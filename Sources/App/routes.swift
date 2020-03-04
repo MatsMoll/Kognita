@@ -45,4 +45,5 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: PracticeSessionWebController())
     try redirectMiddle.register(collection: SubjectTestWebController<SubjectTestAPIController<SubjectTest.DatabaseRepository>>())
     try redirectMiddle.register(collection: TestSessionWebController())
+    try redirectMiddle.register(collection: TaskDiscussionWebController())
 }
