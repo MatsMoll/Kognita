@@ -37,4 +37,6 @@ function createResponse() {
         $("#error-div").fadeIn();
         $("#error-div").removeClass("d-none");
     });
+
+    fetchDiscussionResponses(discussionID);
 }
