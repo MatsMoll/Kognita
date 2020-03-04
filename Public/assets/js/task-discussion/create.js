@@ -24,7 +24,7 @@ function createDiscussion() {
     })
     .then(function (response) {
         if (response.ok) {
-            return response.json();
+            refreshPage()
         } else {
             throw new Error(response.statusText);
         }
@@ -35,6 +35,4 @@ function createDiscussion() {
         $("#error-div").fadeIn();
         $("#error-div").removeClass("d-none");
     });
-
-    refreshPage()
 }

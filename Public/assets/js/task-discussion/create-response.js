@@ -26,7 +26,7 @@ function createResponse() {
     })
     .then(function (response) {
         if (response.ok) {
-            return response.json();
+            fetchDiscussionResponses(discussionID);
         } else {
             throw new Error(response.statusText);
         }
@@ -37,6 +37,4 @@ function createResponse() {
         $("#error-div").fadeIn();
         $("#error-div").removeClass("d-none");
     });
-
-    fetchDiscussionResponses(discussionID);
 }

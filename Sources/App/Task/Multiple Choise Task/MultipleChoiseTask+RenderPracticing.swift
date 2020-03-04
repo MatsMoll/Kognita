@@ -63,7 +63,7 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                                                         session: session,
                                                         lastResult: lastResult?.content,
                                                         practiceProgress: progress,
-                                                        discussions: []
+                                                        discussions: discussions
                                                     )
                                             )
                                         }
