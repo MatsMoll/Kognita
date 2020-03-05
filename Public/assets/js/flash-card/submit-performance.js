@@ -186,5 +186,3 @@ function taskIndex() {
 function endSession() {
     $("#end-session-form").submit();
 }
-
-$("#task-description").html(renderMarkdown($("#task-description").html()));

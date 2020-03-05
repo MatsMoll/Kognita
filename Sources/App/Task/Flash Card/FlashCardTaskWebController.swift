@@ -61,24 +61,14 @@ class FlashCardTaskWebController: RouteCollection {
                     .modifyContent(forID: flashCard.requireID(), on: req)
                     .flatMap { content in
 
-                        if content.task?.creatorID == user.id {
-                            return req.future().map {
-                                try req.renderer()
-                                    .render(
-                                        FlashCardTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            content: content,
-                                            wasUpdated: query.wasUpdated ?? false
-                                        )
-                                )
-                            }
-                        } else {
-                            return try User.DatabaseRepository
-                                .isModerator(user: user, taskID: flashCard.requireID(), on: req)
-                                .map {
+                        return try User.DatabaseRepository
+                            .isModerator(user: user, taskID: flashCard.requireID(), on: req)
+                            .map { true }
+                            .catchMap { _ in false }
+                            .map { isModerator in
 
-                                    try req.renderer()
+                                if isModerator || content.task?.creatorID == user.id {
+                                    return try req.renderer()
                                         .render(
                                             FlashCardTask.Templates.Create.self,
                                             with: .init(
@@ -87,7 +77,9 @@ class FlashCardTaskWebController: RouteCollection {
                                                 wasUpdated: query.wasUpdated ?? false
                                             )
                                     )
-                            }
+                                } else {
+                                    throw Abort(.forbidden)
+                                }
                         }
                 }
         }
