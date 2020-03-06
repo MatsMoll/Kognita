@@ -27,17 +27,25 @@ final class CreatorWebController: RouteCollection {
 
                 try Task.Repository
                     .getTasks(in: subject.requireID(), maxAmount: nil, withSoftDeleted: true, conn: req)
-                    .map { tasks in
+                    .flatMap { tasks in
 
-                        try req.renderer()
-                            .render(
-                                Subject.Templates.ContentOverview.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject,
-                                    tasks: tasks
+                        try User.DatabaseRepository
+                            .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                            .map { true }
+                            .catchMap { _ in false }
+                            .map { isModerator in
+
+                                try req.renderer()
+                                    .render(
+                                        Subject.Templates.ContentOverview.self,
+                                        with: .init(
+                                            user: user,
+                                            subject: subject,
+                                            tasks: tasks,
+                                            isModerator: isModerator
+                                        )
                                 )
-                        )
+                        }
                 }
         }
     }
@@ -54,14 +62,22 @@ final class CreatorWebController: RouteCollection {
 
                 try Task.Repository
                     .getTasks(in: subject.requireID(), query: query, withSoftDeleted: true, conn: req)
-                    .map { tasks in
+                    .flatMap { tasks in
 
-                        try req.renderer()
-                            .render(Subject.Templates.TaskList.self, with: .init(
-                                userID: user.requireID(),
-                                tasks: tasks
-                            )
-                        )
+                        try User.DatabaseRepository
+                            .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                            .map { true }
+                            .catchMap { _ in false }
+                            .map { isModerator in
+
+                                try req.renderer()
+                                    .render(Subject.Templates.TaskList.self, with: .init(
+                                        userID: user.requireID(),
+                                        isModerator: isModerator,
+                                        tasks: tasks
+                                    )
+                                )
+                        }
                 }
         }
     }
