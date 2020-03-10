@@ -1,14 +1,20 @@
 function deleteTask(id, typePath) {
-    var xhr = new XMLHttpRequest();
-    let url = "/api/" + typePath + "/" + id;
-    xhr.open("DELETE", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
     
-        if (this.status == 200) {
-            window.location.reload();
+    let url = "/api/" + typePath + "/" + id;
+    fetch(url, {
+        method: "DELETE",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
         }
-    };
-    xhr.send();
+    })
+    .then(function (response) {
+        if (response.ok) {
+            search()
+        } else if (response.status == 400) {
+            throw new Error("Sjekk at all nødvendig info er fylt ut");
+        } else {
+            throw new Error(response.statusText);
+        }
+    });
 }
