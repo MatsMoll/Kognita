@@ -1,5 +1,4 @@
 
-var submitedAnswer = "";
 var startDate = new Date();
 var now = new Date();
 
@@ -17,7 +16,6 @@ function navigateTo(index) {
 }
 
 function revealSolution() {
-    submitedAnswer = $("#flash-card-answer").val();
     clearInterval(timer);
     presentControllsAndKnowledge();
 
@@ -69,6 +67,7 @@ function submitPerformance(score, handleSuccess) {
     
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
     let knowledge = parseFloat(score);
+    let submitedAnswer = $("#flash-card-answer").val();
 
     if (knowledge == null) {
         return
@@ -140,6 +139,10 @@ function presentControlls() {
     $("#flash-card-answer").prop('readonly', true)
     $("#submitButton").prop('disabled', true)
     $("#nextButton").removeClass("d-none");
+    $(".reveal").each(function () {
+        $(this).fadeIn();
+        $(this).removeClass("d-none");
+    });
     fetchSolutions();
     hasSubmitted = true;
 }

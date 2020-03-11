@@ -143,6 +143,10 @@ function presentControlls() {
     $("#submitButton").attr("disabled", true);
     $("#nextButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
+    $(".reveal").each(function () {
+        $(this).fadeIn();
+        $(this).removeClass("d-none");
+    });
     fetchSolutions();
 }
 
