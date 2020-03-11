@@ -30,7 +30,6 @@ function submitChoise() {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (this.readyState != 4) return;
-        console.log("Saved");
         if (this.status == 200) {
             $("submit-status-badge").removeClass("badge-danger");
             $("submit-status-badge").addClass("badge-success");
