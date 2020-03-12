@@ -26,25 +26,31 @@ final class CreatorWebController: RouteCollection {
             .flatMap { subject in
 
                 try Task.Repository
-                    .getTasks(in: subject.requireID(), maxAmount: nil, withSoftDeleted: true, conn: req)
+                    .getTasks(in: subject.requireID(), user: user, maxAmount: nil, withSoftDeleted: true, conn: req)
                     .flatMap { tasks in
 
-                        try User.DatabaseRepository
-                            .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                            .map { true }
-                            .catchMap { _ in false }
-                            .map { isModerator in
+                        try Subject.DatabaseRepository
+                            .unverifiedSolutions(in: subject.requireID(), for: user, on: req)
+                            .flatMap { solutions in
 
-                                try req.renderer()
-                                    .render(
-                                        Subject.Templates.ContentOverview.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: subject,
-                                            tasks: tasks,
-                                            isModerator: isModerator
+                                try User.DatabaseRepository
+                                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
+                                    .map { true }
+                                    .catchMap { _ in false }
+                                    .map { isModerator in
+
+                                        try req.renderer()
+                                            .render(
+                                                Subject.Templates.ContentOverview.self,
+                                                with: .init(
+                                                    user: user,
+                                                    subject: subject,
+                                                    tasks: tasks,
+                                                    isModerator: isModerator,
+                                                    solutions: solutions
+                                                )
                                         )
-                                )
+                                }
                         }
                 }
         }
@@ -61,7 +67,7 @@ final class CreatorWebController: RouteCollection {
             .flatMap { subject in
 
                 try Task.Repository
-                    .getTasks(in: subject.requireID(), query: query, withSoftDeleted: true, conn: req)
+                    .getTasks(in: subject.requireID(), query: query, user: user, withSoftDeleted: true, conn: req)
                     .flatMap { tasks in
 
                         try User.DatabaseRepository
