@@ -67,7 +67,7 @@ final class CreatorWebController: RouteCollection {
             .flatMap { subject in
 
                 try Task.Repository
-                    .getTasks(in: subject.requireID(), query: query, user: user, withSoftDeleted: true, conn: req)
+                    .getTasks(in: subject.requireID(), user: user, query: query, withSoftDeleted: true, conn: req)
                     .flatMap { tasks in
 
                         try User.DatabaseRepository
