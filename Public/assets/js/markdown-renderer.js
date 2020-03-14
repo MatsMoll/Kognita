@@ -19,11 +19,7 @@ function renderKatex(plainText) {
 }
 
 function renderMarkdown(markdown) {
-    if (markdown.startsWith("<") == false) {
-        return marked(renderKatex(markdown));
-    } else {
-        return markdown;
-    }
+    return marked(renderKatex(markdown));
 }
 
 $(".render-markdown").each(function () {

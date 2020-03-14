@@ -1,5 +1,4 @@
 let descriptionEditor = editorForID("create-multiple-description");
-let solutionEditor = editorForID("create-multiple-solution");
 let choiseEditor = editorForID("create-multiple-choise"); 
 
 var numberOfChoises = 1;
