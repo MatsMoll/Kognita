@@ -108,8 +108,8 @@ function handleSuccess(results) {
     }
 }
 
-function fetchSolutions(taskIndex, practiceSessionID) {
-    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+function fetchSolutions() {
+    fetch("/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/solutions", {
         method: "GET",
         headers: {
             "Accept": "application/html, text/plain, */*",
@@ -143,7 +143,7 @@ function presentControlls() {
     $("#submitButton").attr("disabled", true);
     $("#nextButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
-    fetchSolutions(taskIndex(), sessionID());
+    fetchSolutions();
 }
 
 function sessionID() {

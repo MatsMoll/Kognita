@@ -106,8 +106,8 @@ function submitPerformance(score, handleSuccess) {
     });
 }
 
-function fetchSolutions(taskIndex, practiceSessionID) {
-    fetch("/practice-sessions/" + practiceSessionID + "/tasks/" + taskIndex + "/solutions", {
+function fetchSolutions() {
+    fetch("/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/solutions", {
         method: "GET",
         headers: {
             "Accept": "application/html, text/plain, */*",
@@ -140,7 +140,7 @@ function presentControlls() {
     $("#flash-card-answer").prop('readonly', true)
     $("#submitButton").prop('disabled', true)
     $("#nextButton").removeClass("d-none");
-    fetchSolutions(taskIndex(), sessionID());
+    fetchSolutions();
     hasSubmitted = true;
 }
 
@@ -186,5 +186,3 @@ function taskIndex() {
 function endSession() {
     $("#end-session-form").submit();
 }
-
-$("#task-description").html(renderMarkdown($("#task-description").html()));
