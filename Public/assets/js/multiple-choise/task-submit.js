@@ -148,6 +148,7 @@ function presentControlls() {
         $(this).removeClass("d-none");
     });
     fetchSolutions();
+    fetchDiscussions($("#task-id").val())
 }
 
 function sessionID() {
