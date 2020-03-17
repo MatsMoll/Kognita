@@ -5,7 +5,7 @@ function taskDiscussionData() {
     let taskID = parseInt($("#task-id").val());
 
     if(description.length < 4) {
-        throw Error("Lengden av diskusjonsspørsmålet er for lite")
+        throw Error("Lengden av diskusjonenen er for liten")
     }
 
     $("#create-discussion-question").val()
@@ -34,6 +34,7 @@ function createDiscussion() {
             if (response.ok) {
                 fetchDiscussions(taskID);
                 presentControlls();
+                $("#create-discussion-question").val("")
             } else {
                 throw new Error(response.statusText);
             }
@@ -50,6 +51,4 @@ function createDiscussion() {
         $("#error-div").fadeIn();
         $("#error-div").removeClass("d-none");
     }
-
-    $("#create-discussion-question").val("")
 }
