@@ -19,9 +19,9 @@ xhr.onreadystatechange = function () {
                     label: 'Antall oppgaver fullført',
                     data: data,
                     backgroundColor:
-                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(10,207,151,0.4)',
                     borderColor:
-                        'rgba(255,99,132,1)',
+                        'rgba(10,207,151,1)',
                     borderWidth: 2
                 }]
             },
