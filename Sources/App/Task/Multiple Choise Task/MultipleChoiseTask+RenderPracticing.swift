@@ -21,7 +21,7 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                     .goalProgress(in: session, on: req)
                     .flatMap { progress in
 
-                        try TaskResult.DatabaseRepository
+                            try TaskResult.DatabaseRepository
                             .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
                             .flatMap { lastResult in
 
@@ -30,20 +30,20 @@ extension MultipleChoiseTask: RenderTaskPracticing {
                                         .multipleChoiseAnswers(in: session.requireID(), taskID: content.task.requireID(), on: req)
                                         .map { selectedChoises in
 
-                                            try req.renderer()
-                                                .render(
-                                                    MultipleChoiseTask.Templates.Execute.self,
-                                                    with: .init(
-                                                        multiple: content,
-                                                        taskContent: preview,
-                                                        user: user,
-                                                        currentTaskIndex: index,
-                                                        session: session,
-                                                        lastResult: lastResult?.content,
-                                                        practiceProgress: progress,
-                                                        selectedChoises: selectedChoises.map { $0.choiseID }
-                                                    )
-                                            )
+                                                try req.renderer()
+                                                    .render(
+                                                        MultipleChoiseTask.Templates.Execute.self,
+                                                        with: .init(
+                                                            multiple: content,
+                                                            taskContent: preview,
+                                                            user: user,
+                                                            currentTaskIndex: index,
+                                                            session: session,
+                                                            lastResult: lastResult?.content,
+                                                            practiceProgress: progress,
+                                                            selectedChoises: selectedChoises.map { $0.choiseID }
+                                                        )
+                                                )
                                     }
                                 } else {
                                     return req.future().map {
