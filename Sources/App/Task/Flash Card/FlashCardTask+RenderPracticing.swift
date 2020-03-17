@@ -11,7 +11,7 @@ import KognitaViews
 
 extension FlashCardTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
         
         return FlashCardTask.DatabaseRepository
             .content(for: self, on: req)
@@ -27,27 +27,21 @@ extension FlashCardTask: RenderTaskPracticing {
 
                                 try TaskResult.DatabaseRepository
                                     .getLastResult(for: preview.task.requireID(), by: user.userId, on: req)
-                                    .flatMap { lastResult in
+                                    .map { lastResult in
 
-                                        try TaskDiscussion.DatabaseRepository
-                                            .getDiscussions(in: preview.task.requireID(), on: req)
-                                            .map { discussions in
-
-                                                try req.renderer()
-                                                    .render(
-                                                        FlashCardTask.Templates.Execute.self,
-                                                        with: .init(
-                                                            taskPreview: preview,
-                                                            user: user,
-                                                            currentTaskIndex: index,
-                                                            practiceProgress: progress,
-                                                            session: session,
-                                                            lastResult: lastResult?.content,
-                                                            prevAnswer: answer,
-                                                            discussions: discussions
-                                                        )
+                                        try req.renderer()
+                                            .render(
+                                                FlashCardTask.Templates.Execute.self,
+                                                with: .init(
+                                                    taskPreview: preview,
+                                                    user: user,
+                                                    currentTaskIndex: index,
+                                                    practiceProgress: progress,
+                                                    session: session,
+                                                    lastResult: lastResult?.content,
+                                                    prevAnswer: answer
                                                 )
-                                        }
+                                        )
                                 }
                         }
                 }
