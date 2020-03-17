@@ -19,9 +19,9 @@ function jsonData() {
     var question = $("#create-multiple-question").val();
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
     var isTestable = $("#create-multiple-testable").prop("checked");
-    var solution = solutionEditor.value();
-    if (solution.length < 1) {
-        solution = null;
+    var solutionValue = solution.value();
+    if (solutionValue.length < 1) {
+        solutionValue = null;
     }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
@@ -30,7 +30,7 @@ function jsonData() {
     if (question.length <= 1) {
         throw Error("Du må skrive inn et spørsmål");
     }
-    if (solution.length <= 1) {
+    if (solutionValue.length <= 1) {
         throw Error("Du må skrive inn en løsning");
     }
     if (choises.length <= 1) {
@@ -46,6 +46,6 @@ function jsonData() {
         "question" : question,
         "isMultipleSelect" : isMultipleSelect,
         "choises" : choises,
-        "solution" : solution
+        "solution" : solutionValue
     });
 }
