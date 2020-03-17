@@ -19,7 +19,13 @@ function renderKatex(plainText) {
 }
 
 function renderMarkdown(markdown) {
-    return marked(renderKatex(markdown));
+    let stringMarkdown = String(markdown)
+    let html = marked(renderKatex(stringMarkdown));
+    let parser = new DOMParser()
+    let document = parser.parseFromString(html, "text/html")
+    Array.from(document.getElementsByTagName("a")).map(x => x.setAttribute("target", "_blank"))
+    Array.from(document.getElementsByTagName("img")).map(x => x.setAttribute("style", "max-width:100%"))
+    return document.getElementsByTagName("body")[0].innerHTML
 }
 
 $(".render-markdown").each(function () {
