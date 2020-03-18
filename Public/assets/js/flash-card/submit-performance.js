@@ -1,22 +1,17 @@
-
 var startDate = new Date();
 var now = new Date();
 
-var timer = setInterval(updateTimer, 1000);
-var hasSubmitted = false;
+var isSubmitting = false;
+var hasSubmittedSucessfully = false;
+var knowledgeScore = 0;
 
 function navigateTo(index) {
-    if (hasSubmitted) {
-        location.href = index
-    } else {
-        location.href = "#knowledge-card";
-        $("#knowledge-card").addClass("bg-primary text-white")
-        $("#knowledge-card").shake();
-    }
+    submitPerformance(knowledgeScore, function() {
+        window.location.href = index;
+    })
 }
 
 function revealSolution() {
-    clearInterval(timer);
     presentControllsAndKnowledge();
 
     if ($("#solution").hasClass("d-none")) {
@@ -36,32 +31,37 @@ function revealSolution() {
                 $("#achivement-success").modal();
             }
         }
+        submitPerformance(knowledgeScore, function (){})
     }
 }
 
-function nextTask(score) {
-    submitPerformance(score, function() {
-        location.href = $("#next-task").val();
-    })
+function updateScoreButton() {
+    if (knowledgeScore < 2) {
+        $("#" + knowledgeScore).attr("class", "btn btn-danger");    
+    } else if (knowledgeScore < 4) {
+        $("#" + knowledgeScore).attr("class", "btn btn-warning");
+    } else {
+        $("#" + knowledgeScore).attr("class", "btn btn-success");
+    }
+}
+
+function registerScore(score) {
+    $("#" + knowledgeScore).attr("class", "btn btn-light");
+    knowledgeScore = score;
+    updateScoreButton()
+    submitPerformance(knowledgeScore, function() {})
 }
 
 function submitAndEndSession() {
-    if ($("#solution").hasClass("d-none")) {
-        endSession();
-    } else {
-        submitPerformance(2, function() { 
-            endSession(); 
-        });
-    }
+    endSession()
 }
 
 function submitPerformance(score, handleSuccess) {
 
-    if (hasSubmitted) {
-        handleSuccess();
+    if (isSubmitting) {
         return
     }
-    hasSubmitted = true;
+    isSubmitting = true;
 
     var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
     
@@ -88,6 +88,7 @@ function submitPerformance(score, handleSuccess) {
         body: data
     })
     .then(function (response) {
+        isSubmitting = false;
         if (response.ok) {
             return response.json();
         } else {
@@ -98,6 +99,7 @@ function submitPerformance(score, handleSuccess) {
         handleSuccess(json);
     })
     .catch(function (error) {
+        isSubmitting = false;
         $("#submitButton").attr("disabled", false);
         $("#error-massage").text(error.message);
         $("#error-div").fadeIn();
@@ -145,13 +147,14 @@ function presentControlls() {
     });
     fetchSolutions();
     fetchDiscussions($("#task-id").val())
-    hasSubmitted = true;
+    $("#knowledge-card").removeClass("d-none");
+    updateScoreButton()
 }
 
 function presentControllsAndKnowledge() {
     presentControlls()
     hasSubmitted = false;
-    $("#knowledge-card").removeClass("d-none");
+    hasSubmittedSucessfully = false;
 }
 
 
@@ -161,12 +164,6 @@ Number.prototype.toMinuteString = function() {
     if (minutes < 10) { minutes = "0" + minutes; }
     if (seconds < 10) { seconds = "0" + seconds; }
     return minutes + ":" + seconds;
-}
-
-function updateTimer() {
-    var now = new Date();
-    var timeUsed = now.getTime() -  startDate.getTime();
-    $("#timer").html(timeUsed.toMinuteString());
 }
 
 function sessionID() {
