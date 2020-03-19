@@ -107,36 +107,6 @@ function submitPerformance(score, handleSuccess) {
     });
 }
 
-function fetchSolutions() {
-    fetch("/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/solutions", {
-        method: "GET",
-        headers: {
-            "Accept": "application/html, text/plain, */*",
-        }
-    })
-    .then(function (response) {
-        if (response.ok) {
-            return response.text();
-        } else {
-            throw new Error(response.statusText);
-        }
-    })
-    .then(function (html) {
-        $("#solution").html(html);
-        $("#solution").fadeIn();
-        $("#solution").removeClass("d-none");
-        $(".solutions").each(function () {
-            this.innerHTML = renderMarkdown(this.innerHTML);
-        });
-    })
-    .catch(function (error) {
-        $("#submitButton").attr("disabled", false);
-        $("#error-massage").text(error.message);
-        $("#error-div").fadeIn();
-        $("#error-div").removeClass("d-none");
-    });
-}
-
 function presentControlls() {
     $("#flash-card-answer").prop('readonly', true)
     $("#submitButton").prop('disabled', true)
@@ -145,7 +115,7 @@ function presentControlls() {
         $(this).fadeIn();
         $(this).removeClass("d-none");
     });
-    fetchSolutions();
+    fetchSolutions("practice");
     fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()
@@ -164,24 +134,6 @@ Number.prototype.toMinuteString = function() {
     if (minutes < 10) { minutes = "0" + minutes; }
     if (seconds < 10) { seconds = "0" + seconds; }
     return minutes + ":" + seconds;
-}
-
-function sessionID() {
-    let path = window.location.pathname;
-    let splitURI = "sessions/"
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.lastIndexOf("/tasks")
-    ));
-}
-
-function taskIndex() {
-    let path = window.location.pathname;
-    let splitURI = "tasks/";
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.length
-    ));
 }
 
 function endSession() {
