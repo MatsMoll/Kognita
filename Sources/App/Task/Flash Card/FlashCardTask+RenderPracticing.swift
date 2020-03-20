@@ -11,7 +11,7 @@ import KognitaViews
 
 extension FlashCardTask: RenderTaskPracticing {
 
-    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse> {
+    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
         
         return FlashCardTask.DatabaseRepository
             .content(for: self, on: req)
@@ -47,27 +47,4 @@ extension FlashCardTask: RenderTaskPracticing {
                 }
         }
     }
-
-//    func render(for user: User, on req: Request) throws -> Future<HTTPResponse> {
-//
-//        return FlashCardTask.Repository
-//            .content(for: self, on: req)
-//            .flatMap { preview in
-//
-//                try TaskResultRepository
-//                    .getLastResult(for: preview.task.requireID(), by: user, on: req)
-//                    .map { lastResult in
-//
-//                        try req.renderer().render(
-//                            FlashCardTask.Templates.Execute.self,
-//                            with: .init(
-//                                taskPreview: preview,
-//                                user: user,
-//                                lastResult: lastResult?.content,
-//                                numberOfTasks: 1
-//                            )
-//                        )
-//                }
-//        }
-//    }
 }

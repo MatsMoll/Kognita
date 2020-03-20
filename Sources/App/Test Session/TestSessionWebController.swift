@@ -10,6 +10,8 @@ protocol TestSessionWebControlling: RouteCollection {
     func overview(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     func finnish(on req: Request) throws -> EventLoopFuture<Response>
     func results(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    func detailedResult(on req: Request) throws -> EventLoopFuture<Response>
+    func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse>
 }
 
 extension TestSessionWebControlling {
@@ -18,11 +20,13 @@ extension TestSessionWebControlling {
 
         let sessionInstance = router.grouped("test-sessions", TaskSession.TestParameter.parameter)
 
-        sessionInstance.get("/",                    use: self.redirectToTask(on: ))
-        sessionInstance.get("tasks", Int.parameter, use: self.taskWithID(on: ))
-        sessionInstance.get("tasks/overview",       use: self.overview(on: ))
-        sessionInstance.get("results",              use: self.results(on: ))
-        sessionInstance.post("finnish",             use: self.finnish(on: ))
+        sessionInstance.get("/",                                    use: self.redirectToTask(on: ))
+        sessionInstance.get("tasks", Int.parameter,                 use: self.taskWithID(on: ))
+        sessionInstance.get("tasks", Int.parameter, "solutions",    use: self.solutions(on: ))
+        sessionInstance.get("tasks/overview",                       use: self.overview(on: ))
+        sessionInstance.get("results",                              use: self.results(on: ))
+        sessionInstance.get("tasks", Int.parameter, "result",       use: self.detailedResult(on: ))
+        sessionInstance.post("finnish",                             use: self.finnish(on: ))
     }
 }
 
@@ -51,7 +55,7 @@ class TestSessionWebController: TestSessionWebControlling {
             .model(TaskSession.TestParameter.self, on: req)
             .flatMap { session in
 
-                let taskID = try req.parameters.first(Int.self, on: req)
+                let taskID = try req.first(Int.self)
 
                 return try SubjectTest.DatabaseRepository
                     .taskWith(id: taskID, in: session, for: user, on: req)
@@ -121,6 +125,47 @@ class TestSessionWebController: TestSessionWebControlling {
                             results: results
                         )
                 )
+        }
+    }
+
+    func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        try TestSession.DefaultAPIController
+            .solutions(on: req)
+            .map { solutions in
+
+                try req.renderer()
+                    .render(
+                        TaskSolution.Templates.List.self,
+                        with: solutions
+                )
+        }
+    }
+
+    func detailedResult(on req: Request) throws -> EventLoopFuture<Response> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        return try TestSession.DefaultAPIController
+            .detailedTaskResult(on: req)
+            .flatMap { result in
+
+                try req.renderer().render(
+                    TestSession.Templates.TaskResult.self,
+                    with: .init(
+                        user: user,
+                        result: result
+                    )
+                )
+                .encode(for: req)
+        }
+        .catchMap { error in
+            switch error {
+            case TestSessionRepositoringError.testIsNotFinnished:
+                guard let sessionID = req.parameters.rawValues(for: TaskSession.TestParameter.self).first else { throw Abort(.internalServerError) }
+                return req.redirect(to: "/test-sessions/\(sessionID)/results")
+            default: throw error
+            }
         }
     }
 }

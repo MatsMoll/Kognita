@@ -108,60 +108,16 @@ function handleSuccess(results) {
     }
 }
 
-function fetchSolutions() {
-    fetch("/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/solutions", {
-        method: "GET",
-        headers: {
-            "Accept": "application/html, text/plain, */*",
-        }
-    })
-    .then(function (response) {
-        if (response.ok) {
-            return response.text();
-        } else {
-            throw new Error(response.statusText);
-        }
-    })
-    .then(function (html) {
-        $("#solution").html(html);
-        $("#solution").fadeIn();
-        $("#solution").removeClass("d-none");
-        $(".solutions").each(function () {
-            this.innerHTML = renderMarkdown(this.innerHTML);
-        });
-    })
-    .catch(function (error) {
-        $("#submitButton").attr("disabled", false);
-        $("#error-massage").text(error.message);
-        $("#error-div").fadeIn();
-        $("#error-div").removeClass("d-none");
-    });
-}
-
-
 function presentControlls() {
     $("#submitButton").attr("disabled", true);
     $("#nextButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
-    fetchSolutions();
-}
-
-function sessionID() {
-    let path = window.location.pathname;
-    let splitURI = "sessions/"
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.lastIndexOf("/tasks")
-    ));
-}
-
-function taskIndex() {
-    let path = window.location.pathname;
-    let splitURI = "tasks/";
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.length
-    ));
+    $(".reveal").each(function () {
+        $(this).fadeIn();
+        $(this).removeClass("d-none");
+    });
+    fetchSolutions("practice");
+    fetchDiscussions($("#task-id").val())
 }
 
 $("input[name='choiseInput']").each(function () {
