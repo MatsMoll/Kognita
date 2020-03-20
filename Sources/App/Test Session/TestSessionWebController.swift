@@ -10,7 +10,7 @@ protocol TestSessionWebControlling: RouteCollection {
     func overview(on req: Request) throws -> EventLoopFuture<HTTPResponse>
     func finnish(on req: Request) throws -> EventLoopFuture<Response>
     func results(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    func detailedResult(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    func detailedResult(on req: Request) throws -> EventLoopFuture<Response>
     func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse>
 }
 
@@ -142,13 +142,13 @@ class TestSessionWebController: TestSessionWebControlling {
         }
     }
 
-    func detailedResult(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func detailedResult(on req: Request) throws -> EventLoopFuture<Response> {
 
         let user = try req.requireAuthenticated(User.self)
 
         return try TestSession.DefaultAPIController
             .detailedTaskResult(on: req)
-            .map { result in
+            .flatMap { result in
 
                 try req.renderer().render(
                     TestSession.Templates.TaskResult.self,
@@ -157,6 +157,15 @@ class TestSessionWebController: TestSessionWebControlling {
                         result: result
                     )
                 )
+                .encode(for: req)
+        }
+        .catchMap { error in
+            switch error {
+            case TestSessionRepositoringError.testIsNotFinnished:
+                guard let sessionID = req.parameters.rawValues(for: TaskSession.TestParameter.self).first else { throw Abort(.internalServerError) }
+                return req.redirect(to: "/test-sessions/\(sessionID)/results")
+            default: throw error
+            }
         }
     }
 }
