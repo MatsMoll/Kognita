@@ -6,8 +6,38 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+var nextIndex=1;
 function navigateTo(index) {
-    location.href = index;
+    if ($("#goal-progress-bar").attr("aria-valuenow") >= 100) {
+        nextIndex=index;
+        $("#goal-completed").modal("show");
+    } else {
+        location.href = index;
+    }
+}
+
+function extendSession() {
+    let url = "/api/practice-sessions/" + sessionID() + "/extend"
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            location.href = nextIndex;
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
 }
 
 function submitChoises() {
@@ -105,6 +135,10 @@ function handleSuccess(results) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
+
+        if (progress >= 100) {
+            $("#goal-progress-bar").addClass("bg-success");
+        }
     }
 }
 
