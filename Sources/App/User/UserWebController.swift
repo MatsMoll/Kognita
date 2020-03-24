@@ -18,10 +18,6 @@ final class UserWebController: RouteCollection {
 
     func boot(router: Router) {
 
-        let redirectMiddle = router.grouped(RedirectMiddleware<User>(path: "/login"))
-
-        redirectMiddle.get("profile",                   use: profilePage)
-
         router.get("signup",                            use: signupForm)
         router.get("login",                             use: loginForm)
         router.get("start-reset-password",              use: startResetPasswordForm)
@@ -40,24 +36,6 @@ final class UserWebController: RouteCollection {
     func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
         User.Templates.Signup()
             .render(with: .init(), for: req)
-    }
-
-    func profilePage(_ req: Request) throws -> EventLoopFuture<View> {
-        let user = try req.requireAuthenticated(User.self)
-
-        return try Subject.DatabaseRepository
-            .allActive(for: user, on: req)
-            .map { subjects in
-
-                try req.renderer()
-                    .render(
-                        view: User.Templates.Profile.self,
-                        with: .init(
-                            user: user,
-                            subjects: subjects
-                        )
-                )
-        }
     }
 
     func loginForm(_ req: Request) throws -> EventLoopFuture<Response> {

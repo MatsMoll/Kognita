@@ -6,8 +6,38 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+var nextIndex=1;
 function navigateTo(index) {
-    location.href = index;
+    if ($("#goal-progress-bar").attr("aria-valuenow") >= 100) {
+        nextIndex=index;
+        $("#goal-completed").modal("show");
+    } else {
+        location.href = index;
+    }
+}
+
+function extendSession() {
+    let url = "/api/practice-sessions/" + sessionID() + "/extend"
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            location.href = nextIndex;
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        $("#error-div").fadeIn();
+        $("#error-div").removeClass("d-none");
+    });
 }
 
 function submitChoises() {
@@ -105,63 +135,23 @@ function handleSuccess(results) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
+
+        if (progress >= 100) {
+            $("#goal-progress-bar").addClass("bg-success");
+        }
     }
 }
-
-function fetchSolutions() {
-    fetch("/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/solutions", {
-        method: "GET",
-        headers: {
-            "Accept": "application/html, text/plain, */*",
-        }
-    })
-    .then(function (response) {
-        if (response.ok) {
-            return response.text();
-        } else {
-            throw new Error(response.statusText);
-        }
-    })
-    .then(function (html) {
-        $("#solution").html(html);
-        $("#solution").fadeIn();
-        $("#solution").removeClass("d-none");
-        $(".solutions").each(function () {
-            this.innerHTML = renderMarkdown(this.innerHTML);
-        });
-    })
-    .catch(function (error) {
-        $("#submitButton").attr("disabled", false);
-        $("#error-massage").text(error.message);
-        $("#error-div").fadeIn();
-        $("#error-div").removeClass("d-none");
-    });
-}
-
 
 function presentControlls() {
     $("#submitButton").attr("disabled", true);
     $("#nextButton").removeClass("d-none");
     $("#solution-button").removeClass("d-none");
-    fetchSolutions();
-}
-
-function sessionID() {
-    let path = window.location.pathname;
-    let splitURI = "sessions/"
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.lastIndexOf("/tasks")
-    ));
-}
-
-function taskIndex() {
-    let path = window.location.pathname;
-    let splitURI = "tasks/";
-    return parseInt(path.substring(
-        path.indexOf(splitURI) + splitURI.length, 
-        path.length
-    ));
+    $(".reveal").each(function () {
+        $(this).fadeIn();
+        $(this).removeClass("d-none");
+    });
+    fetchSolutions("practice");
+    fetchDiscussions($("#task-id").val())
 }
 
 $("input[name='choiseInput']").each(function () {

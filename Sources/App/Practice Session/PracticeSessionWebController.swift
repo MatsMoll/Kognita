@@ -68,7 +68,7 @@ final class PracticeSessionWebController: RouteCollection {
                             user: user,
                             tasks: results,
                             progress: 0,
-                            timeUsed: results.map { $0.result.timeUsed ?? 0 }.reduce(0, +)
+                            timeUsed: results.map { $0.timeUsed }.reduce(0, +)
                         )
                 )
         }
@@ -123,11 +123,6 @@ final class PracticeSessionWebController: RouteCollection {
                 req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result")
         }
     }
-}
-
-
-extension PSTaskResult: TaskResultable {
-    public var topicId: Topic.ID { topic.id ?? 0 }
 }
 
 struct PracticeSessionEndResponse: Content {

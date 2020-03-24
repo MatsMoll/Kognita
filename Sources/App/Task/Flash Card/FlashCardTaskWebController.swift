@@ -40,7 +40,8 @@ class FlashCardTaskWebController: RouteCollection {
                             FlashCardTask.Templates.Create.self,
                             with: .init(
                                 user: user,
-                                content: .init(subject: subject, topics: topics)
+                                content: .init(subject: subject, topics: topics),
+                                canEdit: true
                             )
                         )
                 }
@@ -67,19 +68,16 @@ class FlashCardTaskWebController: RouteCollection {
                             .catchMap { _ in false }
                             .map { isModerator in
 
-                                if isModerator || content.task?.creatorID == user.id {
-                                    return try req.renderer()
-                                        .render(
-                                            FlashCardTask.Templates.Create.self,
-                                            with: .init(
-                                                user: user,
-                                                content: content,
-                                                wasUpdated: query.wasUpdated ?? false
-                                            )
-                                    )
-                                } else {
-                                    throw Abort(.forbidden)
-                                }
+                                try req.renderer()
+                                    .render(
+                                        FlashCardTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            content: content,
+                                            canEdit: isModerator || content.task?.creatorID == user.id,
+                                            wasUpdated: query.wasUpdated ?? false
+                                        )
+                                )
                         }
                 }
         }
