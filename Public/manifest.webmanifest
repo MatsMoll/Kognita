@@ -9,7 +9,7 @@
       "sizes": "400x238"
     }
   ],
-  "start_url": "/",
+  "start_url": "/login",
   "background_color": "#3367D6",
   "display": "standalone",
   "scope": "/",
