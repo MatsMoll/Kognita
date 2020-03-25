@@ -68,8 +68,4 @@ function moveCursorToEnd() {
     cm.focus()
     cm.setCursor({line:textlenght, ch: textlenght});
 
-    console.log(creatediscussionresponse.value())
-    if(creatediscussionresponse.value().end == '>') {
-        creatediscussionresponse.replace("> ", "")
-    }
   }
