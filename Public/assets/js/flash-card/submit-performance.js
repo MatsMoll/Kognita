@@ -120,7 +120,7 @@ function presentControlls() {
         $(this).fadeIn();
         $(this).removeClass("d-none");
     });
-    fetchSolutions("practice");
+    fetchSolutions();
     fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()
