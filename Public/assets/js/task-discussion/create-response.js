@@ -1,6 +1,6 @@
 function taskDiscussionResponseData() {
 
-    let response = $("#create-discussion-response").val();
+    let response = creatediscussionresponse.value();
     let discussionID = parseInt($("#disc-id").val());
 
     if(response.length < 4) {
@@ -30,7 +30,7 @@ function createResponse() {
         .then(function (response) {
             if (response.ok) {
                 fetchDiscussionResponses(discussionID);
-                $("#create-discussion-response").val("");
+                creatediscussionresponse.value("")
             } else {
                 throw new Error(response.statusText);
             }
