@@ -22,6 +22,7 @@ final class SubjectWebController: RouteCollection {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
         router.get("subjects", Subject.parameter, use: details)
+        router.get("subjects", Subject.parameter, "compendium", use: compendium)
     }
 
 
@@ -97,6 +98,25 @@ final class SubjectWebController: RouteCollection {
                         with: .init(
                             user: user,
                             subjectInfo: subject
+                        )
+                )
+        }
+    }
+
+    func compendium(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+
+        let user = try req.requireAuthenticated(User.self)
+
+        return try Subject.DefaultAPIController
+            .compendium(on: req)
+            .map { compendium in
+
+                try req.renderer()
+                    .render(
+                        Subject.Templates.Compendium.self,
+                        with: .init(
+                            user: user,
+                            compendium: compendium
                         )
                 )
         }

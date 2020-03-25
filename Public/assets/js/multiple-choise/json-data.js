@@ -20,9 +20,6 @@ function jsonData() {
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
     var isTestable = $("#create-multiple-testable").prop("checked");
     var solutionValue = solution.value();
-    if (solutionValue.length < 1) {
-        solutionValue = null;
-    }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
@@ -35,6 +32,9 @@ function jsonData() {
     }
     if (choises.length <= 1) {
         throw Error("Lag to eller flere alternativer");
+    }
+    if (choises.filter(choise => choise.isCorrect).length < 1) {
+        throw Error("Minst et alternativ må være markert som riktig. Dette kan gjøres ved å trykke på det riktige alternativet")
     }
 
     return JSON.stringify({

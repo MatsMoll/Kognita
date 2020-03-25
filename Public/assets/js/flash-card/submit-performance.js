@@ -5,9 +5,15 @@ var isSubmitting = false;
 var hasSubmittedSucessfully = false;
 var knowledgeScore = 0;
 
+var nextIndex=1;
 function navigateTo(index) {
     submitPerformance(knowledgeScore, function() {
-        window.location.href = index;
+        if ($("#goal-progress-bar").attr("aria-valuenow") >= 100) {
+            nextIndex=index;
+            $("#goal-completed").modal("show");
+        } else {
+            location.href = index;
+        }
     })
 }
 
@@ -20,15 +26,14 @@ function revealSolution() {
         var goalValue = parseFloat($("#goal-value").text());
         var porgressBarValue = parseFloat($("#goal-progress-bar").attr("aria-valuenow"))
         var currentCompleted = porgressBarValue / 100 * goalValue;
-        var progress = parseInt((currentCompleted + 1) * 100 / goalValue);
+        var progress = parseInt(Math.ceil((currentCompleted + 1) * 100 / goalValue));
     
         if (!isNaN(progress)) {
             $("#goal-progress-label").text(progress + "% ");
             $("#goal-progress-bar").attr("aria-valuenow", progress);
             $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-            if (progress == 100) {
+            if (progress >= 100) {
                 $("#goal-progress-bar").addClass("bg-success");
-                $("#achivement-success").modal();
             }
         }
         submitPerformance(knowledgeScore, function (){})
@@ -115,7 +120,7 @@ function presentControlls() {
         $(this).fadeIn();
         $(this).removeClass("d-none");
     });
-    fetchSolutions("practice");
+    fetchSolutions();
     fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()

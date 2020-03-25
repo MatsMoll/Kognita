@@ -6,8 +6,14 @@ if (window.location.pathname.includes("session") == false) {
     $("#nextButton").removeClass("d-none");
 }
 
+var nextIndex=1;
 function navigateTo(index) {
-    location.href = index;
+    if ($("#goal-progress-bar").attr("aria-valuenow") >= 100) {
+        nextIndex=index;
+        $("#goal-completed").modal("show");
+    } else {
+        location.href = index;
+    }
 }
 
 function submitChoises() {
@@ -105,6 +111,10 @@ function handleSuccess(results) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
+
+        if (progress >= 100) {
+            $("#goal-progress-bar").addClass("bg-success");
+        }
     }
 }
 
@@ -116,7 +126,7 @@ function presentControlls() {
         $(this).fadeIn();
         $(this).removeClass("d-none");
     });
-    fetchSolutions("practice");
+    fetchSolutions();
     fetchDiscussions($("#task-id").val())
 }
 

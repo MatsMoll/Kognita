@@ -8,9 +8,6 @@ function jsonData() {
     }
     var question = $("#card-question").val();
     var solutionValue = solution.value();
-    if (solutionValue.length == 0) {
-        solutionValue = null;
-    }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
