@@ -1,15 +1,15 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 import PackageDescription
 import Foundation
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(url: "https://github.com/vapor/vapor.git", from: "3.3.1"),
+    .package(name: "Vapor", url: "https://github.com/vapor/vapor.git", from: "3.3.3"),
 
     // Encodes Form requests
-    .package(url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
+    .package(name: "URLEncodedForm", url: "https://github.com/vapor/url-encoded-form.git", from: "1.0.0"),
 
-    .package(url: "https://github.com/MatsMoll/htmlkit-vapor-3-provider.git", from: "1.0.0-beta.3"),
+    .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-3-provider.git", from: "1.0.0-beta.3"),
 ]
 
 
@@ -50,15 +50,18 @@ let package = Package(
     dependencies: dependencies,
     targets: [
         .target(name: "App", dependencies: [
-            "KognitaCore",
-            "KognitaViews",
-            "KognitaAPI",
-            "Vapor",
-            "URLEncodedForm",
-            "HTMLKitVaporProvider",
+            .product(name: "Vapor", package: "Vapor"),
+            .product(name: "KognitaCore", package: "KognitaCore"),
+            .product(name: "KognitaViews", package: "KognitaViews"),
+            .product(name: "KognitaAPI", package: "KognitaAPI"),
+            .product(name: "URLEncodedForm", package: "URLEncodedForm"),
+            .product(name: "HTMLKitVaporProvider", package: "HTMLKitVaporProvider"),
         ]),
         .target(name: "Run", dependencies: ["App"]),
-        .testTarget(name: "AppTests", dependencies: ["App", "KognitaCoreTestable"])
+        .testTarget(name: "AppTests", dependencies: [
+            .target(name: "App"),
+            .product(name: "KognitaCoreTestable", package: "KognitaCore"),
+        ])
     ]
 )
 
