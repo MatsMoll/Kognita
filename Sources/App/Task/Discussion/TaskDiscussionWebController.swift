@@ -7,6 +7,7 @@ final class TaskDiscussionWebController: RouteCollection {
     func boot(router: Router) throws {
         router.get("tasks", Task.parameter, "discussions", use: get(discussions: ))
         router.get("/task-discussions/", TaskDiscussion.parameter, "/responses", use: getResponses(on: ))
+        router.get("task-discussion/user", use: getDiscussionsForUser(on: ))
     }
 
     func get(discussions req: Request) throws -> EventLoopFuture<HTTPResponse> {
@@ -34,4 +35,21 @@ final class TaskDiscussionWebController: RouteCollection {
         }
     }
 
+    func getDiscussionsForUser(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+        let user = try req.requireAuthenticated(User.self)
+
+        return try TaskDiscussion.DefaultAPIController
+            .getDiscussionsForUser(on: req)
+            .map { discussions in
+
+                return try req.renderer()
+                    .render(
+                        TaskDiscussion.Templates.UserDiscussions.self,
+                        with: TaskDiscussion.Templates.UserDiscussions.Context(
+                            user: user,
+                            discussion: discussions
+                        )
+                )
+        }
+    }
 }
