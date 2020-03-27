@@ -130,14 +130,19 @@ class TestSessionWebController: TestSessionWebControlling {
 
     func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        try TestSession.DefaultAPIController
+        let user = try req.requireAuthenticated(User.self)
+
+        return try TestSession.DefaultAPIController
             .solutions(on: req)
             .map { solutions in
 
                 try req.renderer()
                     .render(
                         TaskSolution.Templates.List.self,
-                        with: solutions
+                        with: .init(
+                            user: user,
+                            solutions: solutions
+                        )
                 )
         }
     }
