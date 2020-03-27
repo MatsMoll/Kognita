@@ -1,1 +1,0 @@
-let description = editorForID("card-description");

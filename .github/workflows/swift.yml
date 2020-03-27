@@ -15,7 +15,7 @@ on:
 jobs:
   bionic-job:
     container: 
-      image: vapor/swift:5.1-bionic
+      image: swift:5.2-bionic
       env:
         DATABASE_USER: postgres
         DATABASE_PASSWORD: postgres
