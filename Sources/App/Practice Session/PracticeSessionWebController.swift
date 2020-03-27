@@ -104,13 +104,18 @@ final class PracticeSessionWebController: RouteCollection {
 
     func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        try PracticeSession.DefaultAPIController
+        let user = try req.requireAuthenticated(User.self)
+
+        return try PracticeSession.DefaultAPIController
             .get(solutions: req)
             .map { solutions in
                 try req.renderer()
                     .render(
                         TaskSolution.Templates.List.self,
-                        with: solutions
+                        with: .init(
+                            user: user,
+                            solutions: solutions
+                        )
                 )
         }
     }
