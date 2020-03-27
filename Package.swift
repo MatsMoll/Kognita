@@ -25,9 +25,9 @@ case "LOCAL":
     )
 case "DEV":
     dependencies.append(contentsOf: [
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
-            .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
+        .package(name: "KognitaCore", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
+        .package(name: "KognitaViews", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
+        .package(name: "KognitaAPI", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop")),
         ]
     )
 default:
@@ -35,9 +35,9 @@ default:
     let pagesVersion    = ProcessInfo.processInfo.environment["KOGNITA_PAGES"]  ?? "2.0.0"
     let apiVersion      = ProcessInfo.processInfo.environment["KOGNITA_API"]    ?? "2.0.0"
     dependencies.append(contentsOf: [
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore",       from: Version(stringLiteral: coreVersion)),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages",      from: Version(stringLiteral: pagesVersion)),
-        .package(url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api",  from: Version(stringLiteral: apiVersion)),
+        .package(name: "KognitaCore", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore",       from: Version(stringLiteral: coreVersion)),
+        .package(name: "KognitaViews", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages",      from: Version(stringLiteral: pagesVersion)),
+        .package(name: "KognitaAPI", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api",  from: Version(stringLiteral: apiVersion)),
         ]
     )
 }
