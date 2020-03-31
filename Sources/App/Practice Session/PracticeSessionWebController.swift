@@ -66,9 +66,7 @@ final class PracticeSessionWebController: RouteCollection {
                         PracticeSession.Templates.Result.self,
                         with: .init(
                             user: user,
-                            tasks: results,
-                            progress: 0,
-                            timeUsed: results.map { $0.timeUsed }.reduce(0, +)
+                            tasks: results
                         )
                 )
         }
@@ -89,7 +87,7 @@ final class PracticeSessionWebController: RouteCollection {
 
                         try req.renderer()
                             .render(
-                                PracticeSession.Templates.History.self,
+                                TaskSession.Templates.History.self,
                                 with: .init(
                                     user: user,
                                     sessions: .init(
@@ -104,13 +102,18 @@ final class PracticeSessionWebController: RouteCollection {
 
     func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        try PracticeSession.DefaultAPIController
+        let user = try req.requireAuthenticated(User.self)
+
+        return try PracticeSession.DefaultAPIController
             .get(solutions: req)
             .map { solutions in
                 try req.renderer()
                     .render(
                         TaskSolution.Templates.List.self,
-                        with: solutions
+                        with: .init(
+                            user: user,
+                            solutions: solutions
+                        )
                 )
         }
     }
