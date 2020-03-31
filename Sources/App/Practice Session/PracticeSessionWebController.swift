@@ -66,9 +66,7 @@ final class PracticeSessionWebController: RouteCollection {
                         PracticeSession.Templates.Result.self,
                         with: .init(
                             user: user,
-                            tasks: results,
-                            progress: 0,
-                            timeUsed: results.map { $0.timeUsed }.reduce(0, +)
+                            tasks: results
                         )
                 )
         }
