@@ -10926,3 +10926,10 @@ div.dt-button-info {
   word-break: break-word !important;
   overflow-wrap: break-word !important;
 }
+
+@media (min-width: 992px) {
+  .compendium-toc {
+    position: fixed;
+    z-index: 1030;
+  }
+}
