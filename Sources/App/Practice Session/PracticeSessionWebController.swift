@@ -87,7 +87,7 @@ final class PracticeSessionWebController: RouteCollection {
 
                         try req.renderer()
                             .render(
-                                PracticeSession.Templates.History.self,
+                                TaskSession.Templates.History.self,
                                 with: .init(
                                     user: user,
                                     sessions: .init(
