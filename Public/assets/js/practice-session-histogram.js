@@ -26,7 +26,7 @@ xhr.onreadystatechange = function () {
                 }]
             },
             options: {
-                aspectRatio: 4,
+                aspectRatio: 2,
                 maintainAspectRatio: true,
                 legend: {
                     display: !1

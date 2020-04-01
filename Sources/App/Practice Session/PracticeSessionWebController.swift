@@ -59,14 +59,14 @@ final class PracticeSessionWebController: RouteCollection {
 
         return try PracticeSession.DefaultAPIController
             .getSessionResult(req)
-            .map { results in
+            .map { result in
 
                 try req.renderer()
                     .render(
                         PracticeSession.Templates.Result.self,
                         with: .init(
                             user: user,
-                            tasks: results
+                            result: result
                         )
                 )
         }
