@@ -107,23 +107,18 @@ final class SubjectWebController: RouteCollection {
 
         let user = try req.requireAuthenticated(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
-            .flatMap { subject in
+        return try Subject.DefaultAPIController
+            .compendium(on: req)
+            .map { compendium in
 
-                try Subject.DatabaseRepository
-                    .compendium(for: subject.requireID(), on: req)
-                    .map { compendium in
-
-                        try req.renderer()
-                            .render(
-                                Subject.Templates.Compendium.self,
-                                with: .init(
-                                    user: user,
-                                    compendium: compendium
-                                )
+                try req.renderer()
+                    .render(
+                        Subject.Templates.Compendium.self,
+                        with: .init(
+                            user: user,
+                            compendium: compendium
                         )
-                }
+                )
         }
     }
 }

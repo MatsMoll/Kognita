@@ -16,30 +16,6 @@ function navigateTo(index) {
     }
 }
 
-function extendSession() {
-    let url = "/api/practice-sessions/" + sessionID() + "/extend"
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Accept": "application/json, text/plain, */*",
-            "Content-Type" : "application/json"
-        }
-    })
-    .then(function (response) {
-        if (response.ok) {
-            location.href = nextIndex;
-        } else {
-            throw new Error(response.statusText);
-        }
-    })
-    .catch(function (error) {
-        $("#submitButton").attr("disabled", false);
-        $("#error-massage").text(error.message);
-        $("#error-div").fadeIn();
-        $("#error-div").removeClass("d-none");
-    });
-}
-
 function submitChoises() {
     $("#submitButton").attr("disabled", true);
 
@@ -150,7 +126,7 @@ function presentControlls() {
         $(this).fadeIn();
         $(this).removeClass("d-none");
     });
-    fetchSolutions("practice");
+    fetchSolutions();
     fetchDiscussions($("#task-id").val())
 }
 

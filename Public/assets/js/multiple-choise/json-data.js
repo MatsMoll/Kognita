@@ -20,9 +20,6 @@ function jsonData() {
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
     var isTestable = $("#create-multiple-testable").prop("checked");
     var solutionValue = solution.value();
-    if (solutionValue.length < 1) {
-        solutionValue = null;
-    }
 
     if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
