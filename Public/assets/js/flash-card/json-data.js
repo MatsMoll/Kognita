@@ -3,7 +3,7 @@ function jsonData() {
     var examPaperSemester = $("#card-exam-semester").val();
     var examPaperYear = parseInt($("#card-exam-year").val());
     var descriptionValue = description.value();
-    if (description.length == 0) {
+    if (descriptionValue.length == 0) {
         descriptionValue = null;
     }
     var question = $("#card-question").val();
