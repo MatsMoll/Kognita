@@ -22,6 +22,7 @@ final class SubjectWebController: RouteCollection {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
         router.get("subjects", Subject.parameter, use: details)
+        router.get("subjects", Subject.parameter, "edit", use: editSubject)
         router.get("subjects", Subject.parameter, "compendium", use: compendium)
     }
 
