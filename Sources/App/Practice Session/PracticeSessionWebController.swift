@@ -66,7 +66,7 @@ final class PracticeSessionWebController: RouteCollection {
                         PracticeSession.Templates.Result.self,
                         with: .init(
                             user: user,
-                            tasks: results
+                            result: results
                         )
                 )
         }

@@ -4,6 +4,7 @@ var now = new Date();
 var isSubmitting = false;
 var hasSubmittedSucessfully = false;
 var knowledgeScore = 0;
+var didSubmitt = false;
 
 var nextIndex=1;
 function navigateTo(index) {
@@ -18,6 +19,7 @@ function navigateTo(index) {
 }
 
 function revealSolution() {
+    didSubmitt = $("#solution").hasClass("d-none");
     presentControllsAndKnowledge();
 
     if ($("#solution").hasClass("d-none")) {
@@ -99,6 +101,7 @@ function submitPerformance(score, handleSuccess) {
 }
 
 function presentControlls() {
+    estimatedScore(didSubmitt);
     $("#flash-card-answer").prop('readonly', true)
     $("#submitButton").prop('disabled', true)
     $("#nextButton").removeClass("d-none");
@@ -110,7 +113,6 @@ function presentControlls() {
     fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()
-    estimatedScore()
 }
 
 function presentControllsAndKnowledge() {
@@ -148,7 +150,7 @@ function answerJsonData(score) {
     });
 }
 
-function estimatedScore() {
+function estimatedScore(shouldSetScore) {
     let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
     
     $("#estimated-score-card").fadeIn();
@@ -175,7 +177,9 @@ function estimatedScore() {
         let roundedScore = Math.round(score * 4);
 
         var text = "Vi estimerer at du";
-        registerScore(roundedScore);
+        if (shouldSetScore == true) {
+            registerScore(roundedScore);
+        }
         if (roundedScore >= 4) {
             text += " kan denne oppgaven veldig godt 💯"
         } else if (roundedScore >= 3) {
@@ -189,5 +193,8 @@ function estimatedScore() {
         $("#estimate-spinner").addClass("d-none");
         $("#answer-estimate").text(text);
         $("#answer-estimate").removeClass("d-none");
+    })
+    .catch(function (error) {
+        console.log(error)
     })
 }
