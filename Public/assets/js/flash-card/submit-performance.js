@@ -69,20 +69,6 @@ function submitPerformance(score, handleSuccess) {
     isSubmitting = true;
 
     var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
-    
-    var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
-    let knowledge = parseFloat(score);
-    let submitedAnswer = $("#flash-card-answer").val();
-
-    if (knowledge == null) {
-        return
-    }
-    var data = JSON.stringify({
-        "timeUsed" : timeUsed,
-        "knowledge": knowledge,
-        "taskIndex": taskIndex(),
-        "answer": submitedAnswer
-    });
 
     fetch(url, {
         method: "POST",
@@ -90,7 +76,7 @@ function submitPerformance(score, handleSuccess) {
             "Accept": "application/json, text/plain, */*",
             "Content-Type" : "application/json"
         },
-        body: data
+        body: answerJsonData(score)
     })
     .then(function (response) {
         isSubmitting = false;
@@ -124,6 +110,7 @@ function presentControlls() {
     fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()
+    estimatedScore()
 }
 
 function presentControllsAndKnowledge() {
@@ -143,4 +130,64 @@ Number.prototype.toMinuteString = function() {
 
 function endSession() {
     $("#end-session-form").submit();
+}
+
+function answerJsonData(score) {
+    var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
+    let knowledge = parseFloat(score);
+    let submitedAnswer = $("#flash-card-answer").val();
+
+    if (knowledge == null) {
+        return
+    }
+    return JSON.stringify({
+        "timeUsed" : timeUsed,
+        "knowledge": knowledge,
+        "taskIndex": taskIndex(),
+        "answer": submitedAnswer
+    });
+}
+
+function estimatedScore() {
+    let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
+    
+    $("#estimated-score-card").fadeIn();
+    $("#estimated-score-card").removeClass("d-none");
+    $("#estimate-spinner").html('<div class="d-flex justify-content-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>')
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        },
+        body: answerJsonData("1")
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (json) {
+        let score = json["score"];
+        let roundedScore = Math.round(score * 4);
+
+        var text = "Vi estimerer at du";
+        registerScore(roundedScore);
+        if (roundedScore >= 4) {
+            text += " kan denne oppgaven veldig godt 💯"
+        } else if (roundedScore >= 3) {
+            text += " kan denne oppgaven godt 🔥"
+        } else if (roundedScore >= 2) {
+            text += " kan noe 🙌"
+        } else {
+            text += " burde lese litt mer 🤔"
+        }
+        
+        $("#estimate-spinner").addClass("d-none");
+        $("#answer-estimate").text(text);
+        $("#answer-estimate").removeClass("d-none");
+    })
 }
