@@ -23,15 +23,24 @@ final class TaskDiscussionWebController: RouteCollection {
     }
 
     func getResponses(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        try TaskDiscussion.Pivot.Response
-            .DefaultAPIController
-            .get(responses: req)
-            .map { responses in
+        let user = try req.requireAuthenticated(User.self)
 
-                try req.renderer().render(
-                    TaskPreviewTemplate.Responses.self,
-                    with: responses
-                )
+        return try TaskDiscussion.Pivot.Response.DefaultAPIController
+            .setRecentlyVisited(for: user, on: req)
+            .flatMap { activeDiscussion in
+
+                try TaskDiscussion.Pivot.Response
+                    .DefaultAPIController
+                    .get(responses: req)
+                    .map { responses in
+
+                        try req.renderer().render(
+                            TaskPreviewTemplate.Responses.self,
+                            with: TaskPreviewTemplate.Responses.Context(
+                                responses: responses
+                            )
+                        )
+                }
         }
     }
 
@@ -47,9 +56,10 @@ final class TaskDiscussionWebController: RouteCollection {
                         TaskDiscussion.Templates.UserDiscussions.self,
                         with: TaskDiscussion.Templates.UserDiscussions.Context(
                             user: user,
-                            discussion: discussions
+                            discussions: discussions
                         )
                 )
         }
     }
 }
+
