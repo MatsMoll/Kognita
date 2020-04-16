@@ -10,9 +10,9 @@ function jsonData() {
         });
     })
 
-    var description = descriptionEditor.value();
-    if (description.length < 1) {
-        description = null;
+    var descriptionValue = description.value();
+    if (descriptionValue.length < 1) {
+        descriptionValue = null;
     }
     var examPaperSemester = $("#create-multiple-exam-semester").val();
     var examPaperYear = parseInt($("#create-multiple-exam-year").val());
@@ -42,7 +42,7 @@ function jsonData() {
         "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
         "examPaperYear" : examPaperYear,
         "subtopicId" : subtopicId,
-        "description" : description,
+        "description" : descriptionValue,
         "question" : question,
         "isMultipleSelect" : isMultipleSelect,
         "choises" : choises,
