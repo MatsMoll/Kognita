@@ -164,7 +164,7 @@ final class UserWebController: RouteCollection {
                     with: .init(
                         token: "",
                         alertMessage: (
-                            message: "Ups! Denne forespørselen er enten gått ut på dato, eller eksisterer ikke",
+                            message: "Ups! Denne forespørselen er enten gått ut på dato eller eksisterer ikke",
                             colorClass: "danger"
                         ) // FIXME: - Not presenting error message
                     )
