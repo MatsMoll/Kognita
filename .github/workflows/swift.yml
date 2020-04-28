@@ -14,13 +14,6 @@ on:
 
 jobs:
   bionic-job:
-    container: 
-      image: swift:5.2-bionic
-      env:
-        DATABASE_USER: postgres
-        DATABASE_PASSWORD: postgres
-        DATABASE_DB: postgres
-        DATABASE_HOSTNAME: psql
     services:
       psql:
         image: postgres
@@ -33,28 +26,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1.2.0
+    - name: Setup:
+      run: |
+        bash CI/install-swiftlint.sh
+        apt-get -q install libssl-dev
     - name: Run unit tests
       if: github.ref != 'refs/heads/master'
       env:
         BUILD_TYPE: DEV
       run: |
-        apt-get -qq update && apt-get install -y \
-          libssl-dev zlib1g-dev \
-          && rm -r /var/lib/apt/lists/*
         swift test
     - name: Run unit tests master
       if: github.ref == 'refs/heads/master'
       run: |
-        apt-get -qq update && apt-get install -y \
-          libssl-dev zlib1g-dev \
-          && rm -r /var/lib/apt/lists/*
         swift test
     - name: Build library in release mode
       if: github.ref == 'refs/heads/master'
       run: |
-        apt-get -qq update && apt-get install -y \
-          libssl-dev zlib1g-dev \
-          && rm -r /var/lib/apt/lists/*
         swift build -c release
     - name: Release new version
       run: |

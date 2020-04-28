@@ -17,14 +17,12 @@ final class SubjectWebController: RouteCollection {
         let incorrectPassword: Bool
     }
 
-
     func boot(router: Router) {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
         router.get("subjects", Subject.parameter, use: details)
         router.get("subjects", Subject.parameter, "compendium", use: compendium)
     }
-
 
     func listAll(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
@@ -47,7 +45,6 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-
     func details(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
@@ -67,10 +64,9 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
-        
+
         guard user.isAdmin else {
             throw Abort(.forbidden)
         }
