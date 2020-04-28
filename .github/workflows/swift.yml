@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1.2.0
-    - name: Setup:
+    - name: Setup
       run: |
         bash CI/install-swiftlint.sh
         apt-get -q install libssl-dev
