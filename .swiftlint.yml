@@ -1,18 +1,23 @@
 included: # paths to include during linting. `--path` is ignored if present.
   - Sources
+  - Tests
+  - ../KognitaCore/Sources
+  - ../KognitaAPI/Sources
+  - ../KognitaViews/Sources
+excluded:
+  - .build/checkouts
 
 disabled_rules:
   - large_tuple
+  - line_length
+
+opt_in_rules:
+  - missing_docs
 
 # configurable rules can be customized from this configuration file
 # binary rules can set their severity level
-force_cast: warning # implicitly
-force_try:
-  severity: warning # explicitly
-
-# rules that have both warning and error levels, can set just the warning level
-# implicitly
-line_length: 110
+force_cast: warning
+force_try: warning
 
 # they can set both implicitly with an array
 type_body_length:
@@ -27,6 +32,9 @@ function_body_length:
 file_length:
   warning: 500
   error: 1200
+
+nesting:
+  type_level: 4
 
 # naming rules can set warnings/errors for min_length and max_length
 # additionally they can set excluded names
@@ -44,4 +52,5 @@ identifier_name:
     - id
     - URL
     - GlobalAPIKey
+
 reporter: "xcode" # reporter type (xcode, json, csv, checkstyle, junit, html, emoji, sonarqube, markdown)

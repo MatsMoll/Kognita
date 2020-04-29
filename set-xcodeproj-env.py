@@ -33,5 +33,5 @@ if which swiftlint >/dev/null; then
 else
   echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
 fi
-""", target_name=["Run", "KognitaViews", "KognitaCore", "KognitaAPI"])
+""", target_name=["Run"])
 project.save()

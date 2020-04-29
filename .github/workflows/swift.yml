@@ -26,10 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1.2.0
-    - name: Setup
-      run: |
-        bash CI/install-swiftlint.sh
-        apt-get -q install libssl-dev
+    - name: GitHub Action for SwiftLint
+      uses: norio-nomura/action-swiftlint@3.1.0
     - name: Run unit tests
       if: github.ref != 'refs/heads/master'
       env:
