@@ -48,3 +48,5 @@ format:
     - ci
     - github
     title: Infrastructure
+git:
+  repo_base_url: https://github.com/MatsMoll/Kognita

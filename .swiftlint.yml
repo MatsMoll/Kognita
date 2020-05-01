@@ -8,7 +8,6 @@ excluded:
   - .build/checkouts
 
 disabled_rules:
-  - large_tuple
   - line_length
 
 opt_in_rules:
