@@ -15,12 +15,12 @@ final class PracticeSessionWebController: RouteCollection {
     func boot(router: Router) {
         let sessionInstance = router.grouped("practice-sessions/", TaskSession.PracticeParameter.parameter)
 
-        router.get("practice-sessions/history",                     use: getSessions)
+        router.get("practice-sessions/history", use: getSessions)
 
-        sessionInstance.get("tasks", Int.parameter,                 use: renderCurrentTask)
-        sessionInstance.get("tasks", Int.parameter, "solutions",    use: getSolutions)
-        sessionInstance.get("result",                               use: getSessionResult)
-        sessionInstance.post("end",                                 use: endSession)
+        sessionInstance.get("tasks", Int.parameter, use: renderCurrentTask)
+        sessionInstance.get("tasks", Int.parameter, "solutions", use: getSolutions)
+        sessionInstance.get("result", use: getSessionResult)
+        sessionInstance.post("end", use: endSession)
     }
 
     func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
@@ -47,7 +47,6 @@ final class PracticeSessionWebController: RouteCollection {
         }
     }
 
-
     /// Get the statistics of a session
     ///
     /// - Parameter req: The HTTP request
@@ -66,9 +65,7 @@ final class PracticeSessionWebController: RouteCollection {
                         PracticeSession.Templates.Result.self,
                         with: .init(
                             user: user,
-                            tasks: results,
-                            progress: 0,
-                            timeUsed: results.map { $0.timeUsed }.reduce(0, +)
+                            result: results
                         )
                 )
         }
@@ -89,7 +86,7 @@ final class PracticeSessionWebController: RouteCollection {
 
                         try req.renderer()
                             .render(
-                                PracticeSession.Templates.History.self,
+                                TaskSession.Templates.History.self,
                                 with: .init(
                                     user: user,
                                     sessions: .init(
@@ -104,13 +101,18 @@ final class PracticeSessionWebController: RouteCollection {
 
     func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
-        try PracticeSession.DefaultAPIController
+        let user = try req.requireAuthenticated(User.self)
+
+        return try PracticeSession.DefaultAPIController
             .get(solutions: req)
             .map { solutions in
                 try req.renderer()
                     .render(
                         TaskSolution.Templates.List.self,
-                        with: solutions
+                        with: .init(
+                            user: user,
+                            solutions: solutions
+                        )
                 )
         }
     }

@@ -16,8 +16,13 @@ function suggestSolution() {
             fetchSolutions();
             suggestedsolution.value();
         } else {
-            console.log("Error: ", response.statusText);
+            throw Error(response.statusText);
         }
+    })
+    .catch(function (error) {
+        $("#create-solution-error-message").text(error.message);
+        $("#create-solution-error-div").fadeIn();
+        $("#create-solution-error-div").removeClass("d-none");
     })
 }
 

@@ -13,23 +13,24 @@ import Mailgun
 import FluentPostgreSQL
 import KognitaAPI
 import Authentication
+import HTMLKit
 
 final class UserWebController: RouteCollection {
 
     func boot(router: Router) {
 
-        router.get("signup",                            use: signupForm)
-        router.get("login",                             use: loginForm)
-        router.get("start-reset-password",              use: startResetPasswordForm)
-        router.get("reset-password",                    use: resetPasswordForm)
-        router.get("users", "verified",                 use: verified(on: ))
-        router.get("users", User.parameter, "verify",   use: verify(on: ))
+        router.get("signup", use: signupForm)
+        router.get("login", use: loginForm)
+        router.get("start-reset-password", use: startResetPasswordForm)
+        router.get("reset-password", use: resetPasswordForm)
+        router.get("users", "verified", use: verified(on: ))
+        router.get("users", User.parameter, "verify", use: verify(on: ))
 
-        router.post("login",                            use: cookieLogin)
-        router.post("logout",                           use: logout)
-        router.post("signup",                           use: create)
-        router.post("start-reset-password",             use: startResetPassword)
-        router.post("reset-password",                   use: resetPassword)
+        router.post("login", use: cookieLogin)
+        router.post("logout", use: logout)
+        router.post("signup", use: create)
+        router.post("start-reset-password", use: startResetPassword)
+        router.post("reset-password", use: resetPassword)
 
     }
 
@@ -57,7 +58,7 @@ final class UserWebController: RouteCollection {
 
                 try User.DefaultAPIController
                     .create(on: req)
-                    .flatMap { newUser in
+                    .flatMap { _ in
 
                         User.authenticate(
                             username: createUser.email,
@@ -124,7 +125,6 @@ final class UserWebController: RouteCollection {
         return req.redirect(to: "/")
     }
 
-
     func startResetPasswordForm(on req: Request) throws -> HTTPResponse {
 
         return try req.renderer()
@@ -164,7 +164,7 @@ final class UserWebController: RouteCollection {
                     with: .init(
                         token: "",
                         alertMessage: (
-                            message: "Ups! Denne forespørselen er enten gått ut på dato, eller eksisterer ikke",
+                            message: "Ups! Denne forespørselen er enten gått ut på dato eller eksisterer ikke",
                             colorClass: "danger"
                         ) // FIXME: - Not presenting error message
                     )
