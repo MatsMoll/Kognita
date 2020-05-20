@@ -30,19 +30,25 @@ final class SubjectWebController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
         let query = try? req.query.decode(ListAllQuery.self)
 
-        return try Subject.DefaultAPIController
-            .getListContent(req)
-            .map { listContent in
+        return try TaskDiscussion.Pivot.Response.DefaultAPIController
+            .setRecentlyVisited(for: user, on: req)
+            .flatMap { activeDiscussion in
 
-                try req.renderer()
-                    .render(
-                        Subject.Templates.ListOverview.self,
-                        with: .init(
-                            user: user,
-                            list: listContent,
-                            wasIncorrectPassword: query?.incorrectPassword ?? false
-                        )
-                )
+            try Subject.DefaultAPIController
+                       .getListContent(req)
+                       .map { listContent in
+
+                           try req.renderer()
+                               .render(
+                                   Subject.Templates.ListOverview.self,
+                                   with: .init(
+                                       user: user,
+                                       list: listContent,
+                                       wasIncorrectPassword: query?.incorrectPassword ?? false,
+                                       recentlyActiveDiscussions: activeDiscussion
+                                   )
+                           )
+                   }
         }
     }
 
