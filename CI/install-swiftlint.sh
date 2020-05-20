@@ -2,7 +2,7 @@
 
 git clone https://github.com/realm/SwiftLint.git
 cd SwiftLint
-swift build -c release --static-swift-stdlib
-mv .build/x86_64-unknown-linux/release/swiftlint /usr/local/bin/
+git checkout 0.39.2
+swift build -c release --static-swift-stdlib --build-path /usr/local/bin/swiftlint
 cd ..
 rm -rf SwiftLint

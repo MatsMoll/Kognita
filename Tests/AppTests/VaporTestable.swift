@@ -4,28 +4,27 @@
 //
 //  Created by Mats Mollestad on 08/11/2018.
 //
+// swiftlint:disable force_try
 
 import Vapor
 @testable import App
 import XCTest
 import FluentPostgreSQL
 
-
 /// A class that setups a application in a testable enviroment and creates a connection to the database
 class VaporTestCase: XCTestCase {
-    
+
     enum Errors: Error {
         case badTest
     }
-    
+
     lazy var app: Application = try! Application.testable(envArgs: self.envArgs)
     var conn: PostgreSQLConnection!
-    
-    let standardHeaders: HTTPHeaders = ["Content-Type" : "application/json"]
-    
+
+    let standardHeaders: HTTPHeaders = ["Content-Type": "application/json"]
+
     var envArgs: [String]?
-    
-    
+
     override func setUp() {
         super.setUp()
         print("Running setup")
@@ -33,7 +32,7 @@ class VaporTestCase: XCTestCase {
         app = try! Application.testable()
         conn = try! app.newConnection(to: .psql).wait()
     }
-    
+
     override func tearDown() {
         super.tearDown()
         app.shutdownGracefully { (error) in
@@ -43,7 +42,6 @@ class VaporTestCase: XCTestCase {
         conn.close()
     }
 }
-
 
 extension Response {
     func has(statusCode: HTTPResponseStatus) {

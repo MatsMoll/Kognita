@@ -23,7 +23,6 @@ protocol RenderTaskPracticing {
     func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> Future<HTTPResponse>
 }
 
-
 //protocol TaskRenderable {
 //
 //    /// Render a task in practice mode
@@ -36,7 +35,6 @@ protocol RenderTaskPracticing {
 //    ///     A renderd `View` of the task
 //    func render(for user: User, on req: Request) throws -> Future<HTTPResponse>
 //}
-
 
 //final class PracticeSessionResult<T: Content>: Content, TaskSubmitResultable {
 //

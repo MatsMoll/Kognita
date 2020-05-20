@@ -19,7 +19,6 @@ class SubtopicWebController: RouteCollection {
         creatorSubjects.get(Subtopic.parameter, "edit", use: edit)
     }
 
-
     func create(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
