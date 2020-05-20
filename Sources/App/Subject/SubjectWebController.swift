@@ -17,7 +17,6 @@ final class SubjectWebController: RouteCollection {
         let incorrectPassword: Bool
     }
 
-
     func boot(router: Router) {
         router.get("subjects", use: listAll)
         router.get("subjects/create", use: createSubject)
@@ -26,28 +25,32 @@ final class SubjectWebController: RouteCollection {
         router.get("subjects", Subject.parameter, "compendium", use: compendium)
     }
 
-
     func listAll(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
         let query = try? req.query.decode(ListAllQuery.self)
 
-        return try Subject.DefaultAPIController
-            .getListContent(req)
-            .map { listContent in
+        return try TaskDiscussion.Pivot.Response.DefaultAPIController
+            .setRecentlyVisited(for: user, on: req)
+            .flatMap { activeDiscussion in
 
-                try req.renderer()
-                    .render(
-                        Subject.Templates.ListOverview.self,
-                        with: .init(
-                            user: user,
-                            list: listContent,
-                            wasIncorrectPassword: query?.incorrectPassword ?? false
-                        )
-                )
+            try Subject.DefaultAPIController
+                       .getListContent(req)
+                       .map { listContent in
+
+                           try req.renderer()
+                               .render(
+                                   Subject.Templates.ListOverview.self,
+                                   with: .init(
+                                       user: user,
+                                       list: listContent,
+                                       wasIncorrectPassword: query?.incorrectPassword ?? false,
+                                       recentlyActiveDiscussions: activeDiscussion
+                                   )
+                           )
+                   }
         }
     }
-
 
     func details(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
@@ -68,10 +71,9 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-
     func createSubject(_ req: Request) throws -> HTTPResponse {
         let user = try req.requireAuthenticated(User.self)
-        
+
         guard user.isAdmin else {
             throw Abort(.forbidden)
         }

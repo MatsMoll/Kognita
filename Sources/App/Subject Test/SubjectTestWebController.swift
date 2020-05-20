@@ -16,19 +16,19 @@ protocol SubjectTestWebControlling: RouteCollection {
 extension SubjectTestWebControlling {
     func boot(router: Router) throws {
 
-        router.get("subjects", Subject.parameter, "subject-tests/create",   use: Self.createForm(on: ))
-        router.get("subjects", Subject.parameter, "subject-tests",          use: Self.listAll(on: ))
+        router.get("subjects", Subject.parameter, "subject-tests/create", use: Self.createForm(on: ))
+        router.get("subjects", Subject.parameter, "subject-tests", use: Self.listAll(on: ))
 
         let testInstance = router.grouped("subject-tests", SubjectTest.parameter)
 
         testInstance.post("enter", use: Self.enter(on: ))
 
-        testInstance.get("edit",    use: Self.editForm(on: ))
+        testInstance.get("edit", use: Self.editForm(on: ))
         testInstance.get("monitor", use: Self.monitor(on: ))
-        testInstance.get("status",  use: Self.status(on: ))
+        testInstance.get("status", use: Self.status(on: ))
         testInstance.get("results", use: Self.results(on: ))
 
-        testInstance.post("end",    use: Self.end(on: ))
+        testInstance.post("end", use: Self.end(on: ))
     }
 }
 
@@ -135,11 +135,9 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
         let user = try req.requireAuthenticated(User.self)
 
-
         return req.parameters
             .model(SubjectTest.self, on: req)
             .flatMap { test in
-
 
                 try User.DatabaseRepository
                     .isModerator(user: user, subjectID: test.subjectID, on: req)
@@ -153,7 +151,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                                     test: test
                                 )
                         )
-                        
+
                 }
         }
     }
@@ -188,7 +186,7 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
     static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
 
         let user = try req.requireAuthenticated(User.self)
-        
+
         return try API.results(on: req)
             .map { results in
 

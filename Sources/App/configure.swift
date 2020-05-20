@@ -35,7 +35,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
         // Catches errors and converts to HTTP responses for users
         middlewares.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>.self)
     }
-    
+
     services.register(middlewares)
     services.register(APIControllerCollection.defaultControllers)
     services.register { _ in

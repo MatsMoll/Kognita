@@ -15,12 +15,12 @@ final class PracticeSessionWebController: RouteCollection {
     func boot(router: Router) {
         let sessionInstance = router.grouped("practice-sessions/", TaskSession.PracticeParameter.parameter)
 
-        router.get("practice-sessions/history",                     use: getSessions)
+        router.get("practice-sessions/history", use: getSessions)
 
-        sessionInstance.get("tasks", Int.parameter,                 use: renderCurrentTask)
-        sessionInstance.get("tasks", Int.parameter, "solutions",    use: getSolutions)
-        sessionInstance.get("result",                               use: getSessionResult)
-        sessionInstance.post("end",                                 use: endSession)
+        sessionInstance.get("tasks", Int.parameter, use: renderCurrentTask)
+        sessionInstance.get("tasks", Int.parameter, "solutions", use: getSolutions)
+        sessionInstance.get("result", use: getSessionResult)
+        sessionInstance.post("end", use: endSession)
     }
 
     func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
@@ -46,7 +46,6 @@ final class PracticeSessionWebController: RouteCollection {
             }
         }
     }
-
 
     /// Get the statistics of a session
     ///

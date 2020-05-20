@@ -1,4 +1,3 @@
-
 import Vapor
 import KognitaCore
 import KognitaAPI
@@ -20,16 +19,15 @@ extension TestSessionWebControlling {
 
         let sessionInstance = router.grouped("test-sessions", TaskSession.TestParameter.parameter)
 
-        sessionInstance.get("/",                                    use: self.redirectToTask(on: ))
-        sessionInstance.get("tasks", Int.parameter,                 use: self.taskWithID(on: ))
-        sessionInstance.get("tasks", Int.parameter, "solutions",    use: self.solutions(on: ))
-        sessionInstance.get("tasks/overview",                       use: self.overview(on: ))
-        sessionInstance.get("results",                              use: self.results(on: ))
-        sessionInstance.get("tasks", Int.parameter, "result",       use: self.detailedResult(on: ))
-        sessionInstance.post("finnish",                             use: self.finnish(on: ))
+        sessionInstance.get("/", use: self.redirectToTask(on: ))
+        sessionInstance.get("tasks", Int.parameter, use: self.taskWithID(on: ))
+        sessionInstance.get("tasks", Int.parameter, "solutions", use: self.solutions(on: ))
+        sessionInstance.get("tasks/overview", use: self.overview(on: ))
+        sessionInstance.get("results", use: self.results(on: ))
+        sessionInstance.get("tasks", Int.parameter, "result", use: self.detailedResult(on: ))
+        sessionInstance.post("finnish", use: self.finnish(on: ))
     }
 }
-
 
 class TestSessionWebController: TestSessionWebControlling {
 
@@ -167,7 +165,9 @@ class TestSessionWebController: TestSessionWebControlling {
         .catchMap { error in
             switch error {
             case TestSessionRepositoringError.testIsNotFinnished:
-                guard let sessionID = req.parameters.rawValues(for: TaskSession.TestParameter.self).first else { throw Abort(.internalServerError) }
+                guard let sessionID = req.parameters
+                    .rawValues(for: TaskSession.TestParameter.self)
+                    .first else { throw Abort(.internalServerError) }
                 return req.redirect(to: "/test-sessions/\(sessionID)/results")
             default: throw error
             }
