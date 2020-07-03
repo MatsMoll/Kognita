@@ -11,31 +11,32 @@ import KognitaViews
 
 class SubtopicWebController: RouteCollection {
 
-    func boot(router: Router) throws {
+    func boot(routes: RoutesBuilder) throws {
 
-        let creatorSubjects = router.grouped("creator/subjects", Subject.parameter, "subtopics")
+        let creatorSubjects = routes.grouped("creator", "subjects", Subject.parameter, "subtopics")
 
         creatorSubjects.get("create", use: create)
         creatorSubjects.get(Subtopic.parameter, "edit", use: edit)
     }
 
-    func create(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func create(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
+        return try req.controllers.subjectController
+            .retrive(on: req)
             .flatMap { subject in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap {
+                req.repositories.userRepository
+                    .isModerator(user: user, subjectID: subject.id)
+                    .ifFalse(throw: Abort(.forbidden))
+                    .failableFlatMap {
 
-                        try Topic.DatabaseRepository
-                            .getTopics(in: subject, conn: req)
-                            .map { topics in
+                        req.repositories.topicRepository
+                            .getTopicsWith(subjectID: subject.id)
+                            .flatMapThrowing { topics in
 
-                                try req.renderer().render(
+                                try req.htmlkit.render(
                                     Subtopic.Templates.Create.self,
                                     with: .init(
                                         user: user,
@@ -48,27 +49,26 @@ class SubtopicWebController: RouteCollection {
         }
     }
 
-    func edit(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func edit(on req: Request) throws -> EventLoopFuture<Response> {
 
-       let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-       return req.parameters
-            .model(Subject.self, on: req)
-           .flatMap { subject in
+        return try req.controllers.subjectController.retrive(on: req)
+            .flatMap { subject in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap {
+                req.repositories.userRepository
+                    .isModerator(user: user, subjectID: subject.id)
+                    .ifFalse(throw: Abort(.forbidden))
+                    .failableFlatMap {
 
-                        req.parameters
-                            .model(Subtopic.self, on: req)
+                        try req.controllers.subtopicController.retrive(on: req)
                             .flatMap { subtopic in
 
-                                try Topic.DatabaseRepository
-                                    .getTopics(in: subject, conn: req)
-                                    .map { topics in
+                                req.repositories.topicRepository
+                                    .getTopicsWith(subjectID: subject.id)
+                                    .flatMapThrowing { topics in
 
-                                        try req.renderer().render(
+                                        try req.htmlkit.render(
                                             Subtopic.Templates.Create.self,
                                             with: .init(
                                                 user: user,

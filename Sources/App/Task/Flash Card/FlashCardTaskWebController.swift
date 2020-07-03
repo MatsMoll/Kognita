@@ -15,70 +15,59 @@ class FlashCardTaskWebController: RouteCollection {
         let wasUpdated: Bool?
     }
 
-    func boot(router: Router) throws {
-        router.get(
-            "creator/subjects", Subject.parameter, "task/flash-card/create",
+    func boot(routes: RoutesBuilder) throws {
+
+        routes.get(
+            "creator", "subjects", Subject.parameter, "task", "flash-card", "create",
             use: createTask)
-        router.get(
-            "creator/tasks/flash-card", FlashCardTask.parameter, "edit",
+        routes.get(
+            "creator", "tasks", "flash-card", TypingTask.parameter, "edit",
             use: editTask)
     }
 
-    func createTask(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func createTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
-            .flatMap { subject in
+        return try req.controllers.subjectController
+            .overview(on: req)
+            .flatMapThrowing { subject in
 
-                try Topic.DatabaseRepository
-                    .getTopicResponses(in: subject, conn: req)
-                    .map { topics in
-
-                        try req.renderer().render(
-                            FlashCardTask.Templates.Create.self,
-                            with: .init(
-                                user: user,
-                                content: .init(subject: subject, topics: topics),
-                                canEdit: true
-                            )
-                        )
-                }
+                try req.htmlkit.render(
+                    TypingTask.Templates.Create.self,
+                    with: .init(
+                        user: user,
+                        content: .init(subject: subject),
+                        canEdit: true
+                    )
+                )
         }
     }
 
-    func editTask(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func editTask(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
         let query = try req.query.decode(EditTaskURLQuery.self)
 
-        return req.parameters
-            .model(FlashCardTask.self, on: req)
-            .flatMap { flashCard in
+        return try req.repositories.typingTaskRepository
+            .modifyContent(forID: req.parameters.get(TypingTask.self))
+            .flatMap { content in
 
-                try FlashCardTask.DatabaseRepository
-                    .modifyContent(forID: flashCard.requireID(), on: req)
-                    .flatMap { content in
+                    return req.repositories.userRepository
+                        .isModerator(user: user, taskID: content.task!.id)
+                        .flatMapThrowing { isModerator in
 
-                        return try User.DatabaseRepository
-                            .isModerator(user: user, taskID: flashCard.requireID(), on: req)
-                            .map { true }
-                            .catchMap { _ in false }
-                            .map { isModerator in
-
-                                try req.renderer()
-                                    .render(
-                                        FlashCardTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            content: content,
-                                            canEdit: isModerator || content.task?.creatorID == user.id,
-                                            wasUpdated: query.wasUpdated ?? false
-                                        )
-                                )
-                        }
+                            try req.htmlkit
+                                .render(
+                                    TypingTask.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        content: content,
+                                        canEdit: isModerator || content.task?.creatorID == user.id,
+                                        wasUpdated: query.wasUpdated ?? false
+                                    )
+                            )
                 }
         }
     }

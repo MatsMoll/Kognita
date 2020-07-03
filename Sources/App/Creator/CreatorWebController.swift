@@ -6,49 +6,44 @@
 //
 
 import Vapor
-import Authentication
 import KognitaCore
 import KognitaViews
 
 final class CreatorWebController: RouteCollection {
 
-    func boot(router: Router) {
-
-        router.get("/creator/subjects", Subject.parameter, "overview", use: subjectOverview)
-        router.get("/creator/subjects", Subject.parameter, "search", use: search)
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("creator", "subjects", Subject.parameter, "overview", use: subjectOverview)
+        routes.get("creator", "subjects", Subject.parameter, "search", use: search)
     }
 
-    func subjectOverview(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        let user = try req.requireAuthenticated(User.self)
+    func subjectOverview(_ req: Request) throws -> EventLoopFuture<Response> {
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
+        return try req.controllers.subjectController
+            .retrive(on: req)
             .flatMap { subject in
 
-                try Task.Repository
-                    .getTasks(in: subject.requireID(), user: user, maxAmount: nil, withSoftDeleted: true, conn: req)
-                    .flatMap { tasks in
+                req.repositories.subjectRepository
+                    .tasksWith(subjectID: subject.id)
+                    .failableFlatMap { tasks in
 
-                        try Subject.DatabaseRepository
-                            .unverifiedSolutions(in: subject.requireID(), for: user, on: req)
+                        try req.repositories.taskSolutionRepository
+                            .unverifiedSolutions(in: subject.id, for: user)
                             .flatMap { solutions in
 
-                                try User.DatabaseRepository
-                                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                                    .map { true }
-                                    .catchMap { _ in false }
-                                    .map { isModerator in
+                                req.repositories.userRepository
+                                    .isModerator(user: user, subjectID: subject.id)
+                                    .flatMapThrowing { isModerator in
 
-                                        try req.renderer()
-                                            .render(
-                                                Subject.Templates.ContentOverview.self,
-                                                with: .init(
-                                                    user: user,
-                                                    subject: subject,
-                                                    tasks: tasks,
-                                                    isModerator: isModerator,
-                                                    solutions: solutions
-                                                )
+                                        try req.htmlkit.render(
+                                            Subject.Templates.ContentOverview.self,
+                                            with: Subject.Templates.ContentOverview.Context(
+                                                user: user,
+                                                subject: subject,
+                                                tasks: [],
+                                                isModerator: isModerator,
+                                                solutions: solutions
+                                            )
                                         )
                                 }
                         }
@@ -56,35 +51,37 @@ final class CreatorWebController: RouteCollection {
         }
     }
 
-    func search(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func search(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        let query = try req.query.decode(Task.Repository.CreatorOverviewQuery.self)
+        throw Abort(.notImplemented)
 
-        return req.parameters
-            .model(Subject.self, on: req)
-            .flatMap { subject in
-
-                try Task.Repository
-                    .getTasks(in: subject.requireID(), user: user, query: query, withSoftDeleted: true, conn: req)
-                    .flatMap { tasks in
-
-                        try User.DatabaseRepository
-                            .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                            .map { true }
-                            .catchMap { _ in false }
-                            .map { isModerator in
-
-                                try req.renderer()
-                                    .render(Subject.Templates.TaskList.self, with: .init(
-                                        userID: user.requireID(),
-                                        isModerator: isModerator,
-                                        tasks: tasks
-                                    )
-                                )
-                        }
-                }
-        }
+//        let query = try req.query.decode(Task.Repository.CreatorOverviewQuery.self)
+//
+//        return req.parameters
+//            .model(Subject.self, on: req)
+//            .flatMap { subject in
+//
+//                try Task.Repository
+//                    .getTasks(in: subject.requireID(), user: user, query: query, withSoftDeleted: true, conn: req)
+//                    .flatMap { tasks in
+//
+//                        try User.DatabaseRepository
+//                            .isModerator(user: user, subjectID: subject.requireID(), on: req)
+//                            .map { true }
+//                            .catchMap { _ in false }
+//                            .map { isModerator in
+//
+//                                try req.renderer()
+//                                    .render(Subject.Templates.TaskList.self, with: .init(
+//                                        userID: user.requireID(),
+//                                        isModerator: isModerator,
+//                                        tasks: tasks
+//                                    )
+//                                )
+//                        }
+//                }
+//        }
     }
 }

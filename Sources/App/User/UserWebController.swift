@@ -10,27 +10,25 @@ import Crypto
 import KognitaCore
 import KognitaViews
 import Mailgun
-import FluentPostgreSQL
 import KognitaAPI
-import Authentication
 import HTMLKit
 
 final class UserWebController: RouteCollection {
 
-    func boot(router: Router) {
+    func boot(routes: RoutesBuilder) throws {
 
-        router.get("signup", use: signupForm)
-        router.get("login", use: loginForm)
-        router.get("start-reset-password", use: startResetPasswordForm)
-        router.get("reset-password", use: resetPasswordForm)
-        router.get("users", "verified", use: verified(on: ))
-        router.get("users", User.parameter, "verify", use: verify(on: ))
+        routes.get("signup", use: signupForm)
+        routes.get("login", use: loginForm)
+        routes.get("start-reset-password", use: startResetPasswordForm)
+        routes.get("reset-password", use: resetPasswordForm)
+        routes.get("users", "verified", use: verified(on: ))
+        routes.get("users", User.parameter, "verify", use: verify(on: ))
 
-        router.post("login", use: cookieLogin)
-        router.post("logout", use: logout)
-        router.post("signup", use: create)
-        router.post("start-reset-password", use: startResetPassword)
-        router.post("reset-password", use: resetPassword)
+        routes.post("login", use: cookieLogin)
+        routes.post("logout", use: logout)
+        routes.post("signup", use: create)
+        routes.post("start-reset-password", use: startResetPassword)
+        routes.post("reset-password", use: resetPassword)
 
     }
 
@@ -41,124 +39,98 @@ final class UserWebController: RouteCollection {
 
     func loginForm(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        if try req.authenticated(User.self) != nil {
-            return req.future(req.redirect(to: "/subjects"))
+        if req.auth.get(User.self) != nil {
+            return req.eventLoop.future(req.redirect(to: "/subjects"))
         }
 
-        return try req.renderer()
+        return try req.htmlkit
             .render(LoginPage.self, with: .init())
-            .encode(for: req)
+            .encodeResponse(for: req)
     }
 
     func create(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        return try req.content
-            .decode(User.Create.Data.self)
-            .flatMap { createUser in
-
-                try User.DefaultAPIController
-                    .create(on: req)
-                    .flatMap { _ in
-
-                        User.authenticate(
-                            username: createUser.email,
-                            password: createUser.password,
-                            using: BCryptDigest(),
-                            on: req
+        try req.controllers.userController
+            .create(on: req)
+            .map { user in
+                req.auth.login(user)
+                return req.redirect(to: "/subjects")
+        }
+        .flatMapError { error in
+            switch error {
+            case is User.DatabaseRepository.Errors:
+                guard
+                    let createUser = try? req.content.decode(User.Create.Data.self),
+                    let response = try? req.htmlkit.render(
+                        User.Templates.Signup.self,
+                        with: .init(
+                            errorMessage: error.localizedDescription,
+                            submittedForm: createUser
                         )
-                            .map { user in
-
-                                guard let user = user else {
-                                    throw User.DatabaseRepository.Errors.unauthorized
-                                }
-                                try req.authenticate(user)
-                                return req.redirect(to: "/subjects")
-                        }
-                }
-                .catchFlatMap({ (error) in
-                    switch error {
-                    case is User.DatabaseRepository.Errors:
-                        return try req.renderer()
-                            .render(
-                                User.Templates.Signup.self,
-                                with: .init(
-                                    errorMessage: error.localizedDescription,
-                                    submittedForm: createUser
-                                )
-                            )
-                            .encode(for: req)
-                    default:
-                        throw error
-                    }
-                })
+                    )
+                else { return req.eventLoop.future(error: Abort(.internalServerError)) }
+                return response.encodeResponse(for: req)
+            default:
+                return req.eventLoop.future(error: error)
             }
+        }
     }
 
     func cookieLogin(_ req: Request) throws -> EventLoopFuture<Response> {
-        return try req.content
-            .decode(UserLogin.self)
-            .flatMap { login in
 
-                return User
-                    .authenticate(
-                        username: login.email,
-                        password: login.password,
-                        using: BCryptDigest(),
-                        on: req
-                )
-                    .flatMap { user in
+        guard let login = try? req.content.decode(UserLogin.self) else { throw Abort(.badRequest) }
 
-                    guard let user = user else {
-                        return try req.renderer()
-                            .render(LoginPage.self, with: .init(errorMessage: "Feil brukernavn eller passord"))
-                            .encode(for: req)
-                    }
-                    try req.authenticate(user)
-                    return req.future()
-                        .transform(to: req.redirect(to: "/subjects"))
+        return req.repositories.userRepository.verify(email: login.email, with: login.password)
+            .failableFlatMap { user in
+                guard let user = user else {
+                    return try req.htmlkit
+                        .render(LoginPage.self, with: .init(errorMessage: "Feil brukernavn eller passord"))
+                        .encodeResponse(for: req)
                 }
+                req.auth.login(user)
+                return req.eventLoop.future().transform(to: req.redirect(to: "/subjects"))
         }
     }
 
     func logout(_ req: Request) throws -> Response {
-        try req.unauthenticateSession(User.self)
+        req.auth.logout(User.self)
         return req.redirect(to: "/")
     }
 
-    func startResetPasswordForm(on req: Request) throws -> HTTPResponse {
+    func startResetPasswordForm(on req: Request) throws -> Response {
 
-        return try req.renderer()
+        return try req.htmlkit
             .render(
                 User.Templates.ResetPassword.Start.self,
                 with: .init()
         )
     }
 
-    func startResetPassword(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func startResetPassword(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let successPage = try req.renderer()
+        let successPage = try req.htmlkit
             .render(
                 User.Templates.ResetPassword.Start.self,
                 with: .init(state: .success)
         )
-        return try User.DefaultAPIController
+        return try req.controllers.userController
             .startResetPassword(on: req)
             .transform(to: successPage)
     }
 
-    func resetPasswordForm(req: Request) throws -> HTTPResponse {
+    func resetPasswordForm(req: Request) throws -> Response {
 
         if let tokenContent = try? req.query
             .decode(User.ResetPassword.Token.Data.self) {
 
-            return try req.renderer()
+            return try req.htmlkit
                 .render(
                     User.Templates.ResetPassword.Reset.self,
                     with: .init(token: tokenContent.token)
             )
         } else {
 
-            return try req.renderer()
+            return try req.htmlkit
                 .render(
                     User.Templates.ResetPassword.Reset.self,
                     with: .init(
@@ -173,21 +145,21 @@ final class UserWebController: RouteCollection {
     }
 
     func resetPassword(req: Request) throws -> EventLoopFuture<Response> {
-        return try User.DefaultAPIController
+        try req.controllers.userController
             .resetPassword(on: req)
             .transform(to: req.redirect(to: "/login"))
     }
 
     func verify(on req: Request) throws -> EventLoopFuture<Response> {
-        try User.DefaultAPIController
+        try req.controllers.userController
             .verify(on: req)
             .map { _ in
                 req.redirect(to: "/users/verified")
         }
     }
 
-    func verified(on req: Request) throws -> HTTPResponse {
-        try req.renderer()
+    func verified(on req: Request) throws -> Response {
+        try req.htmlkit
             .render(User.Templates.VerifiedConfirmation.self)
     }
 }

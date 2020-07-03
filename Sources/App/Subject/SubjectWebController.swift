@@ -17,28 +17,29 @@ final class SubjectWebController: RouteCollection {
         let incorrectPassword: Bool
     }
 
-    func boot(router: Router) {
-        router.get("subjects", use: listAll)
-        router.get("subjects/create", use: createSubject)
-        router.get("subjects", Subject.parameter, use: details)
-        router.get("subjects", Subject.parameter, "edit", use: editSubject)
-        router.get("subjects", Subject.parameter, "compendium", use: compendium)
+    func boot(routes: RoutesBuilder) throws {
+
+        routes.get("subjects", use: listAll)
+        routes.get("subjects", "create", use: createSubject)
+        routes.get("subjects", Subject.parameter, use: details)
+        routes.get("subjects", Subject.parameter, "edit", use: editSubject)
+        routes.get("subjects", Subject.parameter, "compendium", use: compendium)
     }
 
-    func listAll(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func listAll(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
         let query = try? req.query.decode(ListAllQuery.self)
 
-        return try TaskDiscussion.Pivot.Response.DefaultAPIController
-            .setRecentlyVisited(for: user, on: req)
-            .flatMap { activeDiscussion in
+        return try req.controllers.taskDiscussionResponseController
+            .setRecentlyVisited(on: req) // FIXME: -- Rename
+            .failableFlatMap { activeDiscussion in
 
-            try Subject.DefaultAPIController
+                try req.controllers.subjectController
                        .getListContent(req)
-                       .map { listContent in
+                       .flatMapThrowing { listContent in
 
-                           try req.renderer()
+                           try req.htmlkit
                                .render(
                                    Subject.Templates.ListOverview.self,
                                    with: .init(
@@ -52,15 +53,15 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-    func details(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func details(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try Subject.DefaultAPIController
+        return try req.controllers.subjectController
             .getDetails(req)
-            .map { details in
+            .flatMapThrowing { details in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         Subject.Templates.Details.self,
                         with: .init(
@@ -71,14 +72,14 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-    func createSubject(_ req: Request) throws -> HTTPResponse {
-        let user = try req.requireAuthenticated(User.self)
+    func createSubject(_ req: Request) throws -> Response {
+        let user = try req.auth.require(User.self)
 
         guard user.isAdmin else {
             throw Abort(.forbidden)
         }
 
-        return try req.renderer()
+        return try req.htmlkit
             .render(
                 Subject.Templates.Create.self,
                 with: .init(
@@ -87,15 +88,15 @@ final class SubjectWebController: RouteCollection {
         )
     }
 
-    func editSubject(_ req: Request) throws -> Future<HTTPResponse> {
+    func editSubject(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
-            .map { subject in
+        return try req.controllers.subjectController
+            .retrive(on: req)
+            .flatMapThrowing { subject in
 
-                return try req.renderer()
+                return try req.htmlkit
                     .render(
                         Subject.Templates.Create.self,
                         with: .init(
@@ -106,15 +107,15 @@ final class SubjectWebController: RouteCollection {
         }
     }
 
-    func compendium(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func compendium(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try Subject.DefaultAPIController
+        return try req.controllers.subjectController
             .compendium(on: req)
-            .map { compendium in
+            .flatMapThrowing { compendium in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         Subject.Templates.Compendium.self,
                         with: .init(

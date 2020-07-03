@@ -5,24 +5,24 @@ import KognitaViews
 
 protocol TestSessionWebControlling: RouteCollection {
     func redirectToTask(on req: Request) throws -> EventLoopFuture<Response>
-    func taskWithID(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    func overview(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    func taskWithID(on req: Request) throws -> EventLoopFuture<Response>
+    func overview(on req: Request) throws -> EventLoopFuture<Response>
     func finnish(on req: Request) throws -> EventLoopFuture<Response>
-    func results(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    func results(on req: Request) throws -> EventLoopFuture<Response>
     func detailedResult(on req: Request) throws -> EventLoopFuture<Response>
-    func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    func solutions(on req: Request) throws -> EventLoopFuture<Response>
 }
 
 extension TestSessionWebControlling {
 
-    func boot(router: Router) throws {
+    func boot(routes: RoutesBuilder) throws {
 
-        let sessionInstance = router.grouped("test-sessions", TaskSession.TestParameter.parameter)
+        let sessionInstance = routes.grouped("test-sessions", TestSession.parameter)
 
-        sessionInstance.get("/", use: self.redirectToTask(on: ))
+        sessionInstance.get(use: self.redirectToTask(on: ))
         sessionInstance.get("tasks", Int.parameter, use: self.taskWithID(on: ))
         sessionInstance.get("tasks", Int.parameter, "solutions", use: self.solutions(on: ))
-        sessionInstance.get("tasks/overview", use: self.overview(on: ))
+        sessionInstance.get("tasks", "overview", use: self.overview(on: ))
         sessionInstance.get("results", use: self.results(on: ))
         sessionInstance.get("tasks", Int.parameter, "result", use: self.detailedResult(on: ))
         sessionInstance.post("finnish", use: self.finnish(on: ))
@@ -33,33 +33,34 @@ class TestSessionWebController: TestSessionWebControlling {
 
     func redirectToTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        return req.parameters
-            .model(TaskSession.TestParameter.self, on: req)
-            .flatMap { session in
+        let sessionID = try req.parameters.get(TestSession.self)
 
-                try SubjectTest.DatabaseRepository
-                    .firstTaskID(testID: session.testID, on: req)
+        return req.repositories.testSessionRepository
+            .testIDFor(id: sessionID)
+            .failableFlatMap { testID in
+                try req.repositories.subjectTestRepository
+                    .firstTaskID(testID: testID)
                     .map { id in
-                        try req.redirect(to: "/test-sessions/\(session.requireID())/tasks/\(id ?? 0)")
+                        req.redirect(to: "/test-sessions/\(sessionID)/tasks/\(id ?? 0)")
                 }
         }
     }
 
-    func taskWithID(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func taskWithID(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(TaskSession.TestParameter.self, on: req)
-            .flatMap { session in
+        return try req.repositories.testSessionRepository
+            .sessionReporesentableWith(id: req.parameters.get(TestSession.self))
+            .failableFlatMap { session in
 
-                let taskID = try req.first(Int.self)
+                let taskID = try req.parameters.get(Int.self)
 
-                return try SubjectTest.DatabaseRepository
-                    .taskWith(id: taskID, in: session, for: user, on: req)
-                    .map { task in
+                return try req.repositories.subjectTestRepository
+                    .taskWith(id: taskID, in: session, for: user)
+                    .flatMapThrowing { task in
 
-                        try req.renderer()
+                        try req.htmlkit
                             .render(
                                 MultipleChoiseTaskTestMode.self,
                                 with: MultipleChoiseTaskTestMode.Context(
@@ -72,15 +73,15 @@ class TestSessionWebController: TestSessionWebControlling {
         }
     }
 
-    func overview(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func overview(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try TestSession.DefaultAPIController
+        return try req.controllers.testSessionController
             .overview(on: req)
-            .map { overview in
+            .flatMapThrowing { overview in
 
-                return try req.renderer()
+                return try req.htmlkit
                     .render(
                         TestSession.Templates.Overview.self,
                         with: TestSession.Templates.Overview.Context(
@@ -93,29 +94,24 @@ class TestSessionWebController: TestSessionWebControlling {
 
     func finnish(on req: Request) throws -> EventLoopFuture<Response> {
 
-        guard
-            let testSessionIDRaw = req.parameters.rawValues(for: TaskSession.TestParameter.self).first,
-            let testSessionID = Int(testSessionIDRaw)
-        else {
-            throw Abort(.badRequest)
-        }
+        let sessionID = try req.parameters.get(TestSession.self)
 
-        return try TestSession.DefaultAPIController
+        return try req.controllers.testSessionController
             .submit(test: req)
             .map { _ in
-                req.redirect(to: "/test-sessions/\(testSessionID)/results")
+                req.redirect(to: "/test-sessions/\(sessionID)/results")
         }
     }
 
-    func results(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func results(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try TestSession.DefaultAPIController
+        return try req.controllers.testSessionController
             .results(on: req)
-            .map { results in
+            .flatMapThrowing { results in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         TestSession.Templates.Results.self,
                         with: TestSession.Templates.Results.Context(
@@ -126,15 +122,15 @@ class TestSessionWebController: TestSessionWebControlling {
         }
     }
 
-    func solutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func solutions(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try TestSession.DefaultAPIController
+        return try req.controllers.testSessionController
             .solutions(on: req)
-            .map { solutions in
+            .flatMapThrowing { solutions in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         TaskSolution.Templates.List.self,
                         with: .init(
@@ -147,27 +143,25 @@ class TestSessionWebController: TestSessionWebControlling {
 
     func detailedResult(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try TestSession.DefaultAPIController
+        return try req.controllers.testSessionController
             .detailedTaskResult(on: req)
-            .flatMap { result in
+            .failableFlatMap { result in
 
-                try req.renderer().render(
+                try req.htmlkit.render(
                     TestSession.Templates.TaskResult.self,
                     with: .init(
                         user: user,
                         result: result
                     )
                 )
-                .encode(for: req)
+                .encodeResponse(for: req)
         }
-        .catchMap { error in
+        .flatMapErrorThrowing { error in
             switch error {
             case TestSessionRepositoringError.testIsNotFinnished:
-                guard let sessionID = req.parameters
-                    .rawValues(for: TaskSession.TestParameter.self)
-                    .first else { throw Abort(.internalServerError) }
+                guard let sessionID = try? req.parameters.get(TestSession.self) else { throw Abort(.internalServerError) }
                 return req.redirect(to: "/test-sessions/\(sessionID)/results")
             default: throw error
             }

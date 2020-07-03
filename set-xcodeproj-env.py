@@ -22,6 +22,11 @@ database_user.attrib["key"] = "DATABASE_USER"
 database_user.attrib["value"] = getpass.getuser()
 database_user.attrib["isEnabled"] = "YES"
 
+text_client_url = ETree.SubElement(env_var_section, "EnvironmentVariable")
+text_client_url.attrib["key"] = "TEXT_CLIENT_BASE_URL"
+text_client_url.attrib["value"] = "http://127.0.0.1:5000/"
+text_client_url.attrib["isEnabled"] = "YES"
+
 tree.write(file)
 
 # Adding swiftlint script

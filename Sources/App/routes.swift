@@ -1,38 +1,54 @@
 import Crypto
 import Vapor
-import Authentication
 import KognitaCore
 import KognitaViews
 import HTMLKit
 import KognitaAPI
 
 /// Register your application's routes here.
-public func routes(_ router: Router) throws {
-    try setupWeb(for: router)
+public func routes(_ app: Application) throws {
+    try setupWeb(for: app)
 }
 
-private func setupWeb(for route: Router) throws {
-    try setupUserWeb(for: route)
+private func setupWeb(for app: Application) throws {
+    try setupUserWeb(for: app)
 }
 
-private func setupUserWeb(for router: Router) throws {
+struct RedirectMiddleware<Auth: Authenticatable>: Middleware {
 
-    let sessionMiddle = router.grouped(User.authSessionsMiddleware())
+    let path: String
+
+    func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+        if request.auth.get(Auth.self) != nil {
+            return next.respond(to: request)
+        } else {
+            return request.redirect(to: path)
+                .encodeResponse(for: request)
+        }
+    }
+}
+
+private func setupUserWeb(for app: Application) throws {
+
+    let sessionMiddle = app.grouped(
+        app.sessions.middleware,
+        User.sessionAuthMiddleware()
+    )
     let redirectMiddle = sessionMiddle.grouped(RedirectMiddleware<User>(path: "/login"))
 
-    sessionMiddle.get("/") { req -> EventLoopFuture<Response> in
-        if try req.authenticated(User.self) != nil {
-            return req.future(req.redirect(to: "/subjects"))
+    sessionMiddle.get { req -> EventLoopFuture<Response> in
+        if req.auth.get(User.self) != nil {
+            return req.eventLoop.future(req.redirect(to: "/subjects"))
         }
-        return try req.renderer().render(view: Pages.Landing.self)
-            .encode(for: req)
+        return try req.htmlkit.render(view: Pages.Landing.self)
+            .encodeResponse(for: req)
     }
 
-    router.get("/privacy-policy") { req in
-        try req.renderer().render(view: Pages.PrivacyPolicy.self)
+    app.get("privacy-policy") { req in
+        try req.htmlkit.render(view: Pages.PrivacyPolicy.self)
     }
-    router.get("/terms-of-service") { req in
-        try req.renderer().render(view: Pages.TermsOfService.self)
+    app.get("terms-of-service") { req in
+        try req.htmlkit.render(view: Pages.TermsOfService.self)
     }
 
     try sessionMiddle.register(collection: UserWebController())
@@ -43,7 +59,7 @@ private func setupUserWeb(for router: Router) throws {
     try redirectMiddle.register(collection: FlashCardTaskWebController())
     try redirectMiddle.register(collection: SubtopicWebController())
     try redirectMiddle.register(collection: PracticeSessionWebController())
-    try redirectMiddle.register(collection: SubjectTestWebController<SubjectTestAPIController<SubjectTest.DatabaseRepository>>())
+    try redirectMiddle.register(collection: SubjectTestWebController())
     try redirectMiddle.register(collection: TestSessionWebController())
     try redirectMiddle.register(collection: TaskDiscussionWebController())
 }
