@@ -66,7 +66,7 @@ function jsonData() {
     }
 
     return JSON.stringify({
-        "subjectId"     : subjectId,
+        "subjectID"     : subjectId,
         "name"          : name,
         "chapter"       : chapter
     });

@@ -30,17 +30,22 @@ class FlashCardTaskWebController: RouteCollection {
         let user = try req.auth.require(User.self)
 
         return try req.controllers.subjectController
-            .overview(on: req)
-            .flatMapThrowing { subject in
+            .retrive(on: req)
+            .flatMap { subject in
 
-                try req.htmlkit.render(
-                    TypingTask.Templates.Create.self,
-                    with: .init(
-                        user: user,
-                        content: .init(subject: subject),
-                        canEdit: true
-                    )
-                )
+                req.repositories.topicRepository
+                    .topicsWithSubtopics(subjectID: subject.id)
+                    .flatMapThrowing { topics in
+
+                        try req.htmlkit.render(
+                            TypingTask.Templates.Create.self,
+                            with: .init(
+                                user: user,
+                                content: .init(subject: subject, topics: topics),
+                                canEdit: true
+                            )
+                        )
+                }
         }
     }
 
@@ -54,20 +59,20 @@ class FlashCardTaskWebController: RouteCollection {
             .modifyContent(forID: req.parameters.get(TypingTask.self))
             .flatMap { content in
 
-                    return req.repositories.userRepository
-                        .isModerator(user: user, taskID: content.task!.id)
-                        .flatMapThrowing { isModerator in
+                return req.repositories.userRepository
+                    .isModerator(user: user, taskID: content.task!.id)
+                    .flatMapThrowing { isModerator in
 
-                            try req.htmlkit
-                                .render(
-                                    TypingTask.Templates.Create.self,
-                                    with: .init(
-                                        user: user,
-                                        content: content,
-                                        canEdit: isModerator || content.task?.creatorID == user.id,
-                                        wasUpdated: query.wasUpdated ?? false
-                                    )
-                            )
+                        try req.htmlkit
+                            .render(
+                                TypingTask.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    content: content,
+                                    canEdit: isModerator || content.task?.creatorID == user.id,
+                                    wasUpdated: query.wasUpdated ?? false
+                                )
+                        )
                 }
         }
     }

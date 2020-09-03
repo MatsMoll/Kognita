@@ -21,9 +21,12 @@ final class SubjectWebController: RouteCollection {
 
         routes.get("subjects", use: listAll)
         routes.get("subjects", "create", use: createSubject)
-        routes.get("subjects", Subject.parameter, use: details)
-        routes.get("subjects", Subject.parameter, "edit", use: editSubject)
-        routes.get("subjects", Subject.parameter, "compendium", use: compendium)
+
+        let subject = routes.grouped("subjects", Subject.parameter)
+
+        subject.get(use: details)
+        subject.get("edit", use: editSubject)
+        subject.get("compendium", use: compendium)
     }
 
     func listAll(_ req: Request) throws -> EventLoopFuture<Response> {

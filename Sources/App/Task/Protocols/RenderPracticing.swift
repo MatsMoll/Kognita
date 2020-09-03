@@ -87,8 +87,10 @@ extension TaskType: RenderTaskPracticing {
     }
 
     func renderMultipleChoiceTask(sessionID: PracticeSession.ID, preview: TaskPreviewContent, isMultipleSelect: Bool, lastResult: TaskResult?, taskIndex: Int, progress: Int, user: User, on req: Request) -> EventLoopFuture<Response> {
-        req.eventLoop.future()
-            .flatMap {
+
+        req.repositories.practiceSessionRepository
+            .find(sessionID)
+            .flatMap { session in
                 if lastResult != nil {
                     return req.repositories.multipleChoiceTaskRepository
                         .multipleChoiseAnswers(in: sessionID, taskID: preview.task.id)
@@ -103,7 +105,7 @@ extension TaskType: RenderTaskPracticing {
                                             choice: choice.choice,
                                             isCorrect: choice.isCorrect
                                         )
-                                    }
+                                    }.shuffled()
                                 ),
                                 taskContent: preview,
                                 user: user,
@@ -111,24 +113,27 @@ extension TaskType: RenderTaskPracticing {
                                 sessionID: sessionID,
                                 lastResult: lastResult,
                                 practiceProgress: progress,
-                                selectedChoises: answers.filter { $0.wasSelected }.map { $0.id }
+                                selectedChoises: answers.filter { $0.wasSelected }.map { $0.id },
+                                numberOfTaskGoal: session.numberOfTaskGoal
                             )
                     }
                 } else {
-                    return req.repositories.multipleChoiceTaskRepository.choisesFor(taskID: preview.task.id)
+                    return req.repositories.multipleChoiceTaskRepository
+                        .choisesFor(taskID: preview.task.id)
                         .map { choices in
                             MultipleChoiceTask.Templates.Execute.Context(
                                 multiple: MultipleChoiceTask(
                                     task: preview.task,
                                     isMultipleSelect: isMultipleSelect,
-                                    choices: choices
+                                    choices: choices.shuffled()
                                 ),
                                 taskContent: preview,
                                 user: user,
                                 currentTaskIndex: taskIndex,
                                 sessionID: sessionID,
                                 lastResult: lastResult,
-                                practiceProgress: progress
+                                practiceProgress: progress,
+                                numberOfTaskGoal: session.numberOfTaskGoal
                             )
                     }
                 }

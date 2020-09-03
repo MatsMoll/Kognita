@@ -41,20 +41,25 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .flatMapThrowing { isModerator in
+                req.repositories.topicRepository
+                    .topicsWithSubtopics(subjectID: subject.id)
+                    .flatMap { topics in
 
-                        try req.htmlkit
-                            .render(
-                                MultipleChoiceTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    content: .init(subject: subject, topics: []),
-                                    isModerator: isModerator,
-                                    isTestable: query.isTestable ?? false
+                        req.repositories.userRepository
+                            .isModerator(user: user, subjectID: subject.id)
+                            .flatMapThrowing { isModerator in
+
+                                try req.htmlkit
+                                    .render(
+                                        MultipleChoiceTask.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            content: .init(subject: subject, topics: topics),
+                                            isModerator: isModerator,
+                                            isTestable: query.isTestable ?? false
+                                        )
                                 )
-                        )
+                        }
                 }
         }
     }
@@ -62,32 +67,29 @@ final class MultipleChoiseTaskWebController: RouteCollection {
     func editTask(_ req: Request) throws -> EventLoopFuture<Response> {
 
         let user = try req.auth.require(User.self)
-
-        let query = try req.query.decode(EditTaskURLQuery.self)
+        let taskID = try req.parameters.get(MultipleChoiceTask.self)
 
         return try req.repositories.multipleChoiceTaskRepository
-            .modifyContent(forID: req.parameters.get(MultipleChoiceTask.self))
+            .modifyContent(forID: taskID)
             .flatMap { content in
 
                 req.repositories.userRepository
-                    .isModerator(user: user, taskID: content.id)
-                    .flatMapThrowing { _ in
+                    .isModerator(user: user, taskID: taskID)
+                    .flatMapThrowing { isModerator in
 
-                        throw Abort(.notImplemented)
-//                        if isModerator || content.task?.creatorID == user.id {
-//                            try req.htmlkit
-//                                .render(
-//                                    MultipleChoiceTask.Templates.Create.self,
-//                                    with: .init(
-//                                        user: user,
-//                                        content: content,
-//                                        isModerator: isModerator,
-//                                        isTestable: query.isTestable ?? false
-//                                    )
-//                            )
-//                        } else {
-//                            throw Abort(.forbidden)
-//                        }
+                        guard isModerator == true || content.task?.creatorID == user.id else {
+                            throw Abort(.forbidden)
+                        }
+                        return try req.htmlkit
+                            .render(
+                                MultipleChoiceTask.Templates.Create.self,
+                                with: .init(
+                                    user: user,
+                                    content: content,
+                                    isModerator: isModerator,
+                                    isTestable: false
+                                )
+                        )
                 }
         }
     }
