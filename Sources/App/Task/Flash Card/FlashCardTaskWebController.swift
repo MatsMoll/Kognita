@@ -17,12 +17,17 @@ class FlashCardTaskWebController: RouteCollection {
 
     func boot(routes: RoutesBuilder) throws {
 
+        routes.get("tasks", GenericTask.parameter, "solutions", use: solutions)
+
         routes.get(
             "creator", "subjects", Subject.parameter, "task", "flash-card", "create",
             use: createTask)
         routes.get(
             "creator", "tasks", "flash-card", TypingTask.parameter, "edit",
             use: editTask)
+        routes.get(
+            "subjects", Subject.parameter, "tasks", "draft",
+            use: draftTask)
     }
 
     func createTask(on req: Request) throws -> EventLoopFuture<Response> {
@@ -74,6 +79,43 @@ class FlashCardTaskWebController: RouteCollection {
                                 )
                         )
                 }
+        }
+    }
+
+    func draftTask(_ req: Request) throws -> EventLoopFuture<Response> {
+
+        let user = try req.auth.require(User.self)
+
+        return try req.controllers.subjectController
+            .retrive(on: req)
+            .flatMap { subject in
+
+                req.repositories.topicRepository
+                    .topicsWithSubtopics(subjectID: subject.id)
+                    .flatMapThrowing { topics in
+
+                        try req.htmlkit.render(
+                            TypingTask.Templates.CreateDraft.self,
+                            with: .init(
+                                user: user,
+                                content: .init(subject: subject, topics: topics)
+                            )
+                        )
+                }
+        }
+    }
+
+    func solutions(on req: Request) throws -> EventLoopFuture<Response> {
+        try req.controllers.taskSolutionController
+            .solutionsForTask(on: req)
+            .flatMapThrowing { solutions in
+                try req.htmlkit.render(
+                    TaskSolution.Templates.List.self,
+                    with: .init(
+                        user: req.auth.require(),
+                        solutions: solutions
+                    )
+                )
         }
     }
 }

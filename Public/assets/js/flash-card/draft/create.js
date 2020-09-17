@@ -1,9 +1,8 @@
 
-function editFlashCard() {
-
+function createDraft() {
     try {
-        fetch("/api/tasks/flash-card/" + taskID(), {
-            method: "PUT",
+        fetch("/api/tasks/flash-card/draft", {
+            method: "POST",
             headers: {
                 "Accept": "application/json, text/plain, */*",
                 "Content-Type" : "application/json"
@@ -20,7 +19,7 @@ function editFlashCard() {
             }
         })
         .then(function (json) {
-            window.location.href = "/creator/tasks/flash-card/" + json.id + "/edit?wasUpdated=true";
+            window.location.href = "/creator/subjects/" + subjectID() + "/overview"
         })
         .catch(function (error) {
             presentErrorMessage(error.message);
@@ -30,12 +29,11 @@ function editFlashCard() {
     }
 }
 
-function taskID() {
-    var path = window.location.pathname;
-    var subjectURI = "flash-card/";
-
+function subjectID() {
+    let path = window.location.pathname;
+    let splitURI = "subjects/"
     return parseInt(path.substring(
-        path.indexOf(subjectURI) + subjectURI.length, 
-        path.lastIndexOf("/edit")
+        path.indexOf(splitURI) + splitURI.length, 
+        path.lastIndexOf("/tasks/")
     ));
 }
