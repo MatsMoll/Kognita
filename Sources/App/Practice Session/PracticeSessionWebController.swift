@@ -12,10 +12,10 @@ import KognitaAPI
 
 final class PracticeSessionWebController: RouteCollection {
 
-    func boot(router: Router) {
-        let sessionInstance = router.grouped("practice-sessions/", TaskSession.PracticeParameter.parameter)
+    func boot(routes: RoutesBuilder) throws {
+        let sessionInstance = routes.grouped("practice-sessions", PracticeSession.parameter)
 
-        router.get("practice-sessions/history", use: getSessions)
+        routes.get("practice-sessions", "history", use: getSessions)
 
         sessionInstance.get("tasks", Int.parameter, use: renderCurrentTask)
         sessionInstance.get("tasks", Int.parameter, "solutions", use: getSolutions)
@@ -25,24 +25,27 @@ final class PracticeSessionWebController: RouteCollection {
 
     func renderCurrentTask(on req: Request) throws -> EventLoopFuture<Response> {
 
-        try PracticeSession.DefaultAPIController
+        try req.controllers.practiceSessionController
             .getCurrentTask(on: req)
             .flatMap { currentTask in
 
-                try currentTask.render(for: req)
-                    .encode(for: req)
+                currentTask.render(on: req)
         }
-        .catchFlatMap { error in
-            switch error {
-            case PracticeSession.DefaultAPIController.Errors
-                .unableToFindTask(let session, let user):
+        .flatMapError { error in
+            do {
+                switch error {
+                case PracticeSession.DefaultAPIController.Errors
+                    .unableToFindTask(let session, let user):
 
-                    return try PracticeSession.DatabaseRepository
-                        .end(session, for: user, on: req)
-                        .map { _ in
+                    return try req.repositories.practiceSessionRepository
+                        .end(sessionID: session.requireID(), for: user)
+                        .flatMapThrowing {
                             try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
-                    }
-            default: throw error
+                        }
+                default: throw error
+                }
+            } catch {
+                return req.eventLoop.future(error: error)
             }
         }
     }
@@ -52,15 +55,15 @@ final class PracticeSessionWebController: RouteCollection {
     /// - Parameter req: The HTTP request
     /// - Returns: A rendered view
     /// - Throws: If unauth or any other error
-    func getSessionResult(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func getSessionResult(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try PracticeSession.DefaultAPIController
+        return try req.controllers.practiceSessionController
             .getSessionResult(req)
-            .map { results in
+            .flatMapThrowing { results in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         PracticeSession.Templates.Result.self,
                         with: .init(
@@ -72,21 +75,21 @@ final class PracticeSessionWebController: RouteCollection {
     }
 
     /// Returns a session history
-    func getSessions(_ req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func getSessions(_ req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try PracticeSession.DatabaseRepository
-            .getSessions(for: user, on: req)
+        return try req.repositories.practiceSessionRepository
+            .getSessions(for: user)
             .flatMap { practiceSessions in
 
-                try TestSession.DatabaseRepository
-                    .getSessions(for: user, on: req)
-                    .map { testSessions in
+                req.repositories.testSessionRepository
+                    .getSessions(for: user)
+                    .flatMapThrowing { testSessions in
 
-                        try req.renderer()
+                        try req.htmlkit
                             .render(
-                                TaskSession.Templates.History.self,
+                                Sessions.Templates.History.self,
                                 with: .init(
                                     user: user,
                                     sessions: .init(
@@ -99,14 +102,14 @@ final class PracticeSessionWebController: RouteCollection {
         }
     }
 
-    func getSolutions(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    func getSolutions(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try PracticeSession.DefaultAPIController
+        return try req.controllers.practiceSessionController
             .get(solutions: req)
-            .map { solutions in
-                try req.renderer()
+            .flatMapThrowing { solutions in
+                try req.htmlkit
                     .render(
                         TaskSolution.Templates.List.self,
                         with: .init(
@@ -119,7 +122,7 @@ final class PracticeSessionWebController: RouteCollection {
 
     func endSession(on req: Request) throws -> EventLoopFuture<Response> {
 
-        try PracticeSession.DefaultAPIController
+        try req.controllers.practiceSessionController
             .end(session: req)
             .map { session in
                 req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result")
@@ -129,32 +132,4 @@ final class PracticeSessionWebController: RouteCollection {
 
 struct PracticeSessionEndResponse: Content {
     let sessionResultPath: String
-}
-
-extension TaskType: RenderTaskPracticing {
-
-    func render(in session: PracticeSessionRepresentable, index: Int, for user: UserContent, on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-
-        return try renderableTask
-            .render(in: session, index: index, for: user, on: req)
-    }
-
-    var renderableTask: RenderTaskPracticing {
-        if let multiple = multipleChoise {
-            return multiple
-        } else {
-            return FlashCardTask(taskId: task.id ?? 0)
-        }
-    }
-}
-
-extension PracticeSession.CurrentTask {
-    func render(for req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        try task.render(
-            in: session,
-            index: index,
-            for: user,
-            on: req
-        )
-    }
 }
