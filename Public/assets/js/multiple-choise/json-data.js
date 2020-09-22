@@ -5,7 +5,7 @@ function jsonData() {
 
     $("input[name=choiseInput]").each(function() {
         choises.push({
-            "choise" : $("label[for=" + this.id + "]").html(),
+            "choice" : $("label[for=" + this.id + "]").html(),
             "isCorrect" : this.checked,
         });
     })
@@ -36,6 +36,8 @@ function jsonData() {
     if (choises.filter(choise => choise.isCorrect).length < 1) {
         throw Error("Minst et alternativ må være markert som riktig. Dette kan gjøres ved å trykke på det riktige alternativet")
     }
+
+    console.log(choises);
 
     return JSON.stringify({
         "isTestable" : isTestable,

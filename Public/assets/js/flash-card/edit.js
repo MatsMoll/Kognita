@@ -1,16 +1,8 @@
 
 function editFlashCard() {
 
-    var path = window.location.pathname;
-    var subjectURI = "flash-card/";
-
-    var taskId = parseInt(path.substring(
-        path.indexOf(subjectURI) + subjectURI.length, 
-        path.lastIndexOf("/edit")
-    ));
-
     try {
-        fetch("/api/tasks/flash-card/" + taskId, {
+        fetch("/api/tasks/flash-card/" + taskID(), {
             method: "PUT",
             headers: {
                 "Accept": "application/json, text/plain, */*",
@@ -36,4 +28,14 @@ function editFlashCard() {
     } catch(error) {
         presentErrorMessage(error.message);
     }
+}
+
+function taskID() {
+    var path = window.location.pathname;
+    var subjectURI = "flash-card/";
+
+    return parseInt(path.substring(
+        path.indexOf(subjectURI) + subjectURI.length, 
+        path.lastIndexOf("/edit")
+    ));
 }

@@ -4,54 +4,50 @@ import Vapor
 
 final class TaskDiscussionWebController: RouteCollection {
 
-    func boot(router: Router) throws {
-        router.get("tasks", Task.parameter, "discussions", use: get(discussions: ))
-        router.get("/task-discussions/", TaskDiscussion.parameter, "/responses", use: getResponses(on: ))
-        router.get("task-discussion/user", use: getDiscussionsForUser(on: ))
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("tasks", GenericTask.parameter, "discussions", use: get(discussions: ))
+        routes.get("task-discussions", TaskDiscussion.parameter, "responses", use: getResponses(on: ))
+        routes.get("task-discussion", "user", use: getDiscussionsForUser(on: ))
     }
 
-    func get(discussions req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        try TaskDiscussion.DefaultAPIController
-            .get(discussions: req)
-            .map { discussions in
+    func get(discussions req: Request) throws -> EventLoopFuture<Response> {
 
-                try req.renderer().render(
+        try req.controllers.taskDiscussionController
+            .get(discussions: req)
+            .flatMapThrowing { discussions in
+
+                try req.htmlkit.render(
                     TaskDiscussion.Templates.DiscussionCard.self,
                     with: discussions
                 )
         }
     }
 
-    func getResponses(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        let user = try req.requireAuthenticated(User.self)
+    func getResponses(on req: Request) throws -> EventLoopFuture<Response> {
 
-        return try TaskDiscussion.Pivot.Response.DefaultAPIController
-            .setRecentlyVisited(for: user, on: req)
-            .flatMap { activeDiscussion in
+        _ = try req.auth.require(User.self)
 
-                try TaskDiscussion.Pivot.Response
-                    .DefaultAPIController
-                    .get(responses: req)
-                    .map { responses in
+        return try req.controllers.taskDiscussionResponseController
+            .get(responses: req)
+            .flatMapThrowing { responses in
 
-                        try req.renderer().render(
-                            TaskPreviewTemplate.Responses.self,
-                            with: TaskPreviewTemplate.Responses.Context(
-                                responses: responses
-                            )
-                        )
-                }
+                try req.htmlkit.render(
+                    TaskPreviewTemplate.Responses.self,
+                    with: TaskPreviewTemplate.Responses.Context(
+                        responses: responses
+                    )
+                )
         }
     }
 
-    func getDiscussionsForUser(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-        let user = try req.requireAuthenticated(User.self)
+    func getDiscussionsForUser(on req: Request) throws -> EventLoopFuture<Response> {
+        let user = try req.auth.require(User.self)
 
-        return try TaskDiscussion.DefaultAPIController
+        return try req.controllers.taskDiscussionController
             .getDiscussionsForUser(on: req)
-            .map { discussions in
+            .flatMapThrowing { discussions in
 
-                return try req.renderer()
+                return try req.htmlkit
                     .render(
                         TaskDiscussion.Templates.UserDiscussions.self,
                         with: TaskDiscussion.Templates.UserDiscussions.Context(
@@ -62,4 +58,3 @@ final class TaskDiscussionWebController: RouteCollection {
         }
     }
 }
-

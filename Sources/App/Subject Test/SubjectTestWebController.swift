@@ -4,22 +4,22 @@ import KognitaCore
 
 protocol SubjectTestWebControlling: RouteCollection {
     static func enter(on req: Request) throws -> EventLoopFuture<Response>
-    static func createForm(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    static func editForm(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    static func listAll(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    static func monitor(on req: Request) throws -> EventLoopFuture<HTTPResponse>
-    static func status(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    static func createForm(on req: Request) throws -> EventLoopFuture<Response>
+    static func editForm(on req: Request) throws -> EventLoopFuture<Response>
+    static func listAll(on req: Request) throws -> EventLoopFuture<Response>
+    static func monitor(on req: Request) throws -> EventLoopFuture<Response>
+    static func status(on req: Request) throws -> EventLoopFuture<Response>
     static func end(on req: Request) throws -> EventLoopFuture<Response>
-    static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse>
+    static func results(on req: Request) throws -> EventLoopFuture<Response>
 }
 
 extension SubjectTestWebControlling {
-    func boot(router: Router) throws {
+    func boot(routes: RoutesBuilder) throws {
 
-        router.get("subjects", Subject.parameter, "subject-tests/create", use: Self.createForm(on: ))
-        router.get("subjects", Subject.parameter, "subject-tests", use: Self.listAll(on: ))
+        routes.get("subjects", Subject.parameter, "subject-tests", "create", use: Self.createForm(on: ))
+        routes.get("subjects", Subject.parameter, "subject-tests", use: Self.listAll(on: ))
 
-        let testInstance = router.grouped("subject-tests", SubjectTest.parameter)
+        let testInstance = routes.grouped("subject-tests", SubjectTest.parameter)
 
         testInstance.post("enter", use: Self.enter(on: ))
 
@@ -32,14 +32,16 @@ extension SubjectTestWebControlling {
     }
 }
 
-class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebControlling {
+class SubjectTestWebController: SubjectTestWebControlling {
 
     static func enter(on req: Request) throws -> EventLoopFuture<Response> {
-        try API.enter(on: req)
-            .map { session in
-                try req.redirect(to: "/test-sessions/\(session.requireID())")
+
+        try req.controllers.subjectTestController
+            .end(req: req)
+            .flatMapThrowing { _ in
+                try req.redirect(to: "/test-sessions/\(req.parameters.get(SubjectTest.self))")
         }
-        .catchMap { error in
+        .flatMapErrorThrowing { error in
             switch error {
             case SubjectTest.DatabaseRepository.Errors
                 .alreadyEntered(sessionID: let sessionID):
@@ -53,74 +55,63 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
         }
     }
 
-    static func createForm(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    static func createForm(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(Subject.self, on: req)
-            .flatMap { subject in
+        let subjectID = try req.parameters.get(Subject.self)
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: subject.requireID(), on: req)
-                    .flatMap { _ in
+        return req.repositories.subjectRepository
+            .tasksWith(subjectID: subjectID)
+            .flatMapThrowing { tasks in
 
-                        try Task.Repository
-                            .examTasks(subjectID: subject.requireID(), on: req)
-                            .map { tasks in
+                try req.htmlkit
+                    .render(
+                        SubjectTest.Templates.Modify.self,
+                        with: SubjectTest.Templates.Modify.Context(
+                            subjectID: subjectID,
+                            user: user,
+                            tasks: tasks
+                        )
+                )
+        }
+    }
 
-                                try req.renderer()
-                                    .render(
-                                        SubjectTest.Templates.Modify.self,
-                                        with: SubjectTest.Templates.Modify.Context(
-                                            subjectID: subject.requireID(),
-                                            user: user,
-                                            tasks: tasks
-                                        )
+    static func editForm(on req: Request) throws -> EventLoopFuture<Response> {
+
+        let user = try req.auth.require(User.self)
+
+        return try req.controllers.subjectTestController
+            .modifyContent(for: req)
+            .failableFlatMap { test in
+
+                req.repositories.subjectRepository
+                    .tasksWith(subjectID: test.subjectID)
+                    .flatMapThrowing { tasks in
+
+                        try req.htmlkit
+                            .render(
+                                SubjectTest.Templates.Modify.self,
+                                with: SubjectTest.Templates.Modify.Context(
+                                    subjectID: req.parameters.get(Subject.self),
+                                    user: user,
+                                    tasks: tasks,
+                                    test: test
                                 )
-                        }
+                        )
                 }
         }
     }
 
-    static func editForm(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    static func listAll(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try API.test(withID: req)
-            .flatMap { test in
+        return try req.controllers.subjectTestController
+            .allInSubject(on: req)
+            .flatMapThrowing { list in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: test.subjectID, on: req)
-                    .flatMap {
-
-                        Task.Repository
-                            .examTasks(subjectID: test.subjectID, on: req)
-                            .map { tasks in
-
-                                try req.renderer()
-                                    .render(
-                                        SubjectTest.Templates.Modify.self,
-                                        with: SubjectTest.Templates.Modify.Context(
-                                            subjectID: test.subjectID,
-                                            user: user,
-                                            tasks: tasks,
-                                            test: test
-                                        )
-                                )
-                        }
-                }
-        }
-    }
-
-    static func listAll(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
-
-        let user = try req.requireAuthenticated(User.self)
-
-        return try API.allInSubject(on: req)
-            .map { list in
-
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         SubjectTest.Templates.List.self,
                         with: .init(
@@ -131,19 +122,20 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
         }
     }
 
-    static func monitor(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    static func monitor(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return req.parameters
-            .model(SubjectTest.self, on: req)
+        return req.controllers.subjectTestController
+            .test(withID: req)
             .flatMap { test in
 
-                try User.DatabaseRepository
-                    .isModerator(user: user, subjectID: test.subjectID, on: req)
-                    .map {
+                req.repositories.userRepository
+                    .isModerator(user: user, subjectID: test.subjectID)
+                    .ifFalse(throw: Abort(.forbidden))
+                    .flatMapThrowing {
 
-                        try req.renderer()
+                        try req.htmlkit
                             .render(
                                 SubjectTest.Templates.Monitor.self,
                                 with: SubjectTest.Templates.Monitor.Context(
@@ -151,17 +143,17 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
                                     test: test
                                 )
                         )
-
                 }
         }
     }
 
-    static func status(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    static func status(on req: Request) throws -> EventLoopFuture<Response> {
 
-        return try API.userCompletionStatus(on: req)
-            .map { status in
+        return try req.controllers.subjectTestController
+            .userCompletionStatus(on: req)
+            .flatMapThrowing { status in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         SubjectTest.Templates.StatusSection.self,
                         with: status
@@ -171,11 +163,12 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
 
     static func end(on req: Request) throws -> EventLoopFuture<Response> {
 
-        try API.end(req: req)
+        try req.controllers.subjectTestController
+            .end(req: req)
             .map { _ in
                 req.redirect(to: "results")
         }
-        .catchMap { error in
+        .flatMapErrorThrowing { error in
             switch error {
             case SubjectTest.DatabaseRepository.Errors.alreadyEnded: return req.redirect(to: "results")
             default: throw error
@@ -183,14 +176,15 @@ class SubjectTestWebController<API: SubjectTestAPIControlling>: SubjectTestWebCo
         }
     }
 
-    static func results(on req: Request) throws -> EventLoopFuture<HTTPResponse> {
+    static func results(on req: Request) throws -> EventLoopFuture<Response> {
 
-        let user = try req.requireAuthenticated(User.self)
+        let user = try req.auth.require(User.self)
 
-        return try API.results(on: req)
-            .map { results in
+        return try req.controllers.subjectTestController
+            .results(on: req)
+            .flatMapThrowing { results in
 
-                try req.renderer()
+                try req.htmlkit
                     .render(
                         SubjectTest.Templates.Results.self,
                         with: SubjectTest.Templates.Results.Context(
