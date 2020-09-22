@@ -8,26 +8,15 @@ import Mailgun
 /// Called before your application initializes.
 public func configure(_ app: Application) throws {
 
-    // Register providers first
-//    try services.register(KognitaAPIProvider(env: env))
-
     app.lifecycle.use(KognitaAPIProvider(env: app.environment))
 
-    // Sets the templating framework and Web Sessions
-//    config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
-//
-//    try registerRouter(in: &services)
-//
-//    var middlewares = MiddlewareConfig()
-//
-//    // Enables sessions.
-//    middlewares.use(SessionsMiddleware.self)
-//
 //    // Serves files from `Public/` directory
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-//
-//    KognitaAPI.configMiddleware(config: &middlewares)
-//
+
+    guard let rootUrl = Environment.get("ROOT_URL") else {
+        fatalError("Need to set a ROOT_URL")
+    }
+
     if app.environment != .production {
         // Catches errors and converts to HTTP responses for developers
         app.middleware.use(ErrorMiddleware.default(environment: app.environment))
@@ -37,19 +26,15 @@ public func configure(_ app: Application) throws {
         app.middleware.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>())
     }
     app.htmlkit.localizationPath = app.directory.workingDirectory + "Resources/Localization"
-    try KognitaViews.renderer(rootURL: "http://localhost:8080", renderer: app.htmlkit.renderer)
-//
-//    try app.htmlkit.renderer.registerLocalization(atPath: path, defaultLocale: "nb")
-//    services.register(middlewares)
-//
-//
+    app.htmlkit.defaultLocale = "nb"
+
+    try KognitaViews.renderer(rootURL: rootUrl, renderer: app.htmlkit.renderer)
 
 //    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
 //    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
-//
-//    services.register(renderer)
-//    services.register(ResetPasswordMailRenderer(renderer: renderer), as: ResetPasswordMailRenderable.self)
-//    services.register(VerifyEmailRenderer(renderer: renderer), as: VerifyEmailRenderable.self)
+
+    app.verifyEmailRenderer.use { VerifyEmailRenderer.init(renderer: $0.htmlkit) }
+    app.resetPasswordRenderer.use { ResetPasswordMailRenderer.init(renderer: $0.htmlkit) }
 
     try routes(app)
 }

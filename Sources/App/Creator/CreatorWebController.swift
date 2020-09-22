@@ -18,7 +18,7 @@ final class CreatorWebController: RouteCollection {
 
         creator.get("overview", use: subjectOverview)
         creator.get("search", use: search)
-        creator.on(.POST, "import-qti", body: .collect(maxSize: ByteCount(integerLiteral: 1024*8*50)), use: importQTIContent)
+//        creator.on(.POST, "import-qti", body: .collect(maxSize: ByteCount(integerLiteral: 1024*8*50)), use: importQTIContent)
     }
 
     func subjectOverview(_ req: Request) throws -> EventLoopFuture<Response> {
@@ -100,39 +100,39 @@ final class CreatorWebController: RouteCollection {
         return assessmentItems
     }
 
-    func importQTIContent(on req: Request) throws -> EventLoopFuture<Response> {
-
-        let user = try req.auth.require(User.self)
-        let files = try req.content.decode(ImportQTIBody.self)
-        var items = [AssessmentItem]()
-
-        if
-            let manifest = files.files.first(where: { $0.filename == "imsmanifest.xml" }),
-            let data = manifest.data.getData(at: 0, length: manifest.data.readableBytes),
-            let xml = String(data: data, encoding: .utf8) {
-            let manifest = try QTIKit.manifest(withXML: xml)
-
-            let assessmentItems = decodeAssessmentItems(from: files.files)
-            let itemIDs = Set(assessmentItems.map { $0.id })
-            let expectedResources = manifest.resources.map { $0.id }
-            let missingResources = expectedResources.filter { itemIDs.contains($0) == false }
-            guard missingResources.isEmpty else {
-                throw Abort(.badRequest, reason: "Missing some resources with id: \(missingResources)")
-            }
-            items = assessmentItems
-        } else {
-            items = decodeAssessmentItems(from: files.files)
-        }
-
-        guard items.isEmpty == false else { throw Abort(.badRequest) }
-
-        return try req.repositories.topicRepository
-            .topicsWithSubtopics(subjectID: req.parameters.get(Subject.self))
-            .map { topics in
-                MultipleChoiceTask.Templates.ImportQTI.Context(user: user, tasks: items, topics: topics)
-        }
-        .flatMapThrowing { context in
-            try req.htmlkit.render(MultipleChoiceTask.Templates.ImportQTI.self, with: context)
-        }
-    }
+//    func importQTIContent(on req: Request) throws -> EventLoopFuture<Response> {
+//
+//        let user = try req.auth.require(User.self)
+//        let files = try req.content.decode(ImportQTIBody.self)
+//        var items = [AssessmentItem]()
+//
+//        if
+//            let manifest = files.files.first(where: { $0.filename == "imsmanifest.xml" }),
+//            let data = manifest.data.getData(at: 0, length: manifest.data.readableBytes),
+//            let xml = String(data: data, encoding: .utf8) {
+//            let manifest = try QTIKit.manifest(withXML: xml)
+//
+//            let assessmentItems = decodeAssessmentItems(from: files.files)
+//            let itemIDs = Set(assessmentItems.map { $0.id })
+//            let expectedResources = manifest.resources.map { $0.id }
+//            let missingResources = expectedResources.filter { itemIDs.contains($0) == false }
+//            guard missingResources.isEmpty else {
+//                throw Abort(.badRequest, reason: "Missing some resources with id: \(missingResources)")
+//            }
+//            items = assessmentItems
+//        } else {
+//            items = decodeAssessmentItems(from: files.files)
+//        }
+//
+//        guard items.isEmpty == false else { throw Abort(.badRequest) }
+//
+//        return try req.repositories.topicRepository
+//            .topicsWithSubtopics(subjectID: req.parameters.get(Subject.self))
+//            .map { topics in
+//                MultipleChoiceTask.Templates.ImportQTI.Context(user: user, tasks: items, topics: topics)
+//        }
+//        .flatMapThrowing { context in
+//            try req.htmlkit.render(MultipleChoiceTask.Templates.ImportQTI.self, with: context)
+//        }
+//    }
 }

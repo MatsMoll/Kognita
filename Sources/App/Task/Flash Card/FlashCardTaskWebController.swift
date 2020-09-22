@@ -28,6 +28,8 @@ class FlashCardTaskWebController: RouteCollection {
         routes.get(
             "subjects", Subject.parameter, "tasks", "draft",
             use: draftTask)
+
+        routes.get("tasks", GenericTask.parameter, "overview", use: note(on:))
     }
 
     func createTask(on req: Request) throws -> EventLoopFuture<Response> {
@@ -116,6 +118,14 @@ class FlashCardTaskWebController: RouteCollection {
                         solutions: solutions
                     )
                 )
+        }
+    }
+
+    func note(on req: Request) throws -> EventLoopFuture<View> {
+        try req.repositories.lectureNoteRepository.find(id: req.parameters.get(GenericTask.self))
+            .failableFlatMap { note in
+                LectureNote.Templates.Overview()
+                    .render(with: note, for: req)
         }
     }
 }
