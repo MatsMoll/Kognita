@@ -6,18 +6,6 @@ var hasSubmittedSucessfully = false;
 var knowledgeScore = 2;
 var didSubmitt = false;
 
-var nextIndex=1;
-function navigateTo(index) {
-    submitPerformance(knowledgeScore, function() {
-        if ($("#goal-progress-bar").attr("aria-valuenow") >= 100) {
-            nextIndex=index;
-            $("#goal-completed").modal("show");
-        } else {
-            location.href = index;
-        }
-    })
-}
-
 function revealSolution() {
     didSubmitt = $("#solution").hasClass("d-none");
     presentControllsAndKnowledge();
@@ -38,7 +26,7 @@ function revealSolution() {
                 $("#goal-progress-bar").addClass("bg-success");
             }
         }
-        submitPerformance(knowledgeScore, function (){})
+        submitPerformance(knowledgeScore)
     }
 }
 
@@ -56,21 +44,21 @@ function registerScore(score) {
     $("#" + knowledgeScore).attr("class", "btn btn-light");
     knowledgeScore = score;
     updateScoreButton()
-    submitPerformance(knowledgeScore, function() {})
+    submitPerformance(knowledgeScore)
 }
 
 function submitAndEndSession() {
     endSession()
 }
 
-function submitPerformance(score, handleSuccess) {
+function submitPerformance(score) {
 
     if (isSubmitting) {
         return
     }
     isSubmitting = true;
 
-    var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
+    var url = "/api/lecture-note-recap/" + sessionID() + "/tasks/" + taskIndex() + "/submit";
 
     fetch(url, {
         method: "POST",
@@ -83,13 +71,10 @@ function submitPerformance(score, handleSuccess) {
     .then(function (response) {
         isSubmitting = false;
         if (response.ok) {
-            return response.json();
+            return
         } else {
             throw new Error(response.statusText);
         }
-    })
-    .then(function (json) {
-        handleSuccess(json);
     })
     .catch(function (error) {
         isSubmitting = false;
@@ -110,7 +95,6 @@ function presentControlls() {
         $(this).removeClass("d-none");
     });
     fetchSolutions();
-    fetchDiscussions($("#task-id").val())
     $("#knowledge-card").removeClass("d-none");
     updateScoreButton()
 }
@@ -144,14 +128,13 @@ function answerJsonData(score) {
     }
     return JSON.stringify({
         "timeUsed" : timeUsed,
-        "knowledge": knowledge,
-        "taskIndex": taskIndex(),
+        "knowledge": knowledge / 4,
         "answer": submitedAnswer
     });
 }
 
 function estimatedScore(shouldSetScore) {
-    let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
+    let url = "/api/lecture-note-recap/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
     
     $("#estimated-score-card").fadeIn();
     $("#estimated-score-card").removeClass("d-none");
@@ -163,7 +146,7 @@ function estimatedScore(shouldSetScore) {
             "Accept": "application/json, text/plain, */*",
             "Content-Type" : "application/json"
         },
-        body: answerJsonData("3")
+        body: answerJsonData("2")
     })
     .then(function (response) {
         if (response.ok) {

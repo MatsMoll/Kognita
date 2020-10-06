@@ -125,7 +125,7 @@ final class PracticeSessionWebController: RouteCollection {
         try req.controllers.practiceSessionController
             .end(session: req)
             .map { session in
-                req.redirect(to: "/practice-sessions/\(session.id ?? 0)/result")
+                req.redirect(to: "/practice-sessions/\(session.id)/result")
         }
     }
 }

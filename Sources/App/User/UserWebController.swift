@@ -34,7 +34,7 @@ final class UserWebController: RouteCollection {
 
     func signupForm(_ req: Request) throws -> EventLoopFuture<View> {
         User.Templates.Signup()
-            .render(with: .init(), for: req)
+            .render(with: .init(showCookieMessage: req.cookies.isAccepted == false), for: req)
     }
 
     func loginForm(_ req: Request) throws -> EventLoopFuture<Response> {
@@ -44,7 +44,7 @@ final class UserWebController: RouteCollection {
         }
 
         return try req.htmlkit
-            .render(LoginPage.self, with: .init())
+            .render(LoginPage.self, with: .init(showCookieMessage: req.cookies.isAccepted == false))
             .encodeResponse(for: req)
     }
 
@@ -64,6 +64,7 @@ final class UserWebController: RouteCollection {
                     let response = try? req.htmlkit.render(
                         User.Templates.Signup.self,
                         with: .init(
+                            showCookieMessage: req.cookies.isAccepted == false,
                             errorMessage: error.localizedDescription,
                             submittedForm: createUser
                         )
@@ -84,11 +85,12 @@ final class UserWebController: RouteCollection {
             .failableFlatMap { user in
                 guard let user = user else {
                     return try req.htmlkit
-                        .render(LoginPage.self, with: .init(errorMessage: "Feil brukernavn eller passord"))
+                        .render(LoginPage.self, with: .init(showCookieMessage: req.cookies.isAccepted == false, errorMessage: "Feil brukernavn eller passord"))
                         .encodeResponse(for: req)
                 }
                 req.auth.login(user)
-                return req.eventLoop.future().transform(to: req.redirect(to: "/subjects"))
+                return req.repositories.userRepository.logLogin(for: user, with: req.remoteAddress?.ipAddress)
+                    .map { req.redirect(to: "/subjects") }
         }
     }
 
@@ -102,7 +104,7 @@ final class UserWebController: RouteCollection {
         return try req.htmlkit
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init()
+                with: .init(showCookieMessage: req.cookies.isAccepted == false)
         )
     }
 
@@ -111,7 +113,7 @@ final class UserWebController: RouteCollection {
         let successPage = try req.htmlkit
             .render(
                 User.Templates.ResetPassword.Start.self,
-                with: .init(state: .success)
+                with: .init(state: .success, showCookieMessage: req.cookies.isAccepted == false)
         )
         return try req.controllers.userController
             .startResetPassword(on: req)
@@ -126,7 +128,7 @@ final class UserWebController: RouteCollection {
             return try req.htmlkit
                 .render(
                     User.Templates.ResetPassword.Reset.self,
-                    with: .init(token: tokenContent.token)
+                    with: .init(token: tokenContent.token, showCookieMessage: req.cookies.isAccepted == false)
             )
         } else {
 
@@ -135,6 +137,7 @@ final class UserWebController: RouteCollection {
                     User.Templates.ResetPassword.Reset.self,
                     with: .init(
                         token: "",
+                        showCookieMessage: req.cookies.isAccepted == false,
                         alertMessage: (
                             message: "Ups! Denne forespørselen er enten gått ut på dato eller eksisterer ikke",
                             colorClass: "danger"
