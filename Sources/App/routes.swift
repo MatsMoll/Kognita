@@ -40,15 +40,19 @@ private func setupUserWeb(for app: Application) throws {
         if req.auth.get(User.self) != nil {
             return req.eventLoop.future(req.redirect(to: "/subjects"))
         }
-        return try req.htmlkit.render(view: Pages.Landing.self)
+        let context = Pages.Landing.Context(showCookieMessage: req.cookies.isAccepted == false)
+
+        return try req.htmlkit.render(view: Pages.Landing.self, with: context)
             .encodeResponse(for: req)
     }
 
-    app.get("privacy-policy") { req in
-        try req.htmlkit.render(view: Pages.PrivacyPolicy.self)
+    app.get("privacy-policy") { req -> View in
+        let context = Pages.PrivacyPolicy.Context(showCookieMessage: req.cookies.isAccepted == false)
+        return try req.htmlkit.render(view: Pages.PrivacyPolicy.self, with: context)
     }
-    app.get("terms-of-service") { req in
-        try req.htmlkit.render(view: Pages.TermsOfService.self)
+    app.get("terms-of-service") { req -> View in
+        let context = Pages.TermsOfService.Context(showCookieMessage: req.cookies.isAccepted == false)
+        return try req.htmlkit.render(view: Pages.TermsOfService.self, with: context)
     }
 
     try sessionMiddle.register(collection: UserWebController())
@@ -62,4 +66,11 @@ private func setupUserWeb(for app: Application) throws {
     try redirectMiddle.register(collection: SubjectTestWebController())
     try redirectMiddle.register(collection: TestSessionWebController())
     try redirectMiddle.register(collection: TaskDiscussionWebController())
+    try redirectMiddle.register(collection: LectureNoteRecapSessionWebController())
+}
+
+extension HTTPCookies {
+    var isAccepted: Bool {
+        self.all["cookies-accepted"] != nil
+    }
 }

@@ -1,13 +1,13 @@
 
 function createDraft() {
-    try {
+    jsonData().then(function (jsonData){
         fetch("/api/notes", {
             method: "POST",
             headers: {
                 "Accept": "application/json, text/plain, */*",
                 "Content-Type" : "application/json"
             },
-            body: jsonData()
+            body: jsonData
         })
         .then(function (response) {
             if (response.ok) {
@@ -21,12 +21,10 @@ function createDraft() {
         .then(function (json) {
             fetchNote(parseInt(json));
         })
-        .catch(function (error) {
-            presentErrorMessage(error.message);
-        });
-    } catch(error) {
+    })
+    .catch(function (error) {
         presentErrorMessage(error.message);
-    }
+    });
 }
 
 function fetchNote(id) {
@@ -80,7 +78,6 @@ function editJsonData() {
 }
 
 function resetCreateForm() {
-    $("#card-topic-id").val("");
     $("#card-question").val("");
     solution.value("");
 }
@@ -130,4 +127,27 @@ function subjectID() {
         path.indexOf(splitURI) + splitURI.length, 
         path.lastIndexOf("/tasks/")
     ));
+}
+
+function createSession() {
+    return fetch("/api/note-taking-sessions", {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        }
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.json();
+        } else if (response.status == 400) {
+            throw new Error("Sjekk at all nødvendig info er fylt ut");
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (json) {
+        $("#note-session").val(json["id"]);
+        return json
+    })
 }
