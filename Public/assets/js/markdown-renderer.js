@@ -25,7 +25,10 @@ function renderMarkdown(markdown) {
     let document = parser.parseFromString(html, "text/html")
     Array.from(document.getElementsByTagName("a")).map(x => x.setAttribute("target", "_blank"))
     Array.from(document.getElementsByTagName("img")).map(x => x.setAttribute("style", "max-width:100%"))
+    Array.from(document.getElementsByTagName("table")).map(x => x.setAttribute("style", "width:100%"))
+    Array.from(document.getElementsByTagName("td")).map(x => x.setAttribute("class", "px-1"))
     Array.from(document.getElementsByTagName("blockquote")).map(x => x.setAttribute("class", "blockquote"))
+    Array.from(document.getElementsByTagName("pre")).map(x => x.setAttribute("style", "line-height: 90%;"))
     return document.getElementsByTagName("body")[0].innerHTML
 }
 
