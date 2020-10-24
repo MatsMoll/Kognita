@@ -144,19 +144,26 @@ extension TaskType: RenderTaskPracticing {
     }
 
     func renderTypingTask(sessionID: PracticeSession.ID, preview: TaskPreviewContent, lastResult: TaskResult?, taskIndex: Int, progress: Int, user: User, on req: Request) -> EventLoopFuture<Response> {
-        req.repositories.typingTaskRepository
-            .typingTaskAnswer(in: sessionID, taskID: preview.task.id)
-            .map { answer in
-                TypingTask.Templates.Execute.Context(
-                    taskPreview: preview,
-                    user: user,
-                    currentTaskIndex: taskIndex,
-                    practiceProgress: progress,
-                    sessionID: sessionID,
-                    lastResult: lastResult,
-                    prevAnswer: answer
-                )
+
+        req.repositories.practiceSessionRepository
+            .find(sessionID)
+            .flatMap { session in
+
+                req.repositories.typingTaskRepository
+                    .typingTaskAnswer(in: sessionID, taskID: preview.task.id)
+                    .map { answer in
+                        TypingTask.Templates.Execute.Context(
+                            taskPreview: preview,
+                            user: user,
+                            currentTaskIndex: taskIndex,
+                            practiceProgress: progress,
+                            sessionID: sessionID,
+                            lastResult: lastResult,
+                            prevAnswer: answer,
+                            numberOfTaskGoal: session.numberOfTaskGoal
+                        )
+                    }
+                    .flatMapThrowing { try req.htmlkit.render(TypingTask.Templates.Execute.self, with: $0) }
             }
-            .flatMapThrowing { try req.htmlkit.render(TypingTask.Templates.Execute.self, with: $0) }
     }
 }

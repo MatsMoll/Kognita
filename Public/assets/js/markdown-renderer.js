@@ -6,14 +6,25 @@ function renderKatex(plainText) {
         output += leftovers.substring(0, index);
         leftovers = leftovers.substring(index + 2, leftovers.length);
         let endIndex = leftovers.indexOf("$$");
-        if (endIndex != -1) {
-            let katexSubstring = new DOMParser().parseFromString(leftovers.substring(0, endIndex), "text/html").documentElement.textContent;
-            output += katex.renderToString(katexSubstring);
-            leftovers = leftovers.substring(endIndex + 2, leftovers.length);
-        } else {
-            output += "$$";
+        try {
+            if (endIndex != -1) {
+                let katexSubstring = new DOMParser().parseFromString(leftovers.substring(0, endIndex), "text/html").documentElement.textContent;
+                
+                    output += katex.renderToString(katexSubstring);
+                    leftovers = leftovers.substring(endIndex + 2, leftovers.length);
+            } else {
+                output += "$$";
+            }
+            index = leftovers.indexOf("$$");
+        } catch (error) {
+            index = leftovers.indexOf("$$");
+            if (endIndex != -1) {
+                output += "<span class='text-warning'>" + leftovers.substring(0, endIndex) + "<br/></span><span class='text-danger'>" + error + "</span><br/>"
+                leftovers = leftovers.substring(endIndex + 2, leftovers.length);
+            } else {
+                output += "<span class='text-warning'>" + leftovers + "</span><span class='text-danger'>" + error + "</span>"
+            }
         }
-        index = leftovers.indexOf("$$");
     }
     return output + leftovers;
 }
