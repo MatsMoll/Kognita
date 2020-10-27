@@ -1,10 +1,10 @@
-function startPracticeSessionWithTopicIDs(topicIds, subjectId) {
-
-    let taskGoal = 10;
+function startPracticeSessionWithTopicIDs(topicIds, subjectId, useTypingTasks = true, useMultipleChoiceTasks = true, taskGoal = 5) {
 
     let data = JSON.stringify({
         "topicIDs" : topicIds,
         "numberOfTaskGoal" : taskGoal,
+        "useTypingTasks" : useTypingTasks,
+        "useMultipleChoiceTasks" : useMultipleChoiceTasks
     });
 
     let url = "/api/subjects/" + subjectId + "/practice-sessions/start";

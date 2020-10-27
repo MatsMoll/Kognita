@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "M276UPEHPQ.no.mem.kognita.Kognita",
+        "paths": ["*"]
+      }
+    ]
+  },
+  "webcredentials": ["M276UPEHPQ.no.mem.kognita.Kognita"]
+}
