@@ -193,8 +193,65 @@ function estimatedScore(shouldSetScore) {
         $("#estimate-spinner").addClass("d-none");
         $("#answer-estimate").text(text);
         $("#answer-estimate").removeClass("d-none");
+        let improvements = json["improvements"];
+        if (improvements.lenght != 0) {
+            $("#estimated-score-card .card-body").append("<br>Kanskje nevn noe mer om dette?<ul>")
+        }
+        console.log(improvements);
+        for (const index in improvements) {
+            $("#estimated-score-card .card-body").append("<li>" + improvements[index]["word"] + "</li>");
+        }
+        if (improvements.lenght != 0) {
+            $("#estimated-score-card .card-body").append("</ul>")
+        }
     })
     .catch(function (error) {
         console.log(error)
     })
+}
+
+var hints = []
+var hintIndex = 0;
+
+function loadHints() {
+    if (hints.length > 0 && hintIndex < hints.length) {
+        revealHint();
+        return
+    } else if (hintIndex > 0) { 
+        return 
+    }
+    let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        },
+        body: answerJsonData("3")
+    })
+    .then(function (response) {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error(response.statusText);
+        }
+    })
+    .then(function (json) {
+        hints = json["improvements"];
+        revealHint();
+    })
+    .catch(function (error) {
+        console.log(error)
+    })
+}
+
+function revealHint() {
+    console.log($('#hint-card').length);
+    if ($('#hint-card').length == 0) {
+        $("#main-task-content .col-lg-7").append("<div class='card'><div class='card-body' id='hint-card'></div></div>")
+        $("#hint-card").append("<h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p>")
+    } else {
+        $("#hint-card").append("<h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p>")
+    }
 }

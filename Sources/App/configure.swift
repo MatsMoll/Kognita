@@ -33,8 +33,8 @@ public func configure(_ app: Application) throws {
 //    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
 //    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
 
-    app.verifyEmailRenderer.use { VerifyEmailRenderer.init(renderer: $0.htmlkit) }
-    app.resetPasswordRenderer.use { ResetPasswordMailRenderer.init(renderer: $0.htmlkit) }
+    app.verifyEmailRenderer.use { VerifyEmailRenderer(renderer: $0.htmlkit) }
+    app.resetPasswordRenderer.use { ResetPasswordMailRenderer(renderer: $0.htmlkit) }
 
     try routes(app)
 }
