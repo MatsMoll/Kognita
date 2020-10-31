@@ -30,13 +30,13 @@ function startPracticeSessionWithTopicIDs(topicIds, subjectId, useTypingTasks = 
     })
 }
 
-function startPracticeSessionWithSubtopicIDs(subtopicIDs, subjectId) {
-
-    let taskGoal = 10;
+function startPracticeSessionWithSubtopicIDs(subtopicIDs, subjectId, useTypingTasks = true, useMultipleChoiceTasks = true, taskGoal = 5) {
 
     let data = JSON.stringify({
         "subtopicsIDs" : subtopicIDs,
         "numberOfTaskGoal" : taskGoal,
+        "useTypingTasks" : useTypingTasks,
+        "useMultipleChoiceTasks" : useMultipleChoiceTasks
     });
 
     let url = "/api/subjects/" + subjectId + "/practice-sessions/start";

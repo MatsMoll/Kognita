@@ -20,6 +20,7 @@ final class SubjectWebController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
 
         routes.get("subjects", use: listAll)
+        routes.get("subjects", "search", use: search(on:))
         routes.get("subjects", "create", use: createSubject)
 
         let subject = routes.grouped("subjects", Subject.parameter)
@@ -29,13 +30,25 @@ final class SubjectWebController: RouteCollection {
         subject.get("compendium", use: compendium)
     }
 
+    func search(on req: Request) throws -> EventLoopFuture<View> {
+
+        let query = try req.query.decode(Subject.ListOverview.SearchQuery.self)
+
+        return try req.repositories.subjectRepository
+            .allSubjects(for: req.auth.require(), searchQuery: query)
+            .map(Subject.Templates.ListComponent.Context.init(subjects: ))
+            .flatMap { context in
+                Subject.Templates.ListComponent().render(with: context, for: req)
+            }
+    }
+
     func listAll(_ req: Request) throws -> EventLoopFuture<Response> {
 
         let user = try req.auth.require(User.self)
         let query = try? req.query.decode(ListAllQuery.self)
 
         return try req.controllers.taskDiscussionResponseController
-            .setRecentlyVisited(on: req) // FIXME: -- Rename
+            .setRecentlyVisited(on: req) // FIXME: Rename
             .failableFlatMap { activeDiscussion in
 
                 try req.controllers.subjectController

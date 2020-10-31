@@ -8,5 +8,7 @@
       }
     ]
   },
-  "webcredentials": ["M276UPEHPQ.no.mem.kognita.Kognita"]
+  "webcredentials": { 
+    "apps": ["M276UPEHPQ.no.mem.kognita.Kognita"] 
+  }
 }

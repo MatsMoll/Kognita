@@ -17,14 +17,15 @@ public func configure(_ app: Application) throws {
         fatalError("Need to set a ROOT_URL")
     }
 
+    // Catches errors and converts to HTTP responses for developers
+    app.middleware.use(ErrorMiddleware.default(environment: app.environment))
+    // After ErrorMiddleware in order to not konvert error into html
+    app.middleware.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>(ignorePath: "/api"))
+
     if app.environment != .production {
-        // Catches errors and converts to HTTP responses for developers
-        app.middleware.use(ErrorMiddleware.default(environment: app.environment))
         app.logger.logLevel = .debug
-    } else {
-        // Catches errors and converts to HTTP responses for users
-        app.middleware.use(HTMLKitErrorMiddleware<Pages.NotFoundError, Pages.ServerError>())
     }
+
     app.htmlkit.localizationPath = app.directory.workingDirectory + "Resources/Localization"
     app.htmlkit.defaultLocale = "nb"
 
@@ -33,8 +34,8 @@ public func configure(_ app: Application) throws {
 //    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
 //    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
 
-    app.verifyEmailRenderer.use { VerifyEmailRenderer.init(renderer: $0.htmlkit) }
-    app.resetPasswordRenderer.use { ResetPasswordMailRenderer.init(renderer: $0.htmlkit) }
+    app.verifyEmailRenderer.use { VerifyEmailRenderer(renderer: $0.htmlkit) }
+    app.resetPasswordRenderer.use { ResetPasswordMailRenderer(renderer: $0.htmlkit) }
 
     try routes(app)
 }
@@ -72,13 +73,19 @@ struct VerifyEmailRenderer: VerifyEmailRenderable {
 }
 
 /// Captures all errors and transforms them into an internal server error.
-public final class HTMLKitErrorMiddleware<F: HTMLPage, S: HTMLPage>: Middleware {
+public struct HTMLKitErrorMiddleware<F: HTMLPage, S: HTMLPage>: Middleware {
+
+    let ignorePath: String
 
     /// Create a new ErrorMiddleware for the supplied pages.
-    public init(notFoundPage: F.Type, serverErrorTemplate: S.Type) {}
+    public init(notFoundPage: F.Type, serverErrorTemplate: S.Type, ignorePath: String) {
+        self.ignorePath = ignorePath
+    }
 
     /// Create a new ErrorMiddleware
-    public init() {}
+    public init(ignorePath: String) {
+        self.ignorePath = ignorePath
+    }
 
     /// See `Middleware.respond`
     public func respond(to req: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
@@ -89,11 +96,18 @@ public final class HTMLKitErrorMiddleware<F: HTMLPage, S: HTMLPage>: Middleware 
                 return res.encodeResponse(for: req)
             }
         }.flatMapError { error in
-            switch error {
-            case let abort as AbortError:
-                return self.handleError(for: req, status: abort.status)
-            default:
-                return self.handleError(for: req, status: .internalServerError)
+            do {
+                guard req.url.path.hasPrefix(ignorePath) == false else {
+                    throw error
+                }
+                switch error {
+                case let abort as AbortError:
+                    return self.handleError(for: req, status: abort.status)
+                default:
+                    return self.handleError(for: req, status: .internalServerError)
+                }
+            } catch {
+                return req.eventLoop.future(error: error)
             }
         }
     }
