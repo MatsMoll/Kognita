@@ -247,11 +247,8 @@ function loadHints() {
 }
 
 function revealHint() {
-    console.log($('#hint-card').length);
     if ($('#hint-card').length == 0) {
-        $("#main-task-content .col-lg-7").append("<div class='card'><div class='card-body' id='hint-card'></div></div>")
-        $("#hint-card").append("<h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p>")
-    } else {
-        $("#hint-card").append("<h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p>")
+        $("<div class='card'><div class='card-body' id='hint-card'></div></div>").hide().appendTo("#main-task-content .col-lg-7").fadeIn();
     }
+    $("<div id='#hint-" + hintIndex + "'><h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p></div>").hide().appendTo("#hint-card").fadeIn();
 }

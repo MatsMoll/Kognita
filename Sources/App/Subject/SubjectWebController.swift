@@ -48,7 +48,7 @@ final class SubjectWebController: RouteCollection {
         let query = try? req.query.decode(ListAllQuery.self)
 
         return try req.controllers.taskDiscussionResponseController
-            .setRecentlyVisited(on: req) // FIXME: -- Rename
+            .setRecentlyVisited(on: req) // FIXME: Rename
             .failableFlatMap { activeDiscussion in
 
                 try req.controllers.subjectController
