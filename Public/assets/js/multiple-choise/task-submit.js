@@ -34,7 +34,7 @@ function submitChoises() {
     var now = new Date();
     var timeUsed = (now.getTime() - startDate.getTime()) / 1000;
 
-    var url = "/api/practice-sessions/" + sessionID() + "/submit/multiple-choise";
+    var url = "/api/" + sessionType() + "/" + sessionID() + "/submit/multiple-choise";
 
     var data = JSON.stringify({
         "timeUsed" : timeUsed,
@@ -85,7 +85,6 @@ function updateTimer() {
 
 function handleSuccess(results) {
 
-    let progress = results["progress"];
     results = results["result"] != null ? results["result"] : results;
 
     presentControlls();
@@ -107,11 +106,19 @@ function handleSuccess(results) {
 
     $("input[name=choiseInput]").attr('disabled', true);
 
-    if (progress) {
+    updateProgressBar()
+}
+
+function updateProgressBar() {
+    var goalValue = parseFloat($("#goal-value").text());
+    var porgressBarValue = parseFloat($("#goal-progress-bar").attr("aria-valuenow"))
+    var currentCompleted = porgressBarValue / 100 * goalValue;
+    var progress = parseInt(Math.ceil((currentCompleted + 1) * 100 / goalValue));
+
+    if (!isNaN(progress)) {
         $("#goal-progress-label").text(progress + "% ");
         $("#goal-progress-bar").attr("aria-valuenow", progress);
         $("#goal-progress-bar").attr("style", "width: " + progress + "%;");
-
         if (progress >= 100) {
             $("#goal-progress-bar").addClass("bg-success");
         }
@@ -138,3 +145,5 @@ $("input[name='choiseInput']").each(function () {
 $("#task-description").each(function () {
     this.innerHTML = renderMarkdown(this.innerHTML);
 })
+
+function sessionType() { return window.location.pathname.split("/")[1]; }

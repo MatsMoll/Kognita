@@ -1,5 +1,4 @@
 function jsonData() {
-
     return new Promise(function (resolve, reject) {
         let noteSession = $("#note-session").val();
 

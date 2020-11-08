@@ -34,12 +34,14 @@ final class SubjectWebController: RouteCollection {
 
         let query = try req.query.decode(Subject.ListOverview.SearchQuery.self)
 
-        return try req.repositories.subjectRepository
-            .allSubjects(for: req.auth.require(), searchQuery: query)
-            .map(Subject.Templates.ListComponent.Context.init(subjects: ))
-            .flatMap { context in
-                Subject.Templates.ListComponent().render(with: context, for: req)
-            }
+        return req.repositories { repositories in
+            try repositories.subjectRepository
+                .allSubjects(for: req.auth.require(), searchQuery: query)
+                .map(Subject.Templates.ListComponent.Context.init(subjects: ))
+                .flatMap { context in
+                    Subject.Templates.ListComponent().render(with: context, for: req)
+                }
+        }
     }
 
     func listAll(_ req: Request) throws -> EventLoopFuture<Response> {

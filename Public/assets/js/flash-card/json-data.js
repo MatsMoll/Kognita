@@ -1,7 +1,6 @@
 function jsonData() {
     var subtopicId = parseInt($("#card-topic-id").val());
-    var examPaperSemester = $("#card-exam-semester").val();
-    var examPaperYear = parseInt($("#card-exam-year").val());
+    var examID = parseInt($("#card-exam-id").val());
     var descriptionValue = description.value();
     if (descriptionValue.length == 0) {
         descriptionValue = null;
@@ -9,6 +8,9 @@ function jsonData() {
     var question = $("#card-question").val();
     var solutionValue = solution.value();
 
+    if (isNaN(examID)) {
+        examID = null
+    }
     if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
     }
@@ -21,8 +23,7 @@ function jsonData() {
 
     return JSON.stringify({
         "isTestable" : false,
-        "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
-        "examPaperYear" : examPaperYear,
+        "examID" : examID,
         "subtopicId" : subtopicId,
         "description" : descriptionValue,
         "question" : question,

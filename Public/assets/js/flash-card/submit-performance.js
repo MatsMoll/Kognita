@@ -38,7 +38,6 @@ function revealSolution() {
                 $("#goal-progress-bar").addClass("bg-success");
             }
         }
-        submitPerformance(knowledgeScore, function (){})
     }
 }
 
@@ -66,11 +65,12 @@ function submitAndEndSession() {
 function submitPerformance(score, handleSuccess) {
 
     if (isSubmitting) {
+        console.log("Skipping")
         return
     }
     isSubmitting = true;
 
-    var url = "/api/practice-sessions/" + sessionID() + "/submit/flash-card";
+    var url = "/api/" + sessionType() + "/" + sessionID() + "/submit/typing-task";
 
     fetch(url, {
         method: "POST",
@@ -83,7 +83,7 @@ function submitPerformance(score, handleSuccess) {
     .then(function (response) {
         isSubmitting = false;
         if (response.ok) {
-            return response.json();
+            return 
         } else {
             throw new Error(response.statusText);
         }
@@ -151,62 +151,66 @@ function answerJsonData(score) {
 }
 
 function estimatedScore(shouldSetScore) {
-    let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
+    let url = "/api/" + sessionType() + "/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
     
     $("#estimated-score-card").fadeIn();
     $("#estimated-score-card").removeClass("d-none");
     $("#estimate-spinner").html('<div class="d-flex justify-content-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>')
 
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Accept": "application/json, text/plain, */*",
-            "Content-Type" : "application/json"
-        },
-        body: answerJsonData("3")
-    })
-    .then(function (response) {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error(response.statusText);
-        }
-    })
-    .then(function (json) {
-        let score = json["score"];
-        let roundedScore = Math.round(score * 4);
+    // Setting a default score of 3
+    submitPerformance(knowledgeScore, function (){
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type" : "application/json"
+            },
+            body: answerJsonData("3")
+        })
+        .then(function (response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error(response.statusText);
+            }
+        })
+        .then(function (json) {
+            let score = json["score"];
+            let roundedScore = Math.round(score * 4);
 
-        var text = "Vi estimerer at du";
-        if (shouldSetScore == true) {
-            registerScore(roundedScore);
-        }
-        if (roundedScore >= 4) {
-            text += " kan denne oppgaven veldig godt 💯"
-        } else if (roundedScore >= 3) {
-            text += " kan denne oppgaven godt 🔥"
-        } else if (roundedScore >= 2) {
-            text += " kan noe 🙌"
-        } else {
-            text += " kanskje burde lese litt mer 🤔"
-        }
-        
-        $("#estimate-spinner").addClass("d-none");
-        $("#answer-estimate").text(text);
-        $("#answer-estimate").removeClass("d-none");
-        let improvements = json["improvements"];
-        if (improvements.lenght != 0) {
-            $("#estimated-score-card .card-body").append("<br>Kanskje nevn noe mer om dette?<ul>")
-        }
-        console.log(improvements);
-        for (const index in improvements) {
-            $("#estimated-score-card .card-body").append("<li>" + improvements[index]["word"] + "</li>");
-        }
-        if (improvements.lenght != 0) {
-            $("#estimated-score-card .card-body").append("</ul>")
-        }
-    })
-    .catch(function (error) {
-        console.log(error)
+            if (shouldSetScore == true) {
+                registerScore(roundedScore);
+            }
+    
+            var text = "Vi estimerer at du";
+    
+            if (roundedScore >= 4) {
+                text += " kan denne oppgaven veldig godt 💯"
+            } else if (roundedScore >= 3) {
+                text += " kan denne oppgaven godt 🔥"
+            } else if (roundedScore >= 2) {
+                text += " kan noe 🙌"
+            } else {
+                text += " kanskje burde lese litt mer 🤔"
+            }
+            
+            $("#estimate-spinner").addClass("d-none");
+            $("#answer-estimate").text(text);
+            $("#answer-estimate").removeClass("d-none");
+            let improvements = json["improvements"];
+            if (improvements.lenght != 0) {
+                $("#estimated-score-card .card-body").append("<br>Kanskje nevn noe mer om dette?<ul>")
+            }
+            for (const index in improvements) {
+                $("#estimated-score-card .card-body").append("<li>" + improvements[index]["word"] + "</li>");
+            }
+            if (improvements.lenght != 0) {
+                $("#estimated-score-card .card-body").append("</ul>")
+            }
+        })
+        .catch(function (error) {
+            console.log(error)
+        })
     })
 }
 
@@ -220,7 +224,7 @@ function loadHints() {
     } else if (hintIndex > 0) { 
         return 
     }
-    let url = "/api/practice-sessions/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
+    let url = "/api/" + sessionType() + "/" + sessionID() + "/tasks/" + taskIndex() + "/estimate";
 
     fetch(url, {
         method: "POST",
@@ -252,3 +256,5 @@ function revealHint() {
     }
     $("<div id='#hint-" + hintIndex + "'><h6>Hint nr: " + (hintIndex + 1) + "</h6><p class='text-dark'>" + hints[hintIndex++]["word"] + "</p></div>").hide().appendTo("#hint-card").fadeIn();
 }
+
+function sessionType() { return window.location.pathname.split("/")[1]; }
