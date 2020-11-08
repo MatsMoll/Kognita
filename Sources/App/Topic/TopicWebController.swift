@@ -27,19 +27,21 @@ final class TopicWebController: RouteCollection {
         return try req.controllers.subjectController.retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .flatMapThrowing {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .ifFalse(throw: Abort(.forbidden))
+                        .flatMapThrowing {
 
-                        try req.htmlkit
-                            .render(
-                                Topic.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    subject: subject
-                                )
-                        )
+                            try req.htmlkit
+                                .render(
+                                    Topic.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        subject: subject
+                                    )
+                            )
+                    }
                 }
         }
     }
@@ -51,25 +53,27 @@ final class TopicWebController: RouteCollection {
         return try req.controllers.subjectController.retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .failableFlatMap {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .ifFalse(throw: Abort(.forbidden))
+                        .failableFlatMap {
 
-                        try req.controllers.topicController
-                            .retrive(req)
-                            .flatMapThrowing { topic in
+                            try req.controllers.topicController
+                                .retrive(req)
+                                .flatMapThrowing { topic in
 
-                                try req.htmlkit
-                                    .render(
-                                        Topic.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: subject,
-                                            topicInfo: topic
-                                        )
-                                )
-                        }
+                                    try req.htmlkit
+                                        .render(
+                                            Topic.Templates.Create.self,
+                                            with: .init(
+                                                user: user,
+                                                subject: subject,
+                                                topicInfo: topic
+                                            )
+                                    )
+                            }
+                    }
                 }
         }
     }
@@ -81,25 +85,27 @@ final class TopicWebController: RouteCollection {
         return try req.controllers.subjectController.retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .failableFlatMap {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .ifFalse(throw: Abort(.forbidden))
+                        .failableFlatMap {
 
-                        try req.controllers.topicController
-                            .getAllIn(subject: req)
-                            .flatMapThrowing { topics in
+                            try req.controllers.topicController
+                                .getAllIn(subject: req)
+                                .flatMapThrowing { topics in
 
-                                try req.htmlkit
-                                    .render(
-                                        Topic.Templates.Modify.self,
-                                        with: .init(
-                                            user: user,
-                                            subject: subject,
-                                            topics: topics
-                                        )
-                                )
-                        }
+                                    try req.htmlkit
+                                        .render(
+                                            Topic.Templates.Modify.self,
+                                            with: .init(
+                                                user: user,
+                                                subject: subject,
+                                                topics: topics
+                                            )
+                                    )
+                            }
+                    }
                 }
         }
     }

@@ -40,19 +40,22 @@ class FlashCardTaskWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.topicRepository
-                    .topicsWithSubtopics(subjectID: subject.id)
-                    .flatMapThrowing { topics in
-
-                        try req.htmlkit.render(
-                            TypingTask.Templates.Create.self,
-                            with: .init(
-                                user: user,
-                                content: .init(subject: subject, topics: topics),
-                                canEdit: true
-                            )
-                        )
+                req.repositories { repositories in
+                    repositories.topicRepository
+                        .topicsWithSubtopics(subjectID: subject.id)
+                        .and(repositories.examRepository.allExamsWith(subjectID: subject.id))
                 }
+                .flatMapThrowing { topics, exams in
+
+                    try req.htmlkit.render(
+                        TypingTask.Templates.Create.self,
+                        with: .init(
+                            user: user,
+                            content: .init(subject: subject, topics: topics, exams: exams),
+                            canEdit: true
+                        )
+                    )
+            }
         }
     }
 
@@ -62,25 +65,27 @@ class FlashCardTaskWebController: RouteCollection {
 
         let query = try req.query.decode(EditTaskURLQuery.self)
 
-        return try req.repositories.typingTaskRepository
-            .modifyContent(forID: req.parameters.get(TypingTask.self))
-            .flatMap { content in
+        return req.repositories { repositories in
+            try repositories.typingTaskRepository
+                .modifyContent(forID: req.parameters.get(TypingTask.self))
+                .flatMap { content in
 
-                return req.repositories.userRepository
-                    .isModerator(user: user, taskID: content.task!.id)
-                    .flatMapThrowing { isModerator in
+                    return repositories.userRepository
+                        .isModerator(user: user, taskID: content.task!.id)
+                        .flatMapThrowing { isModerator in
 
-                        try req.htmlkit
-                            .render(
-                                TypingTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    content: content,
-                                    canEdit: isModerator || content.task?.creatorID == user.id,
-                                    wasUpdated: query.wasUpdated ?? false
-                                )
-                        )
-                }
+                            try req.htmlkit
+                                .render(
+                                    TypingTask.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        content: content,
+                                        canEdit: isModerator || content.task?.creatorID == user.id,
+                                        wasUpdated: query.wasUpdated ?? false
+                                    )
+                            )
+                    }
+            }
         }
     }
 
@@ -92,17 +97,19 @@ class FlashCardTaskWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.topicRepository
-                    .topicsWithSubtopics(subjectID: subject.id)
-                    .flatMapThrowing { topics in
+                req.repositories { repositories in
+                    repositories.topicRepository
+                        .topicsWithSubtopics(subjectID: subject.id)
+                }
+                .flatMapThrowing { topics in
 
-                        try req.htmlkit.render(
-                            TypingTask.Templates.CreateDraft.self,
-                            with: .init(
-                                user: user,
-                                content: .init(subject: subject, topics: topics)
-                            )
+                    try req.htmlkit.render(
+                        TypingTask.Templates.CreateDraft.self,
+                        with: .init(
+                            user: user,
+                            content: .init(subject: subject, topics: topics, exams: [])
                         )
+                    )
                 }
         }
     }
@@ -122,10 +129,12 @@ class FlashCardTaskWebController: RouteCollection {
     }
 
     func note(on req: Request) throws -> EventLoopFuture<View> {
-        try req.repositories.lectureNoteRepository.find(id: req.parameters.get(GenericTask.self))
-            .failableFlatMap { note in
-                LectureNote.Templates.Overview()
-                    .render(with: note, for: req)
+        req.repositories { repositories in
+            try repositories.lectureNoteRepository.find(id: req.parameters.get(GenericTask.self))
+        }
+        .failableFlatMap { note in
+            LectureNote.Templates.Overview()
+                .render(with: note, for: req)
         }
     }
 }

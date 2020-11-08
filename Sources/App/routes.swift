@@ -63,6 +63,7 @@ private func setupUserWeb(for app: Application) throws {
     try redirectMiddle.register(collection: FlashCardTaskWebController())
     try redirectMiddle.register(collection: SubtopicWebController())
     try redirectMiddle.register(collection: PracticeSessionWebController())
+    try redirectMiddle.register(collection: ExamSessionWebController())
     try redirectMiddle.register(collection: SubjectTestWebController())
     try redirectMiddle.register(collection: TestSessionWebController())
     try redirectMiddle.register(collection: TaskDiscussionWebController())

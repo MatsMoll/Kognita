@@ -28,28 +28,30 @@ final class CreatorWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                .isModerator(user: user, subjectID: subject.id)
-                .flatMap { isModerator in
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .flatMap { isModerator in
 
-                    req.repositories.subjectRepository
-                        .tasksWith(subjectID: subject.id, user: user, query: nil, maxAmount: nil, withSoftDeleted: isModerator)
-                        .failableFlatMap { tasks in
+                            repositories.subjectRepository
+                                .tasksWith(subjectID: subject.id, user: user, query: nil, maxAmount: nil, withSoftDeleted: isModerator)
+                                .failableFlatMap { tasks in
 
-                            try req.repositories.taskSolutionRepository
-                                .unverifiedSolutions(in: subject.id, for: user)
-                                .flatMapThrowing { solutions in
+                                    try repositories.taskSolutionRepository
+                                        .unverifiedSolutions(in: subject.id, for: user)
+                                        .flatMapThrowing { solutions in
 
-                                        try req.htmlkit.render(
-                                            Subject.Templates.ContentOverview.self,
-                                            with: Subject.Templates.ContentOverview.Context(
-                                                user: user,
-                                                subject: subject,
-                                                tasks: tasks,
-                                                isModerator: isModerator,
-                                                solutions: solutions
-                                            )
-                                        )
+                                                try req.htmlkit.render(
+                                                    Subject.Templates.ContentOverview.self,
+                                                    with: Subject.Templates.ContentOverview.Context(
+                                                        user: user,
+                                                        subject: subject,
+                                                        tasks: tasks,
+                                                        isModerator: isModerator,
+                                                        solutions: solutions
+                                                    )
+                                                )
+                                        }
                                 }
                         }
                 }
@@ -62,24 +64,26 @@ final class CreatorWebController: RouteCollection {
         let query = try req.query.decode(TaskOverviewQuery.self)
         let subjectID = try req.parameters.get(Subject.self)
 
-        return req.repositories.userRepository
-            .isModerator(user: user, subjectID: subjectID)
-            .flatMap { isModerator in
+        return req.repositories { repositories in
+            repositories.userRepository
+                .isModerator(user: user, subjectID: subjectID)
+                .flatMap { isModerator in
 
-                req.repositories
-                    .subjectRepository
-                    .tasksWith(subjectID: subjectID, user: user, query: query, maxAmount: nil, withSoftDeleted: isModerator)
-                    .flatMapThrowing { tasks in
+                    repositories
+                        .subjectRepository
+                        .tasksWith(subjectID: subjectID, user: user, query: query, maxAmount: nil, withSoftDeleted: isModerator)
+                        .flatMapThrowing { tasks in
 
-                        try req.htmlkit.render(
-                            Subject.Templates.TaskList.self,
-                            with: .init(
-                                userID: user.id,
-                                isModerator: isModerator,
-                                tasks: tasks
+                            try req.htmlkit.render(
+                                Subject.Templates.TaskList.self,
+                                with: .init(
+                                    userID: user.id,
+                                    isModerator: isModerator,
+                                    tasks: tasks
+                                )
                             )
-                        )
-                }
+                    }
+            }
         }
     }
 

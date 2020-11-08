@@ -29,7 +29,7 @@ final class PracticeSessionWebController: RouteCollection {
             .getCurrentTask(on: req)
             .flatMap { currentTask in
 
-                currentTask.render(on: req)
+                currentTask.renderPracticeSession(on: req)
         }
         .flatMapError { error in
             do {
@@ -37,11 +37,13 @@ final class PracticeSessionWebController: RouteCollection {
                 case PracticeSession.DefaultAPIController.Errors
                     .unableToFindTask(let session, let user):
 
-                    return try req.repositories.practiceSessionRepository
-                        .end(sessionID: session.requireID(), for: user)
-                        .flatMapThrowing {
-                            try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
-                        }
+                    return req.repositories { repositories in
+                        try repositories.practiceSessionRepository
+                            .end(sessionID: session.requireID(), for: user)
+                    }
+                    .flatMapThrowing {
+                        try req.redirect(to: "/practice-sessions/\(session.requireID())/result")
+                    }
                 default: throw error
                 }
             } catch {
@@ -79,26 +81,29 @@ final class PracticeSessionWebController: RouteCollection {
 
         let user = try req.auth.require(User.self)
 
-        return try req.repositories.practiceSessionRepository
-            .getSessions(for: user)
-            .flatMap { practiceSessions in
+        return req.repositories { repositories in
 
-                req.repositories.testSessionRepository
-                    .getSessions(for: user)
-                    .flatMapThrowing { testSessions in
+            try repositories.practiceSessionRepository
+                .getSessions(for: user)
+                .flatMap { practiceSessions in
 
-                        try req.htmlkit
-                            .render(
-                                Sessions.Templates.History.self,
-                                with: .init(
-                                    user: user,
-                                    sessions: .init(
-                                        testSessions: testSessions,
-                                        practiceSessions: practiceSessions
+                    repositories.testSessionRepository
+                        .getSessions(for: user)
+                        .flatMapThrowing { testSessions in
+
+                            try req.htmlkit
+                                .render(
+                                    Sessions.Templates.History.self,
+                                    with: .init(
+                                        user: user,
+                                        sessions: .init(
+                                            testSessions: testSessions,
+                                            practiceSessions: practiceSessions
+                                        )
                                     )
-                                )
-                        )
-                }
+                            )
+                    }
+            }
         }
     }
 

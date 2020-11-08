@@ -14,13 +14,15 @@ function jsonData() {
     if (descriptionValue.length < 1) {
         descriptionValue = null;
     }
-    var examPaperSemester = $("#create-multiple-exam-semester").val();
-    var examPaperYear = parseInt($("#create-multiple-exam-year").val());
+    var examID = parseInt($("#card-exam-id").val());
     var question = $("#create-multiple-question").val();
     var isMultipleSelect = $("#create-multiple-select").prop("checked");
     var isTestable = $("#create-multiple-testable").prop("checked");
     var solutionValue = solution.value();
 
+    if (isNaN(examID)) {
+        examID = null
+    }
     if (isNaN(subtopicId) || subtopicId < 1) {
         throw Error("Velg et tema");
     }
@@ -41,8 +43,7 @@ function jsonData() {
 
     return JSON.stringify({
         "isTestable" : isTestable,
-        "examPaperSemester" : examPaperSemester === "" ? null : examPaperSemester,
-        "examPaperYear" : examPaperYear,
+        "examID" : examID,
         "subtopicId" : subtopicId,
         "description" : descriptionValue,
         "question" : question,

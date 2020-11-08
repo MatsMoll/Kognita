@@ -61,19 +61,20 @@ class SubjectTestWebController: SubjectTestWebControlling {
 
         let subjectID = try req.parameters.get(Subject.self)
 
-        return req.repositories.subjectRepository
-            .tasksWith(subjectID: subjectID)
-            .flatMapThrowing { tasks in
-
-                try req.htmlkit
-                    .render(
-                        SubjectTest.Templates.Modify.self,
-                        with: SubjectTest.Templates.Modify.Context(
-                            subjectID: subjectID,
-                            user: user,
-                            tasks: tasks
-                        )
-                )
+        return req.repositories { repositories in
+            repositories.subjectRepository
+                .tasksWith(subjectID: subjectID)
+        }
+        .flatMapThrowing { tasks in
+            try req.htmlkit
+                .render(
+                    SubjectTest.Templates.Modify.self,
+                    with: SubjectTest.Templates.Modify.Context(
+                        subjectID: subjectID,
+                        user: user,
+                        tasks: tasks
+                    )
+            )
         }
     }
 
@@ -85,20 +86,22 @@ class SubjectTestWebController: SubjectTestWebControlling {
             .modifyContent(for: req)
             .failableFlatMap { test in
 
-                req.repositories.subjectRepository
-                    .tasksWith(subjectID: test.subjectID)
-                    .flatMapThrowing { tasks in
+                return req.repositories { repositories in
+                    repositories.subjectRepository
+                        .tasksWith(subjectID: test.subjectID)
+                }
+                .flatMapThrowing { tasks in
 
-                        try req.htmlkit
-                            .render(
-                                SubjectTest.Templates.Modify.self,
-                                with: SubjectTest.Templates.Modify.Context(
-                                    subjectID: req.parameters.get(Subject.self),
-                                    user: user,
-                                    tasks: tasks,
-                                    test: test
-                                )
-                        )
+                    try req.htmlkit
+                        .render(
+                            SubjectTest.Templates.Modify.self,
+                            with: SubjectTest.Templates.Modify.Context(
+                                subjectID: req.parameters.get(Subject.self),
+                                user: user,
+                                tasks: tasks,
+                                test: test
+                            )
+                    )
                 }
         }
     }
@@ -130,19 +133,21 @@ class SubjectTestWebController: SubjectTestWebControlling {
             .test(withID: req)
             .flatMap { test in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: test.subjectID)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .flatMapThrowing {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: test.subjectID)
+                }
+                .ifFalse(throw: Abort(.forbidden))
+                .flatMapThrowing {
 
-                        try req.htmlkit
-                            .render(
-                                SubjectTest.Templates.Monitor.self,
-                                with: SubjectTest.Templates.Monitor.Context(
-                                    user: user,
-                                    test: test
-                                )
-                        )
+                    try req.htmlkit
+                        .render(
+                            SubjectTest.Templates.Monitor.self,
+                            with: SubjectTest.Templates.Monitor.Context(
+                                user: user,
+                                test: test
+                            )
+                    )
                 }
         }
     }

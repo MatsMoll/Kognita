@@ -81,16 +81,18 @@ final class UserWebController: RouteCollection {
 
         guard let login = try? req.content.decode(UserLogin.self) else { throw Abort(.badRequest) }
 
-        return req.repositories.userRepository.verify(email: login.email, with: login.password)
-            .failableFlatMap { user in
-                guard let user = user else {
-                    return try req.htmlkit
-                        .render(LoginPage.self, with: .init(showCookieMessage: req.cookies.isAccepted == false, errorMessage: "Feil brukernavn eller passord"))
-                        .encodeResponse(for: req)
-                }
-                req.auth.login(user)
-                return req.repositories.userRepository.logLogin(for: user, with: req.remoteAddress?.ipAddress)
-                    .map { req.redirect(to: "/subjects") }
+        return req.repositories { repositories in
+            return repositories.userRepository.verify(email: login.email, with: login.password)
+                .failableFlatMap { user in
+                    guard let user = user else {
+                        return try req.htmlkit
+                            .render(LoginPage.self, with: .init(showCookieMessage: req.cookies.isAccepted == false, errorMessage: "Feil brukernavn eller passord"))
+                            .encodeResponse(for: req)
+                    }
+                    req.auth.login(user)
+                    return repositories.userRepository.logLogin(for: user, with: req.remoteAddress?.ipAddress)
+                        .map { req.redirect(to: "/subjects") }
+            }
         }
     }
 

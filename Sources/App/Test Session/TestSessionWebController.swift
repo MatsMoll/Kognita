@@ -35,14 +35,16 @@ class TestSessionWebController: TestSessionWebControlling {
 
         let sessionID = try req.parameters.get(TestSession.self)
 
-        return req.repositories.testSessionRepository
-            .testIDFor(id: sessionID)
-            .failableFlatMap { testID in
-                try req.repositories.subjectTestRepository
-                    .firstTaskID(testID: testID)
-                    .map { id in
-                        req.redirect(to: "/test-sessions/\(sessionID)/tasks/\(id ?? 0)")
-                }
+        return req.repositories { repositories in
+            return repositories.testSessionRepository
+                .testIDFor(id: sessionID)
+                .failableFlatMap { testID in
+                    try repositories.subjectTestRepository
+                        .firstTaskID(testID: testID)
+                        .map { id in
+                            req.redirect(to: "/test-sessions/\(sessionID)/tasks/\(id ?? 0)")
+                    }
+            }
         }
     }
 
@@ -50,26 +52,28 @@ class TestSessionWebController: TestSessionWebControlling {
 
         let user = try req.auth.require(User.self)
 
-        return try req.repositories.testSessionRepository
-            .sessionReporesentableWith(id: req.parameters.get(TestSession.self))
-            .failableFlatMap { session in
+        return req.repositories { repositories in
+            return try repositories.testSessionRepository
+                .sessionReporesentableWith(id: req.parameters.get(TestSession.self))
+                .failableFlatMap { session in
 
-                let taskID = try req.parameters.get(Int.self)
+                    let taskID = try req.parameters.get(Int.self)
 
-                return try req.repositories.subjectTestRepository
-                    .taskWith(id: taskID, in: session, for: user)
-                    .flatMapThrowing { task in
+                    return try repositories.subjectTestRepository
+                        .taskWith(id: taskID, in: session, for: user)
+                        .flatMapThrowing { task in
 
-                        try req.htmlkit
-                            .render(
-                                MultipleChoiseTaskTestMode.self,
-                                with: MultipleChoiseTaskTestMode.Context(
-                                    user: user,
-                                    task: task
-                                )
-                        )
+                            try req.htmlkit
+                                .render(
+                                    MultipleChoiseTaskTestMode.self,
+                                    with: MultipleChoiseTaskTestMode.Context(
+                                        user: user,
+                                        task: task
+                                    )
+                            )
 
-                }
+                    }
+            }
         }
     }
 

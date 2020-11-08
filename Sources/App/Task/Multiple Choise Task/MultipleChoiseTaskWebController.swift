@@ -41,25 +41,31 @@ final class MultipleChoiseTaskWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.topicRepository
-                    .topicsWithSubtopics(subjectID: subject.id)
-                    .flatMap { topics in
+                req.repositories { repositories in
+                    repositories.topicRepository
+                        .topicsWithSubtopics(subjectID: subject.id)
+                        .flatMap { topics in
 
-                        req.repositories.userRepository
-                            .isModerator(user: user, subjectID: subject.id)
-                            .flatMapThrowing { isModerator in
+                            repositories.userRepository
+                                .isModerator(user: user, subjectID: subject.id)
+                                .flatMap { isModerator in
 
-                                try req.htmlkit
-                                    .render(
-                                        MultipleChoiceTask.Templates.Create.self,
-                                        with: .init(
-                                            user: user,
-                                            content: .init(subject: subject, topics: topics),
-                                            isModerator: isModerator,
-                                            isTestable: query.isTestable ?? false
-                                        )
-                                )
-                        }
+                                    repositories.examRepository.allExamsWith(subjectID: subject.id)
+                                        .flatMapThrowing { exams in
+
+                                            try req.htmlkit
+                                                .render(
+                                                    MultipleChoiceTask.Templates.Create.self,
+                                                    with: .init(
+                                                        user: user,
+                                                        content: .init(subject: subject, topics: topics, exams: exams),
+                                                        isModerator: isModerator,
+                                                        isTestable: query.isTestable ?? false
+                                                    )
+                                            )
+                                    }
+                            }
+                    }
                 }
         }
     }
@@ -69,28 +75,30 @@ final class MultipleChoiseTaskWebController: RouteCollection {
         let user = try req.auth.require(User.self)
         let taskID = try req.parameters.get(MultipleChoiceTask.self)
 
-        return try req.repositories.multipleChoiceTaskRepository
-            .modifyContent(forID: taskID)
-            .flatMap { content in
+        return req.repositories { repositories in
+            try repositories.multipleChoiceTaskRepository
+                .modifyContent(forID: taskID)
+                .flatMap { content in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, taskID: taskID)
-                    .flatMapThrowing { isModerator in
+                    repositories.userRepository
+                        .isModerator(user: user, taskID: taskID)
+                        .flatMapThrowing { isModerator in
 
-                        guard isModerator == true || content.task?.creatorID == user.id else {
-                            throw Abort(.forbidden)
-                        }
-                        return try req.htmlkit
-                            .render(
-                                MultipleChoiceTask.Templates.Create.self,
-                                with: .init(
-                                    user: user,
-                                    content: content,
-                                    isModerator: isModerator,
-                                    isTestable: false
-                                )
-                        )
-                }
+                            guard isModerator == true || content.task?.creatorID == user.id else {
+                                throw Abort(.forbidden)
+                            }
+                            return try req.htmlkit
+                                .render(
+                                    MultipleChoiceTask.Templates.Create.self,
+                                    with: .init(
+                                        user: user,
+                                        content: content,
+                                        isModerator: isModerator,
+                                        isTestable: false
+                                    )
+                            )
+                    }
+            }
         }
     }
 }

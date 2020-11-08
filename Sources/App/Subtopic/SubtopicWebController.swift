@@ -27,24 +27,26 @@ class SubtopicWebController: RouteCollection {
             .retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .failableFlatMap {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .ifFalse(throw: Abort(.forbidden))
+                        .failableFlatMap {
 
-                        req.repositories.topicRepository
-                            .getTopicsWith(subjectID: subject.id)
-                            .flatMapThrowing { topics in
+                            repositories.topicRepository
+                                .getTopicsWith(subjectID: subject.id)
+                                .flatMapThrowing { topics in
 
-                                try req.htmlkit.render(
-                                    Subtopic.Templates.Create.self,
-                                    with: .init(
-                                        user: user,
-                                        subject: subject,
-                                        topics: topics
+                                    try req.htmlkit.render(
+                                        Subtopic.Templates.Create.self,
+                                        with: .init(
+                                            user: user,
+                                            subject: subject,
+                                            topics: topics
+                                        )
                                     )
-                                )
-                        }
+                            }
+                    }
                 }
         }
     }
@@ -56,29 +58,31 @@ class SubtopicWebController: RouteCollection {
         return try req.controllers.subjectController.retrive(on: req)
             .flatMap { subject in
 
-                req.repositories.userRepository
-                    .isModerator(user: user, subjectID: subject.id)
-                    .ifFalse(throw: Abort(.forbidden))
-                    .failableFlatMap {
+                req.repositories { repositories in
+                    repositories.userRepository
+                        .isModerator(user: user, subjectID: subject.id)
+                        .ifFalse(throw: Abort(.forbidden))
+                        .failableFlatMap {
 
-                        try req.controllers.subtopicController.retrive(on: req)
-                            .flatMap { subtopic in
+                            try req.controllers.subtopicController.retrive(on: req)
+                                .flatMap { subtopic in
 
-                                req.repositories.topicRepository
-                                    .getTopicsWith(subjectID: subject.id)
-                                    .flatMapThrowing { topics in
+                                    repositories.topicRepository
+                                        .getTopicsWith(subjectID: subject.id)
+                                        .flatMapThrowing { topics in
 
-                                        try req.htmlkit.render(
-                                            Subtopic.Templates.Create.self,
-                                            with: .init(
-                                                user: user,
-                                                subject: subject,
-                                                topics: topics,
-                                                subtopicInfo: subtopic
+                                            try req.htmlkit.render(
+                                                Subtopic.Templates.Create.self,
+                                                with: .init(
+                                                    user: user,
+                                                    subject: subject,
+                                                    topics: topics,
+                                                    subtopicInfo: subtopic
+                                                )
                                             )
-                                        )
-                                }
-                        }
+                                    }
+                            }
+                    }
                 }
         }
     }
