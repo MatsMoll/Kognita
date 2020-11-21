@@ -16,6 +16,9 @@ public func configure(_ app: Application) throws {
     guard let rootUrl = Environment.get("ROOT_URL") else {
         fatalError("Need to set a ROOT_URL")
     }
+    app.lifecycle.use(HTMLKitLifecycle(rootUrl: rootUrl))
+    // Adds htmlkit to the app lifecycle after setting up the templates
+    _ = app.htmlkit
 
     // Catches errors and converts to HTTP responses for developers
     app.middleware.use(ErrorMiddleware.default(environment: app.environment))
@@ -26,17 +29,6 @@ public func configure(_ app: Application) throws {
         app.logger.logLevel = .debug
     }
 
-    app.htmlkit.localizationPath = app.directory.workingDirectory + "Resources/Localization"
-    app.htmlkit.defaultLocale = "nb"
-
-    try KognitaViews.renderer(rootURL: rootUrl, renderer: app.htmlkit.renderer)
-
-//    try renderer.registerLocalization(atPath: path, defaultLocale: "nb")
-//    renderer.timeZone = TimeZone(identifier: "CET") ?? .current
-
-    app.verifyEmailRenderer.use { VerifyEmailRenderer(renderer: $0.htmlkit) }
-    app.resetPasswordRenderer.use { ResetPasswordMailRenderer(renderer: $0.htmlkit) }
-
     try routes(app)
 }
 
@@ -45,7 +37,7 @@ private func registerRouter(in app: Application) throws {
 }
 
 struct ResetPasswordMailRenderer: ResetPasswordMailRenderable {
-    let renderer: HTMLRenderer
+    let renderer: HTMLRenderable
 
     public func render(with token: User.ResetPassword.Token, for user: User) throws -> String {
         try renderer.render(
@@ -59,7 +51,7 @@ struct ResetPasswordMailRenderer: ResetPasswordMailRenderable {
 }
 
 struct VerifyEmailRenderer: VerifyEmailRenderable {
-    let renderer: HTMLRenderer
+    let renderer: HTMLRenderable
 
     func render(with content: User.VerifyEmail.EmailContent, on request: Request) throws -> EventLoopFuture<String> {
         let html = try renderer.render(
