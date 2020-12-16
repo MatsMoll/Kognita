@@ -1,0 +1,72 @@
+name: MasterAction
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check-doc-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1.2.0
+      - name: Calculate Documentation Coverage
+        uses: MatsMoll/swift-doc@master
+        with:
+          inputs: "Sources"
+          output: "dcov.json"
+      - name: Check Documentation Percent
+        run: sudo bash CI/check-percentage.sh dcov.json 1
+        
+  bionic-tests:
+    needs: check-doc-coverage
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1.2.0
+    - name: Run unit tests master
+      run: swift test --enable-test-discovery
+      env:
+        DATABASE_USER: postgres
+        DATABASE_PASSWORD: postgres
+        DATABASE_DB: postgres
+        DATABASE_HOSTNAME: localhost
+        
+  release-docs:
+    needs: bionic-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1.2.0
+      - name: Generate Documentation
+        uses: SwiftDocOrg/swift-doc@master
+        with:
+          inputs: "Sources"
+          module-name: KognitaWeb
+          output: "Documentation"
+      - name: Upload Documentation to Wiki
+        uses: SwiftDocOrg/github-wiki-publish-action@v1
+        with:
+          path: "Documentation"
+        env:
+          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          
+  release-version:
+    needs: release-docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1.2.0
+      - name: Release new version
+        uses: MatsMoll/action-finch@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
+          GITHUB_SHA: ${{ secrets.GITHUB_SHA }}
+          FINCH_CONFIG: CI/finch-config.yml

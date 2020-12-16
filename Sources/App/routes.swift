@@ -56,7 +56,7 @@ private func setupUserWeb(for app: Application) throws {
     }
 
     try sessionMiddle.register(collection: UserWebController())
-    try redirectMiddle.register(collection: SubjectWebController())
+    try sessionMiddle.register(collection: SubjectWebController())
     try redirectMiddle.register(collection: TopicWebController())
     try redirectMiddle.register(collection: MultipleChoiseTaskWebController())
     try redirectMiddle.register(collection: CreatorWebController())

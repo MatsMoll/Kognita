@@ -7,6 +7,8 @@ var dependencies: [Package.Dependency] = [
     .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.29.0"),
 
     .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", from: "1.0.1"),
+    
+    .package(url: "https://github.com/vapor-community/HTMLKit.git", from: "2.1.0"),
 ]
 
 // Kognita Core
@@ -27,6 +29,19 @@ case "DEV":
         ]
     )
 default:
+    #if os(macOS)
+    if ProcessInfo.processInfo.environment["CUSTOM_SETTINGS"] == nil {
+        dependencies.append(contentsOf: [
+                .package(path: "../KognitaAPI"),
+                .package(path: "../KognitaCore"),
+                .package(path: "../KognitaViews"),
+                .package(path: "../KognitaModels")
+            ]
+        )
+        break
+    }
+    
+    #endif
     let coreVersion     = ProcessInfo.processInfo.environment["KOGNITA_CORE"]   ?? "2.0.0"
     let pagesVersion    = ProcessInfo.processInfo.environment["KOGNITA_PAGES"]  ?? "2.0.0"
     let apiVersion      = ProcessInfo.processInfo.environment["KOGNITA_API"]    ?? "2.0.0"
