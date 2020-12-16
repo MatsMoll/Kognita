@@ -21,72 +21,92 @@ final class SubjectWebController: RouteCollection {
 
         routes.get("subjects", use: listAll)
         routes.get("subjects", "search", use: search(on:))
-        routes.get("subjects", "create", use: createSubject)
 
         let subject = routes.grouped("subjects", Subject.parameter)
 
         subject.get(use: details)
-        subject.get("edit", use: editSubject)
-        subject.get("compendium", use: compendium)
+        
+        let authRoutes = routes.grouped(RedirectMiddleware<User>(path: "/login"))
+        authRoutes.get("edit", use: editSubject)
+        authRoutes.get("compendium", use: compendium)
+        authRoutes.get("subjects", "create", use: createSubject)
     }
 
     func search(on req: Request) throws -> EventLoopFuture<View> {
 
         let query = try req.query.decode(Subject.ListOverview.SearchQuery.self)
 
-        return req.repositories { repositories in
-            try repositories.subjectRepository
-                .allSubjects(for: req.auth.require(), searchQuery: query)
-                .map(Subject.Templates.ListComponent.Context.init(subjects: ))
-                .flatMap { context in
-                    Subject.Templates.ListComponent().render(with: context, for: req)
+        return req.eventLoop.future()
+            .flatMap {
+                if let user = req.auth.get(User.self) {
+                    return req.repositories { repo in
+                        repo.subjectRepository
+                            .allSubjects(for: user.id, searchQuery: query)
+                            
+                    }
+                } else {
+                    return req.repositories { repo in
+                        repo.subjectRepository
+                            .allSubjects(for: nil, searchQuery: query)
+                    }
                 }
-        }
+            }
+            .map(Subject.Templates.ListComponent.Context.init(subjects: ))
+            .flatMap { context in
+                Subject.Templates.ListComponent().render(with: context, for: req)
+            }
+        
     }
 
-    func listAll(_ req: Request) throws -> EventLoopFuture<Response> {
+    func listAll(_ req: Request) throws -> EventLoopFuture<View> {
 
-        let user = try req.auth.require(User.self)
         let query = try? req.query.decode(ListAllQuery.self)
+        
+        if let user = req.auth.get(User.self) {
+            return try req.controllers.taskDiscussionResponseController
+                .setRecentlyVisited(on: req) // FIXME: Rename
+                .failableFlatMap { activeDiscussion in
 
-        return try req.controllers.taskDiscussionResponseController
-            .setRecentlyVisited(on: req) // FIXME: Rename
-            .failableFlatMap { activeDiscussion in
+                    try req.controllers.subjectController
+                        .getListContent(req)
+                        .flatMap { listContent in
 
-                try req.controllers.subjectController
-                       .getListContent(req)
-                       .flatMapThrowing { listContent in
-
-                           try req.htmlkit
-                               .render(
-                                   Subject.Templates.ListOverview.self,
-                                   with: .init(
-                                       user: user,
-                                       list: listContent,
-                                       wasIncorrectPassword: query?.incorrectPassword ?? false,
-                                       recentlyActiveDiscussions: activeDiscussion
-                                   )
-                           )
-                   }
+                            Pages.AuthenticatedDashboard()
+                                .render(
+                                    with: .init(
+                                        user: user,
+                                        list: listContent,
+                                        wasIncorrectPassword: query?.incorrectPassword ?? false,
+                                        recentlyActiveDiscussions: activeDiscussion
+                                    ),
+                                    for: req
+                                )
+                       }
+            }
+        } else {
+            return req.repositories { repo  in
+                repo.subjectRepository.allSubjects(for: nil, searchQuery: .init())
+            }
+            .flatMap { subject in
+                Pages.UnauthenticatedDashboard()
+                    .render(with: .init(subjects: subject, showCoockieMessage: !req.cookies.isAccepted), for: req)
+            }
         }
     }
 
-    func details(_ req: Request) throws -> EventLoopFuture<Response> {
-
-        let user = try req.auth.require(User.self)
+    func details(_ req: Request) throws -> EventLoopFuture<View> {
 
         return try req.controllers.subjectController
             .getDetails(req)
-            .flatMapThrowing { details in
+            .flatMap { details in
 
-                try req.htmlkit
-                    .render(
-                        Subject.Templates.Details.self,
-                        with: .init(
-                            user: user,
-                            details: details
-                        )
-                )
+                if let user = req.auth.get(User.self) {
+                    return Subject.Templates.Details()
+                        .render(with: .init(user: user, details: details), for: req)
+                } else {
+                    return Subject.Templates.Details.Unauthenticated()
+                        .render(with: .init(details: details, showCookieMessage: !req.cookies.isAccepted), for: req)
+                }
         }
     }
 
