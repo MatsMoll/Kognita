@@ -27,9 +27,11 @@ final class SubjectWebController: RouteCollection {
         subject.get(use: details)
         
         let authRoutes = routes.grouped(RedirectMiddleware<User>(path: "/login"))
-        authRoutes.get("edit", use: editSubject)
-        authRoutes.get("compendium", use: compendium)
         authRoutes.get("subjects", "create", use: createSubject)
+        
+        let authSubject = authRoutes.grouped("subjects", Subject.parameter)
+        authSubject.get("edit", use: editSubject)
+        authSubject.get("compendium", use: compendium)
     }
 
     func search(on req: Request) throws -> EventLoopFuture<View> {
