@@ -97,8 +97,15 @@ final class UserWebController: RouteCollection {
     }
 
     func logout(_ req: Request) throws -> Response {
+        guard let user = req.auth.get(User.self) else { return req.redirect(to: "/") }
         req.auth.logout(User.self)
-        return req.redirect(to: "/")
+        if req.cookies.isFeideLogin {
+            let response = req.feide.endSession(for: req)
+            response.cookies.isFeideLogin = false
+            return response
+        } else {
+            return req.redirect(to: "/")
+        }
     }
 
     func startResetPasswordForm(on req: Request) throws -> Response {

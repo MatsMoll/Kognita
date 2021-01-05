@@ -37,9 +37,9 @@ class SubjectTestWebController: SubjectTestWebControlling {
     static func enter(on req: Request) throws -> EventLoopFuture<Response> {
 
         try req.controllers.subjectTestController
-            .end(req: req)
-            .flatMapThrowing { _ in
-                try req.redirect(to: "/test-sessions/\(req.parameters.get(SubjectTest.self))")
+            .enter(on: req)
+            .map { session in
+                req.redirect(to: "/test-sessions/\(session.id)")
         }
         .flatMapErrorThrowing { error in
             switch error {
