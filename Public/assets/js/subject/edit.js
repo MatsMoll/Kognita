@@ -1,43 +1,31 @@
-$("#edit-subject-description").summernote({
-    minHeight : 100,
-    toolbar: [
-        // [groupName, [list of button]]
-        ['style', ['bold', 'italic', 'underline']],
-        ['font', ['strikethrough', 'superscript', 'subscript']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['insert', ['link', 'hr']],
-        ['misc', ['undo', 'redo', 'help']]
-      ]
-});
-
-
-function editSubject() {
+function editSubject(subjectID) {
     
-    var xhr = new XMLHttpRequest();
-    var url = "/api" + window.location.pathname.replace("creator/", "");
-    xhr.open("PUT", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (this.readyState != 4) return;
-    
-        if (this.status == 200) {
-            window.location.reload();
+    let url = "/api/subjects/" + subjectID
+    fetch(url, {
+        method: "PUT",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type" : "application/json"
+        },
+        body: createSubjectData()
+    })
+    .then(function (response) {
+        if (response.ok) {
+            window.location.reload()
+        } else if (response.status == 400) {
+            throw new Error("Sjekk at all nødvendig info er fylt ut");
+        } else {
+            throw new Error(response.statusText);
         }
-    };
-
-    var name = $("#edit-subject-name").val();
-    var description = null;
-    if (!$('#edit-subject-description').summernote("isEmpty")) {
-        description = $("#edit-subject-description").summernote("code");
-    }
-    var category = $("#create-subject-category").val();
-    var colorClass = $("#create-subject-color-class").val();
-
-    var data = JSON.stringify({
-        "name": name,
-        "colorClass": colorClass,
-        "description": description,
-        "category": category,
+    })
+    .catch(function (error) {
+        $("#submitButton").attr("disabled", false);
+        $("#error-massage").text(error.message);
+        if ($("#error-div").css("display") == "block") {
+            $("#error-div").shake();
+        } else {
+            $("#error-div").fadeIn();
+            $("#error-div").removeClass("d-none");
+        }
     });
-    xhr.send(data);
 }
