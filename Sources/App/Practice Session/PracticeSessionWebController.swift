@@ -114,12 +114,13 @@ final class PracticeSessionWebController: RouteCollection {
         return try req.controllers.practiceSessionController
             .get(solutions: req)
             .flatMapThrowing { solutions in
+                
                 try req.htmlkit
                     .render(
                         TaskSolution.Templates.List.self,
                         with: .init(
                             user: user,
-                            solutions: solutions
+                            solutionResources: solutions
                         )
                 )
         }

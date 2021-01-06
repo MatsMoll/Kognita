@@ -139,7 +139,7 @@ class TestSessionWebController: TestSessionWebControlling {
                         TaskSolution.Templates.List.self,
                         with: .init(
                             user: user,
-                            solutions: solutions
+                            solutionResources: TaskSolution.Resources(solutions: solutions, resources: [])
                         )
                 )
         }
