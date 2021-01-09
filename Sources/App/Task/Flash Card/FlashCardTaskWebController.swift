@@ -118,11 +118,12 @@ class FlashCardTaskWebController: RouteCollection {
         try req.controllers.taskSolutionController
             .solutionsForTask(on: req)
             .flatMapThrowing { solutions in
+                
                 try req.htmlkit.render(
                     TaskSolution.Templates.List.self,
                     with: .init(
                         user: req.auth.require(),
-                        solutions: solutions
+                        solutionResources: TaskSolution.Resources(solutions: solutions, resources: [])
                     )
                 )
         }
