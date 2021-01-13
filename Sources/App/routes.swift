@@ -68,6 +68,7 @@ private func setupUserWeb(for app: Application) throws {
     try redirectMiddle.register(collection: TestSessionWebController())
     try redirectMiddle.register(collection: TaskDiscussionWebController())
     try redirectMiddle.register(collection: LectureNoteRecapSessionWebController())
+    try redirectMiddle.register(collection: TermWebController())
 }
 
 extension HTTPCookies {
