@@ -134,7 +134,7 @@ function presentControlls() {
         $(this).removeClass("d-none");
     });
     fetchSolutions();
-    fetchDiscussions($("#task-id").val())
+    // fetchDiscussions($("#task-id").val())
 }
 
 $("input[name='choiseInput']").each(function () {
