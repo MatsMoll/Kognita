@@ -18,6 +18,8 @@ final class TopicWebController: RouteCollection {
         routes.get("creator", "subjects", Subject.parameter, "topics", Topic.parameter, "edit", use: editTopic)
         routes.get("subjects", Subject.parameter, "topics", use: modifyTopics)
         routes.get("subjects", Subject.parameter, "topics", "row", use: topicRow)
+        
+        routes.get("topics", Topic.parameter, "resources", use: resourcesForTopic)
     }
 
     func createTopic(_ req: Request) throws -> EventLoopFuture<Response> {
@@ -112,6 +114,15 @@ final class TopicWebController: RouteCollection {
 
     func topicRow(req: Request) throws -> EventLoopFuture<View> {
         try Topic.Templates.Modify.TopicRow().render(with: req.query.decode(Topic.self), for: req)
+    }
+    
+    func resourcesForTopic(on req: Request) throws -> EventLoopFuture<View> {
+        return try req.controllers
+            .resourceController
+            .resourcesForTopic(on: req)
+            .flatMap { resources in
+                ResourceCardList().render(with: .init(resources: resources), for: req)
+        }
     }
 }
 
