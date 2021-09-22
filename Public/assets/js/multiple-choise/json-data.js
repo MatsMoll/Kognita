@@ -49,6 +49,7 @@ function jsonData() {
         "question" : question,
         "isMultipleSelect" : isMultipleSelect,
         "choises" : choises,
-        "solution" : solutionValue
+        "solution" : solutionValue,
+        "resources": []
     });
 }
