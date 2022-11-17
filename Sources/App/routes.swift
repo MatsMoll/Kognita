@@ -37,11 +37,8 @@ private func setupUserWeb(for app: Application) throws {
     let redirectMiddle = sessionMiddle.grouped(RedirectMiddleware<User>(path: "/login"))
 
     sessionMiddle.get { req -> EventLoopFuture<Response> in
-        if req.auth.get(User.self) != nil {
-            return req.eventLoop.future(req.redirect(to: "/subjects"))
-        }
         
-        return req.repositories(transaction: { repo in
+        req.repositories(transaction: { repo in
             repo.userRepository.numberOfUsers().and(repo.taskResultRepository.numberOfCompletedTasks())
         })
         .flatMapThrowing { (numberOfUsers, numberOfCompletedTasks) -> Response in
