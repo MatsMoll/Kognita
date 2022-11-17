@@ -4,19 +4,18 @@ import Foundation
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.48.0"),
+    .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.67.3"),
 
     .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", from: "1.0.1"),
     
-    .package(url: "https://github.com/vapor-community/HTMLKit.git", from: "2.1.0"),
+    .package(url: "https://github.com/vapor-community/HTMLKit.git", .exact("2.1.1")),
     
-    .package(name: "RediStack", url: "https://github.com/Mordil/RediStack", from: "1.2.0"),
+    .package(name: "RediStack", url: "https://github.com/Mordil/RediStack", from: "1.3.0"),
     
     .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.15.0"),
 ]
 
 // Kognita Core
-
 
 
 switch ProcessInfo.processInfo.environment["BUILD_TYPE"] {

@@ -40,10 +40,19 @@ private func setupUserWeb(for app: Application) throws {
         if req.auth.get(User.self) != nil {
             return req.eventLoop.future(req.redirect(to: "/subjects"))
         }
-        let context = Pages.Landing.Context(showCookieMessage: req.cookies.isAccepted == false)
-
-        return try req.htmlkit.render(view: Pages.Landing.self, with: context)
-            .encodeResponse(for: req)
+        
+        return req.repositories(transaction: { repo in
+            repo.userRepository.numberOfUsers().and(repo.taskResultRepository.numberOfCompletedTasks())
+        })
+        .flatMapThrowing { (numberOfUsers, numberOfCompletedTasks) -> Response in
+            let context = Pages.Landing.Context(
+                showCookieMessage: req.cookies.isAccepted == false,
+                numberOfCompletedTasks: numberOfCompletedTasks,
+                numberOfUsers: numberOfUsers
+            )
+            
+            return try req.htmlkit.render(Pages.Landing.self, with: context)
+        }
     }
 
     app.get("privacy-policy") { req -> View in

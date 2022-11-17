@@ -8,7 +8,6 @@
 import Vapor
 import KognitaCore
 import KognitaViews
-import QTIKit
 
 final class CreatorWebController: RouteCollection {
 
@@ -91,18 +90,18 @@ final class CreatorWebController: RouteCollection {
         let files: [File]
     }
 
-    private func decodeAssessmentItems(from files: [File]) -> [AssessmentItem] {
-        var assessmentItems = [AssessmentItem]()
-        for file in files {
-            guard
-                let data = file.data.getData(at: 0, length: file.data.readableBytes),
-                let xml = String(data: data, encoding: .utf8),
-                let item = try? QTIKit.assessmentItem(withXML: xml)
-            else { continue }
-            assessmentItems.append(item)
-        }
-        return assessmentItems
-    }
+//    private func decodeAssessmentItems(from files: [File]) -> [AssessmentItem] {
+//        var assessmentItems = [AssessmentItem]()
+//        for file in files {
+//            guard
+//                let data = file.data.getData(at: 0, length: file.data.readableBytes),
+//                let xml = String(data: data, encoding: .utf8),
+//                let item = try? QTIKit.assessmentItem(withXML: xml)
+//            else { continue }
+//            assessmentItems.append(item)
+//        }
+//        return assessmentItems
+//    }
 
 //    func importQTIContent(on req: Request) throws -> EventLoopFuture<Response> {
 //
