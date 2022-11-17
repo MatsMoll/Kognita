@@ -6,7 +6,7 @@ var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
     .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.67.3"),
 
-    .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", from: "1.0.1"),
+    .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", .exact("1.0.1")),
     
     .package(url: "https://github.com/vapor-community/HTMLKit.git", .exact("2.1.1")),
     
