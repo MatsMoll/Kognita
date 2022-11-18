@@ -27,6 +27,7 @@ function jsonData() {
         "subtopicId" : subtopicId,
         "description" : descriptionValue,
         "question" : question,
-        "solution" : solutionValue
+        "solution" : solutionValue,
+        "resources": []
     });
 }

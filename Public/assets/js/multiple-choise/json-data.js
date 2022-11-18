@@ -38,8 +38,9 @@ function jsonData() {
     if (choises.filter(choise => choise.isCorrect).length < 1) {
         throw Error("Minst et alternativ må være markert som riktig. Dette kan gjøres ved å trykke på det riktige alternativet")
     }
-
-    console.log(choises);
+    if (isTestable == null) {
+        isTestable = false
+    }
 
     return JSON.stringify({
         "isTestable" : isTestable,
@@ -49,6 +50,7 @@ function jsonData() {
         "question" : question,
         "isMultipleSelect" : isMultipleSelect,
         "choises" : choises,
-        "solution" : solutionValue
+        "solution" : solutionValue,
+        "resources": []
     });
 }

@@ -4,14 +4,19 @@ import Foundation
 
 var dependencies: [Package.Dependency] = [
     // 💧 A server-side Swift web framework.
-    .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.29.0"),
+    .package(name: "vapor", url: "https://github.com/vapor/vapor.git", from: "4.67.3"),
 
-    .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", from: "1.0.1"),
+    .package(name: "HTMLKitVaporProvider", url: "https://github.com/MatsMoll/htmlkit-vapor-provider.git", .exact("1.0.1")),
     
-    .package(url: "https://github.com/vapor-community/HTMLKit.git", from: "2.1.0"),
+    .package(url: "https://github.com/vapor-community/HTMLKit.git", .exact("2.1.1")),
+    
+    .package(name: "RediStack", url: "https://github.com/Mordil/RediStack", from: "1.3.0"),
+    
+    .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.15.0"),
 ]
 
 // Kognita Core
+
 
 switch ProcessInfo.processInfo.environment["BUILD_TYPE"] {
 case "LOCAL":
@@ -23,9 +28,9 @@ case "LOCAL":
     )
 case "DEV":
     dependencies.append(contentsOf: [
-        .package(name: "KognitaCore", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", .branch("develop")),
-        .package(name: "KognitaViews", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", .branch("develop")),
-        .package(name: "KognitaAPI", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", .branch("develop"))
+        .package(name: "KognitaCore", url: "https://github.com/MatsMoll/KognitaCore", .branch("develop")),
+        .package(name: "KognitaViews", url: "https://github.com/MatsMoll/KognitaPages", .branch("develop")),
+        .package(name: "KognitaAPI", url: "https://github.com/MatsMoll/kognita-rest-api", .branch("develop"))
         ]
     )
 default:
@@ -45,9 +50,9 @@ default:
     let pagesVersion    = ProcessInfo.processInfo.environment["KOGNITA_PAGES"]  ?? "2.0.0"
     let apiVersion      = ProcessInfo.processInfo.environment["KOGNITA_API"]    ?? "2.0.0"
     dependencies.append(contentsOf: [
-        .package(name: "KognitaCore", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaCore", from: Version(stringLiteral: coreVersion)),
-        .package(name: "KognitaViews", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/KognitaPages", from: Version(stringLiteral: pagesVersion)),
-        .package(name: "KognitaAPI", url: "https://Kognita:dyjdov-bupgev-goffY8@github.com/MatsMoll/kognita-rest-api", from: Version(stringLiteral: apiVersion))
+        .package(name: "KognitaCore", url: "https://github.com/MatsMoll/KognitaCore", from: Version(stringLiteral: coreVersion)),
+        .package(name: "KognitaViews", url: "https://github.com/MatsMoll/KognitaPages", from: Version(stringLiteral: pagesVersion)),
+        .package(name: "KognitaAPI", url: "https://github.com/MatsMoll/kognita-rest-api", from: Version(stringLiteral: apiVersion))
         ]
     )
 }

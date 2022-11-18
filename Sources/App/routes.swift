@@ -37,13 +37,19 @@ private func setupUserWeb(for app: Application) throws {
     let redirectMiddle = sessionMiddle.grouped(RedirectMiddleware<User>(path: "/login"))
 
     sessionMiddle.get { req -> EventLoopFuture<Response> in
-        if req.auth.get(User.self) != nil {
-            return req.eventLoop.future(req.redirect(to: "/subjects"))
+        
+        req.repositories(transaction: { repo in
+            repo.userRepository.numberOfUsers().and(repo.taskResultRepository.numberOfCompletedTasks())
+        })
+        .flatMapThrowing { (numberOfUsers, numberOfCompletedTasks) -> Response in
+            let context = Pages.Landing.Context(
+                showCookieMessage: req.cookies.isAccepted == false,
+                numberOfCompletedTasks: numberOfCompletedTasks,
+                numberOfUsers: numberOfUsers
+            )
+            
+            return try req.htmlkit.render(Pages.Landing.self, with: context)
         }
-        let context = Pages.Landing.Context(showCookieMessage: req.cookies.isAccepted == false)
-
-        return try req.htmlkit.render(view: Pages.Landing.self, with: context)
-            .encodeResponse(for: req)
     }
 
     app.get("privacy-policy") { req -> View in
