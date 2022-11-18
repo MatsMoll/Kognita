@@ -1,6 +1,6 @@
 # Kognita
 
-This is the web server powering [kognita.no](kognita.no)
+This is the web server powering [kognita.no](https://kognita.no)
 
 It consists of five different parts.
 
